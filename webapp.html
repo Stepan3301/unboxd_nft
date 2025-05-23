@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #6c5ce7;
@@ -1109,21 +1110,104 @@
     </div>
 
     <script>
-        // Initialize Telegram WebApp
-        let tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
-
-        // Set theme colors
-        tg.setHeaderColor('#0f0c29');
-        tg.setBackgroundColor('#0f0c29');
-
-        // User data from Telegram
+        
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         const user = tg.initDataUnsafe?.user || {};
         let userFirstName = user.first_name || 'User';
         let userLastName = user.last_name || '';
         let userName = user.username ? `@${user.username}` : '';
         let userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+        let telegramId = user.id;
+        let userBalance = 0;
+
+        // Register user in Supabase and get their balance
+        async function registerUserAndGetBalance() {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                // Call the custom function we created in Supabase
+                const { data, error } = await supabase.rpc('add_user_with_balance', {
+                    p_telegram_id: telegramId,
+                    p_username: userName || '',
+                    p_first_name: userFirstName || '',
+                    p_last_name: userLastName || ''
+                });
+                
+                if (error) {
+                    console.error('Error registering user:', error);
+                    return;
+                }
+                
+                // Get user balance
+                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (balanceError) {
+                    console.error('Error getting balance:', balanceError);
+                    return;
+                }
+                
+                userBalance = balanceData || 0;
+                updateBalanceDisplay();
+                
+                console.log('User registered and balance retrieved:', userBalance);
+            } catch (err) {
+                console.error('Error in registerUserAndGetBalance:', err);
+            }
+        }
+        
+        // Update balance on the UI
+        function updateBalanceDisplay() {
+            const balanceElement = document.getElementById('user-balance');
+            if (balanceElement) {
+                balanceElement.textContent = userBalance.toLocaleString();
+            }
+            
+            // Also update balance in profile
+            const profileBalanceElement = document.getElementById('profile-balance');
+            if (profileBalanceElement) {
+                profileBalanceElement.textContent = userBalance.toLocaleString();
+            }
+        }
+        
+        // Update user balance in Supabase
+        async function updateUserBalance(amount, description, type) {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                const { data, error } = await supabase.rpc('update_balance', {
+                    p_telegram_id: telegramId,
+                    p_amount: amount,
+                    p_description: description,
+                    p_transaction_type: type
+                });
+                
+                if (error) {
+                    console.error('Error updating balance:', error);
+                    return false;
+                }
+                
+                userBalance = data || 0;
+                updateBalanceDisplay();
+                return true;
+            } catch (err) {
+                console.error('Error in updateUserBalance:', err);
+                return false;
+            }
+        }
 
         // Create floating particles
         const particlesContainer = document.getElementById('particles');
@@ -1181,9 +1265,7 @@
             if (profileName) profileName.textContent = userFirstName + (userLastName ? ' ' + userLastName : '');
             if (profileBio) profileBio.textContent = userName || 'NFT enthusiast since 2022';
             
-            // Balance
-            const balanceElement = document.getElementById('user-balance');
-            if (balanceElement) balanceElement.textContent = '1,250';  // In a real app, this would come from the user data
+            // Balance is now handled by updateBalanceDisplay()
         }
         
         // Tab Navigation (Bottom)
@@ -1264,12 +1346,30 @@
             });
         }
         
-        // Case opening animation
+        // Case opening animation with balance integration
         const openButtons = document.querySelectorAll('.open-btn, .featured-btn');
         openButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', async function() {
                 const card = this.closest('.case-card, .featured-card');
                 const img = card.querySelector('img');
+                
+                // Get the price
+                let price = 0;
+                const priceElement = card.querySelector('.price') || card.querySelector('.featured-price');
+                if (priceElement) {
+                    const priceText = priceElement.textContent.trim();
+                    // Extract number from price (assuming price is in ETH format like "0.125")
+                    const match = priceText.match(/([0-9]*[.])?[0-9]+/);
+                    if (match) {
+                        price = parseFloat(match[0]) * 100; // Convert to game currency (100 credits per ETH)
+                    }
+                }
+                
+                // Check if user has enough balance
+                if (userBalance < price) {
+                    tg.showAlert('Not enough balance to open this case. Please add funds to your wallet.');
+                    return;
+                }
                 
                 // Simple animation
                 img.style.transform = 'scale(1.2) rotate(10deg)';
@@ -1281,6 +1381,15 @@
                 }
                 
                 this.disabled = true;
+                
+                // Deduct the price from balance
+                const success = await updateUserBalance(-price, `Opened a ${card.querySelector('.case-name')?.textContent || 'NFT'} case`, 'purchase');
+                
+                if (!success) {
+                    tg.showAlert('Failed to process the transaction. Please try again.');
+                    this.disabled = false;
+                    return;
+                }
                 
                 setTimeout(() => {
                     img.style.transform = 'scale(1) rotate(0deg)';
@@ -1299,19 +1408,47 @@
             });
         });
         
-        // Buy Now buttons
+        // Buy Now buttons with balance integration
         document.querySelectorAll('.btn').forEach(button => {
             if (button.textContent === 'Buy Now') {
-                button.addEventListener('click', () => {
-                    tg.showAlert('Purchasing NFT! In a real implementation, this would connect to your wallet and process the transaction.');
+                button.addEventListener('click', async () => {
+                    const card = button.closest('.nft-card');
+                    const priceElement = card.querySelector('.nft-price');
+                    
+                    let price = 0;
+                    if (priceElement) {
+                        const priceText = priceElement.textContent.trim();
+                        const match = priceText.match(/([0-9]*[.])?[0-9]+/);
+                        if (match) {
+                            price = parseFloat(match[0]) * 100; // Convert to game currency
+                        }
+                    }
+                    
+                    // Check if user has enough balance
+                    if (userBalance < price) {
+                        tg.showAlert('Not enough balance to buy this NFT. Please add funds to your wallet.');
+                        return;
+                    }
+                    
+                    // Deduct the price from balance
+                    const success = await updateUserBalance(-price, `Purchased ${card.querySelector('.nft-title')?.textContent || 'NFT'}`, 'purchase');
+                    
+                    if (success) {
+                        tg.showAlert('Purchase successful! The NFT has been added to your collection.');
+                    } else {
+                        tg.showAlert('Failed to process the transaction. Please try again.');
+                    }
                 });
             }
         });
         
         // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Debug: Log user data from Telegram
             console.log('Telegram user data:', tg.initDataUnsafe?.user);
+            
+            // Register user and get balance from Supabase
+            await registerUserAndGetBalance();
             
             // Update user data
             updateUserData();
