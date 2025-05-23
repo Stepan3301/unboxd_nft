@@ -92,9 +92,10 @@
             margin-right: 10px;
         }
         
-        .wallet i {
+        .wallet img {
+            width: 18px;
+            height: 18px;
             margin-right: 5px;
-            color: var(--secondary);
         }
         
         .avatar {
@@ -118,13 +119,17 @@
         }
         
         .nav {
-            display: flex;
+            display: none; /* Hide by default */
             justify-content: space-around;
             padding: 15px 0;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
             position: relative;
             z-index: 10;
+        }
+        
+        .nav.show {
+            display: flex; /* Show when .show class is added */
         }
         
         .nav-item {
@@ -767,7 +772,7 @@
             </div>
             <div class="user-info">
                 <div class="wallet">
-                    <i class="fas fa-wallet"></i>
+                    <img src="ucoin.png" alt="UCoin" />
                     <span id="user-balance">1,250</span>
                 </div>
                 <div class="avatar" id="user-avatar">
@@ -776,7 +781,7 @@
             </div>
         </header>
         
-        <nav class="nav">
+        <nav class="nav" id="rarity-nav">
             <div class="nav-item active" data-tab="all">All Cases</div>
             <div class="nav-item" data-tab="legendary">Legendary</div>
             <div class="nav-item" data-tab="epic">Epic</div>
@@ -1035,8 +1040,8 @@
                     </div>
                     
                     <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
-                        <i class="fas fa-wallet"></i>
-                        <span>1.25 ETH</span>
+                        <img src="ucoin.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                        <span id="profile-balance">1.25 ETH</span>
                     </div>
                 </div>
                 
@@ -1110,14 +1115,17 @@
     </div>
 
     <script>
+        // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         
         // Initialize Supabase client - FIXED INITIALIZATION
         const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
+        // Fix: proper initialization of Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
+        // User data from Telegram
         const user = tg.initDataUnsafe?.user || {};
         let userFirstName = user.first_name || 'User';
         let userLastName = user.last_name || '';
@@ -1129,6 +1137,44 @@
         // Debug: Log Telegram user data
         console.log('Telegram user data:', user);
         console.log('Telegram ID:', telegramId);
+
+        // Update profile wallet display to use ucoin img instead of "UCoin" text
+        function updateProfileWalletDisplay() {
+            const profileWallet = document.querySelector('.profile-section .wallet');
+            if (profileWallet) {
+                profileWallet.innerHTML = `
+                    <img src="ucoin.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                    <span id="profile-balance">${userBalance.toLocaleString()}</span>
+                `;
+            }
+        }
+
+        // Function to control the visibility of the rarity nav
+        function updateRarityNavVisibility(tabId) {
+            const rarityNav = document.getElementById('rarity-nav');
+            if (tabId === 'cases-tab') {
+                rarityNav.classList.add('show');
+            } else {
+                rarityNav.classList.remove('show');
+            }
+        }
+
+        // Original update balance function
+        function updateBalanceDisplay() {
+            const balanceElement = document.getElementById('user-balance');
+            if (balanceElement) {
+                balanceElement.textContent = userBalance.toLocaleString();
+            }
+            
+            // Also update balance in profile
+            const profileBalanceElement = document.getElementById('profile-balance');
+            if (profileBalanceElement) {
+                profileBalanceElement.textContent = userBalance.toLocaleString();
+            }
+            
+            // Also update the profile section if it exists
+            updateProfileWalletDisplay();
+        }
 
         // Register user in Supabase and get their balance
         async function registerUserAndGetBalance() {
@@ -1174,20 +1220,6 @@
             } catch (err) {
                 console.error('Error in registerUserAndGetBalance:', err);
                 tg.showAlert('Error connecting to the service. Please try again later.');
-            }
-        }
-        
-        // Update balance on the UI
-        function updateBalanceDisplay() {
-            const balanceElement = document.getElementById('user-balance');
-            if (balanceElement) {
-                balanceElement.textContent = userBalance.toLocaleString();
-            }
-            
-            // Also update balance in profile section
-            const profileBalance = document.querySelector('.wallet span');
-            if (profileBalance) {
-                profileBalance.textContent = userBalance.toLocaleString() + ' UCoin';
             }
         }
         
@@ -1282,7 +1314,8 @@
             if (profileName) profileName.textContent = userFirstName + (userLastName ? ' ' + userLastName : '');
             if (profileBio) profileBio.textContent = userName || 'NFT enthusiast since 2022';
             
-            // Balance is now handled by updateBalanceDisplay()
+            // Update profile wallet display
+            updateProfileWalletDisplay();
         }
         
         // Tab Navigation (Bottom)
@@ -1304,6 +1337,9 @@
                 const targetTab = document.getElementById(tabId);
                 if (targetTab) targetTab.classList.add('active');
                 
+                // Update rarity navigation visibility based on tab
+                updateRarityNavVisibility(tabId);
+                
                 // If profile tab is selected, update user data
                 if (tabId === 'profile-tab') {
                     updateUserData();
@@ -1311,7 +1347,7 @@
             });
         });
         
-        // Top navigation items
+        // Top navigation items - Restore this functionality
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -1324,7 +1360,7 @@
             });
         });
         
-        // Filter cases by rarity (placeholder functionality)
+        // Filter cases by rarity - Restore this functionality
         function filterCasesByRarity(rarity) {
             if (rarity === 'all') {
                 document.querySelectorAll('.case-card').forEach(card => {
@@ -1356,6 +1392,9 @@
                 });
                 
                 document.getElementById('cases-tab').classList.add('active');
+                
+                // Show the rarity navigation for the cases tab
+                updateRarityNavVisibility('cases-tab');
                 
                 // Show opening animation for featured case
                 const featuredBtn = document.querySelector('.featured-btn');
@@ -1468,6 +1507,9 @@
             
             // Update user data
             updateUserData();
+            
+            // Set initial rarity nav visibility
+            updateRarityNavVisibility('cases-tab');
         });
     </script>
 </body>
