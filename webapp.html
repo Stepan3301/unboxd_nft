@@ -5,51 +5,1317 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UnboxdNFT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #1e1e1e;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --success: #00b894;
+            --light-text: #dfe6e9;
+            --tab-height: 60px;
+            --gradient-gold: linear-gradient(to right, #f1c40f, #e67e22);
+            --gradient-epic: linear-gradient(to right, #9b59b6, #8e44ad);
+            --gradient-rare: linear-gradient(to right, #3498db, #2980b9);
+            --gradient-common: linear-gradient(to right, #95a5a6, #7f8c8d);
+            --dark: #2d3436;
+            --light: #dfe6e9;
+        }
+        
+        * {
             margin: 0;
-            flex-direction: column;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+            background: rgba(20, 20, 35, 0.9);
+        }
+        
+        /* Header and Navigation */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .wallet {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .wallet i {
+            margin-right: 5px;
+            color: var(--secondary);
+        }
+        
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .nav-item {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: white;
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid rgba(108, 92, 231, 0.5);
+        }
+        
+        /* Main Content */
+        .main {
+            padding: 20px;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+            padding-bottom: 70px;
+            overflow-y: auto;
+            height: calc(100vh - 120px);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Titles */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+        
+        .section-title i {
+            margin-right: 8px;
+            color: var(--accent);
+        }
+        
+        /* Featured Case */
+        .featured-case {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .featured-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .featured-image {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+        
+        .featured-image img {
+            width: 70%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(108, 92, 231, 0.7));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        .featured-info {
+            padding: 20px;
+            position: relative;
+        }
+        
+        .featured-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .featured-desc {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+        }
+        
+        .featured-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--secondary);
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .featured-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .featured-price {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+        
+        .featured-price i {
+            margin-right: 5px;
+        }
+        
+        .featured-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .featured-btn i {
+            margin-left: 8px;
+        }
+        
+        .featured-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+        
+        /* Cases Grid */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .case-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3);
+            border-color: rgba(108, 92, 231, 0.5);
+        }
+        
+        .case-image {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .case-image img {
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(108, 92, 231, 0.5));
+            transition: all 0.5s ease;
+        }
+        
+        .case-card:hover .case-image img {
+            transform: scale(1.1) rotate(-5deg);
+        }
+        
+        .case-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(108, 92, 231, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .case-card:hover .case-glow {
+            opacity: 1;
+        }
+        
+        .case-info {
+            padding: 15px;
+        }
+        
+        .case-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .case-rarity {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .rarity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .legendary .rarity-indicator {
+            background: linear-gradient(45deg, #f1c40f, #e67e22);
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+        }
+        
+        .epic .rarity-indicator {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.7);
+        }
+        
+        .rare .rarity-indicator {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+        }
+        
+        .common .rarity-indicator {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 0 10px rgba(149, 165, 166, 0.7);
+        }
+        
+        .rarity-text {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .case-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--secondary);
+        }
+        
+        .price i {
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .open-btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .open-btn i {
+            margin-left: 5px;
+        }
+        
+        .open-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+        }
+        
+        /* NFT Cards */
+        .nft-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nft-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        
+        .nft-info {
+            padding: 15px;
+        }
+        
+        .nft-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .nft-price {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .eth-icon {
+            height: 16px;
+            width: 16px;
+            margin-right: 5px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
             text-align: center;
         }
-        .container {
-            max-width: 800px;
-            padding: 20px;
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
         }
-        h1 {
-            color: #8774e1;
+        
+        /* Rarity Badges */
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 5;
+        }
+        
+        .rarity-legendary {
+            background: var(--gradient-gold);
+        }
+        
+        .rarity-epic {
+            background: var(--gradient-epic);
+        }
+        
+        .rarity-rare {
+            background: var(--gradient-rare);
+        }
+        
+        .rarity-common {
+            background: var(--gradient-common);
+        }
+        
+        /* Particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: particleFloat linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+        
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn i {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+        }
+        
+        .nav-btn.center {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -25px;
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
+            position: relative;
+            border: 3px solid rgba(0, 0, 0, 0.8);
+        }
+        
+        .nav-btn.center i {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .nav-btn.center span {
+            position: absolute;
+            bottom: -25px;
+            color: white;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            margin: 0 auto 15px;
+        }
+        
+        .profile-username {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-bio {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 20px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .profile-stat {
+            text-align: center;
+        }
+        
+        /* Inventory Section */
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .inventory-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        
+        .inventory-details {
+            flex: 1;
+        }
+        
+        .inventory-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        /* Info Section */
+        .info-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .info-section h3 {
+            font-size: 1rem;
+            margin: 15px 0 10px;
+            color: var(--primary);
+        }
+        
+        .info-section p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+        
+        .info-section ul {
+            margin-left: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .info-section li {
+            margin-bottom: 8px;
+        }
+        
+        .rarity-text {
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>UnboxdNFT</h1>
-        <p>Hello user!</p>
+        <div class="particles" id="particles"></div>
+        
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-cube"></i> UnboxdNFT
+            </div>
+            <div class="user-info">
+                <div class="wallet">
+                    <i class="fas fa-wallet"></i>
+                    <span id="user-balance">1,250</span>
+                </div>
+                <div class="avatar" id="user-avatar">
+                    <img src="https://picsum.photos/seed/profile/300" alt="User Avatar">
+                </div>
+            </div>
+        </header>
+        
+        <nav class="nav">
+            <div class="nav-item active" data-tab="all">All Cases</div>
+            <div class="nav-item" data-tab="legendary">Legendary</div>
+            <div class="nav-item" data-tab="epic">Epic</div>
+            <div class="nav-item" data-tab="rare">Rare</div>
+        </nav>
+        
+        <main class="main">
+            <!-- Cases Tab -->
+            <div class="tab-content active" id="cases-tab">
+                <div class="featured-case">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i> Featured Case
+                    </h2>
+                    <div class="featured-card">
+                        <div class="featured-image">
+                            <img src="https://picsum.photos/seed/case1/300" alt="Featured NFT Case">
+                        </div>
+                        <div class="featured-info">
+                            <h3 class="featured-name">Crypto Punk: Genesis</h3>
+                            <p class="featured-desc">Exclusive collection of rare NFTs from top artists. Limited edition case with guaranteed legendary drop.</p>
+                            
+                            <div class="featured-stats">
+                                <div class="stat">
+                                    <div class="stat-value">12</div>
+                                    <div class="stat-label">ITEMS</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">3</div>
+                                    <div class="stat-label">LEGENDARY</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">5</div>
+                                    <div class="stat-label">EPIC</div>
+                                </div>
+                            </div>
+                            
+                            <div class="featured-action">
+                                <div class="featured-price">
+                                    <i class="fab fa-ethereum"></i> 0.125
+                                </div>
+                                <button class="featured-btn">
+                                    Open Case <i class="fas fa-unlock"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="section-title">
+                    <i class="fas fa-boxes"></i> Popular Cases
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="case-card">
+                        <div class="case-image">
+                            <div class="case-glow"></div>
+                            <img src="https://picsum.photos/seed/case2/300" alt="Bored Ape NFT Case">
+                        </div>
+                        <div class="case-info">
+                            <h3 class="case-name">Bored Ape Case</h3>
+                            <div class="case-rarity epic">
+                                <div class="rarity-indicator"></div>
+                                <div class="rarity-text">EPIC</div>
+                            </div>
+                            <div class="case-price">
+                                <div class="price">
+                                    <i class="fab fa-ethereum"></i> 0.085
+                                </div>
+                                <button class="open-btn">
+                                    Open <i class="fas fa-unlock-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="case-card">
+                        <div class="case-image">
+                            <div class="case-glow"></div>
+                            <img src="https://picsum.photos/seed/case3/300" alt="Azuki NFT Case">
+                        </div>
+                        <div class="case-info">
+                            <h3 class="case-name">Azuki Case</h3>
+                            <div class="case-rarity rare">
+                                <div class="rarity-indicator"></div>
+                                <div class="rarity-text">RARE</div>
+                            </div>
+                            <div class="case-price">
+                                <div class="price">
+                                    <i class="fab fa-ethereum"></i> 0.065
+                                </div>
+                                <button class="open-btn">
+                                    Open <i class="fas fa-unlock-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="case-card">
+                        <div class="case-image">
+                            <div class="case-glow"></div>
+                            <img src="https://picsum.photos/seed/case4/300" alt="Starter NFT Case">
+                        </div>
+                        <div class="case-info">
+                            <h3 class="case-name">Starter Case</h3>
+                            <div class="case-rarity common">
+                                <div class="rarity-indicator"></div>
+                                <div class="rarity-text">COMMON</div>
+                            </div>
+                            <div class="case-price">
+                                <div class="price">
+                                    <i class="fab fa-ethereum"></i> 0.025
+                                </div>
+                                <button class="open-btn">
+                                    Open <i class="fas fa-unlock-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="case-card">
+                        <div class="case-image">
+                            <div class="case-glow"></div>
+                            <img src="https://picsum.photos/seed/case5/300" alt="Mystery NFT Case">
+                        </div>
+                        <div class="case-info">
+                            <h3 class="case-name">Mystery Case</h3>
+                            <div class="case-rarity legendary">
+                                <div class="rarity-indicator"></div>
+                                <div class="rarity-text">LEGENDARY</div>
+                            </div>
+                            <div class="case-price">
+                                <div class="price">
+                                    <i class="fab fa-ethereum"></i> 0.045
+                                </div>
+                                <button class="open-btn">
+                                    Open <i class="fas fa-unlock-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Marketplace Tab -->
+            <div class="tab-content" id="marketplace-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-store"></i> Marketplace
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-legendary">Legendary</span>
+                        <img src="https://picsum.photos/seed/nft1/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Crypto Punk #3784</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 2.5 ETH
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-epic">Epic</span>
+                        <img src="https://picsum.photos/seed/nft2/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Bored Ape #7865</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 1.8 ETH
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-rare">Rare</span>
+                        <img src="https://picsum.photos/seed/nft3/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Azuki #4532</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 0.95 ETH
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-common">Common</span>
+                        <img src="https://picsum.photos/seed/nft4/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Pixel Art #209</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 0.35 ETH
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Tab -->
+            <div class="tab-content" id="inventory-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-box-open"></i> Your Collection
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-epic">Epic</span>
+                        <img src="https://picsum.photos/seed/inv1/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Bored Ape #2156</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 1.8 ETH
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-rare">Rare</span>
+                        <img src="https://picsum.photos/seed/inv2/300" alt="NFT" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Azuki #8721</div>
+                            <div class="nft-price">
+                                <i class="fab fa-ethereum"></i> 0.85 ETH
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profile-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> Profile
+                </h2>
+                
+                <div class="profile-section">
+                    <img src="https://picsum.photos/seed/profile/300" alt="Profile" class="profile-avatar" id="profile-avatar">
+                    <h2 class="profile-username" id="profile-username">CryptoCollector</h2>
+                    <p class="profile-bio" id="profile-bio">NFT enthusiast and collector since 2021</p>
+                    
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">NFTs</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">42</div>
+                            <div class="stat-label">CASES OPENED</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">3</div>
+                            <div class="stat-label">LEGENDARY</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
+                        <i class="fas fa-wallet"></i>
+                        <span>1.25 ETH</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 20px;">
+                    <i class="fas fa-crown"></i> Achievements
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="inventory-item" style="width: 100%;">
+                        <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
+                        <div class="inventory-details">
+                            <div class="inventory-title">First Legendary</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Obtained your first legendary NFT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Tab -->
+            <div class="tab-content" id="info-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i> About
+                </h2>
+                
+                <div class="info-section">
+                    <h2>About UnboxdNFT</h2>
+                    <p>UnboxdNFT is a platform that allows users to open digital cases containing NFTs of varying rarity. The platform uses blockchain technology to ensure transparency and authenticity of all transactions and NFT ownership.</p>
+                    
+                    <h3>How it Works</h3>
+                    <p>1. Purchase a case using ETH or UCoins<br>
+                    2. Open the case to reveal your NFT<br>
+                    3. Keep your NFT in your collection or sell it on the marketplace</p>
+                    
+                    <h3>Rarity Levels</h3>
+                    <ul>
+                        <li><span class="rarity-text" style="color: #f1c40f;">Legendary</span> - Extremely rare and valuable NFTs (1% chance)</li>
+                        <li><span class="rarity-text" style="color: #9b59b6;">Epic</span> - Very rare NFTs with special attributes (5% chance)</li>
+                        <li><span class="rarity-text" style="color: #3498db;">Rare</span> - Uncommon NFTs with unique features (15% chance)</li>
+                        <li><span class="rarity-text" style="color: #95a5a6;">Common</span> - Standard NFTs that are more widely available (79% chance)</li>
+                    </ul>
+                    
+                    <h3>Contact Support</h3>
+                    <p>Need help or have questions? Contact our support team through the Telegram bot. We're available 24/7 to assist with any issues or inquiries about the platform.</p>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <div class="nav-btn active" data-tab="cases-tab">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-btn" data-tab="marketplace-tab">
+                <i class="fas fa-search"></i>
+                <span>Explore</span>
+            </div>
+            <div class="nav-btn center">
+                <i class="fas fa-box-open"></i>
+                <span>Open</span>
+            </div>
+            <div class="nav-btn" data-tab="inventory-tab">
+                <i class="fas fa-trophy"></i>
+                <span>Inventory</span>
+                <div class="notification-badge">2</div>
+            </div>
+            <div class="nav-btn" data-tab="profile-tab">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </nav>
     </div>
 
     <script>
+        // Initialize Telegram WebApp
         let tg = window.Telegram.WebApp;
-        
-        // Enable closing confirmation
-        tg.enableClosingConfirmation();
-        
-        // Initialize the Web App
         tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Set theme colors
+        tg.setHeaderColor('#0f0c29');
+        tg.setBackgroundColor('#0f0c29');
+
+        // User data from Telegram
+        const user = tg.initDataUnsafe?.user || {};
+        let userFirstName = user.first_name || 'User';
+        let userLastName = user.last_name || '';
+        let userName = user.username ? `@${user.username}` : '';
+        let userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 30;
         
-        // Set the header color
-        tg.setHeaderColor('#1e1e1e');
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random position
+            const posX = Math.random() * 100;
+            const posY = Math.random() * 100;
+            
+            // Random size
+            const size = Math.random() * 4 + 1;
+            
+            // Random opacity
+            const opacity = Math.random() * 0.5 + 0.1;
+            
+            // Random animation duration
+            const duration = Math.random() * 20 + 10;
+            
+            // Random delay
+            const delay = Math.random() * 10;
+            
+            particle.style.left = `${posX}%`;
+            particle.style.top = `${posY}%`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.opacity = opacity;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+
+        // Update user data
+        function updateUserData() {
+            // Avatar
+            const avatarContainer = document.getElementById('user-avatar');
+            if (avatarContainer) {
+                const avatarImg = avatarContainer.querySelector('img');
+                if (avatarImg) {
+                    avatarImg.src = userPhotoUrl;
+                    avatarImg.alt = `${userFirstName}'s avatar`;
+                }
+            }
+            
+            // Profile data
+            const profileAvatar = document.getElementById('profile-avatar');
+            const profileName = document.getElementById('profile-username');
+            const profileBio = document.getElementById('profile-bio');
+            
+            if (profileAvatar) profileAvatar.src = userPhotoUrl;
+            if (profileName) profileName.textContent = userFirstName + (userLastName ? ' ' + userLastName : '');
+            if (profileBio) profileBio.textContent = userName || 'NFT enthusiast since 2022';
+            
+            // Balance
+            const balanceElement = document.getElementById('user-balance');
+            if (balanceElement) balanceElement.textContent = '1,250';  // In a real app, this would come from the user data
+        }
         
-        // Set the background color
-        tg.setBackgroundColor('#1e1e1e');
+        // Tab Navigation (Bottom)
+        const bottomNavBtns = document.querySelectorAll('.nav-btn');
+        bottomNavBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                bottomNavBtns.forEach(nav => nav.classList.remove('active'));
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const targetTab = document.getElementById(tabId);
+                if (targetTab) targetTab.classList.add('active');
+                
+                // If profile tab is selected, update user data
+                if (tabId === 'profile-tab') {
+                    updateUserData();
+                }
+            });
+        });
         
-        // You can add more interactive elements and functionality here
+        // Top navigation items
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Filter cases by rarity
+                const rarity = item.getAttribute('data-tab');
+                filterCasesByRarity(rarity);
+            });
+        });
+        
+        // Filter cases by rarity (placeholder functionality)
+        function filterCasesByRarity(rarity) {
+            if (rarity === 'all') {
+                document.querySelectorAll('.case-card').forEach(card => {
+                    card.style.display = 'block';
+                });
+            } else {
+                document.querySelectorAll('.case-card').forEach(card => {
+                    const cardRarity = card.querySelector('.rarity-text')?.textContent.toLowerCase();
+                    if (cardRarity === rarity.toUpperCase()) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Center button functionality
+        const centerBtn = document.querySelector('.nav-btn.center');
+        if (centerBtn) {
+            centerBtn.addEventListener('click', () => {
+                // Show the cases tab
+                bottomNavBtns.forEach(btn => {
+                    if (btn !== centerBtn) btn.classList.remove('active');
+                });
+                
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                document.getElementById('cases-tab').classList.add('active');
+                
+                // Show opening animation for featured case
+                const featuredBtn = document.querySelector('.featured-btn');
+                if (featuredBtn) featuredBtn.click();
+            });
+        }
+        
+        // Case opening animation
+        const openButtons = document.querySelectorAll('.open-btn, .featured-btn');
+        openButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.case-card, .featured-card');
+                const img = card.querySelector('img');
+                
+                // Simple animation
+                img.style.transform = 'scale(1.2) rotate(10deg)';
+                
+                if (this.classList.contains('featured-btn')) {
+                    this.innerHTML = 'Opening... <i class="fas fa-spinner fa-spin"></i>';
+                } else {
+                    this.innerHTML = 'Opening... <i class="fas fa-spinner fa-spin"></i>';
+                }
+                
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    img.style.transform = 'scale(1) rotate(0deg)';
+                    
+                    if (this.classList.contains('featured-btn')) {
+                        this.innerHTML = 'Open Case <i class="fas fa-unlock"></i>';
+                    } else {
+                        this.innerHTML = 'Open <i class="fas fa-unlock-alt"></i>';
+                    }
+                    
+                    this.disabled = false;
+                    
+                    // Here you would typically show the NFT reveal animation
+                    tg.showAlert('NFT Case opened! You got a rare item!');
+                }, 1500);
+            });
+        });
+        
+        // Buy Now buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            if (button.textContent === 'Buy Now') {
+                button.addEventListener('click', () => {
+                    tg.showAlert('Purchasing NFT! In a real implementation, this would connect to your wallet and process the transaction.');
+                });
+            }
+        });
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Debug: Log user data from Telegram
+            console.log('Telegram user data:', tg.initDataUnsafe?.user);
+            
+            // Update user data
+            updateUserData();
+        });
     </script>
 </body>
-</html> 
+</html>
