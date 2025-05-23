@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #6c5ce7;
@@ -1113,10 +1113,10 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Initialize Supabase client
+        // Initialize Supabase client - FIXED INITIALIZATION
         const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         const user = tg.initDataUnsafe?.user || {};
         let userFirstName = user.first_name || 'User';
@@ -1126,13 +1126,20 @@
         let telegramId = user.id;
         let userBalance = 0;
 
+        // Debug: Log Telegram user data
+        console.log('Telegram user data:', user);
+        console.log('Telegram ID:', telegramId);
+
         // Register user in Supabase and get their balance
         async function registerUserAndGetBalance() {
             try {
                 if (!telegramId) {
                     console.error('No Telegram ID available');
+                    tg.showAlert('Unable to identify user. Please restart the app.');
                     return;
                 }
+                
+                console.log('Attempting to register user with ID:', telegramId);
                 
                 // Call the custom function we created in Supabase
                 const { data, error } = await supabase.rpc('add_user_with_balance', {
@@ -1144,8 +1151,11 @@
                 
                 if (error) {
                     console.error('Error registering user:', error);
+                    tg.showAlert('Error connecting to database. Please try again later.');
                     return;
                 }
+                
+                console.log('User registered successfully:', data);
                 
                 // Get user balance
                 const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
@@ -1163,6 +1173,7 @@
                 console.log('User registered and balance retrieved:', userBalance);
             } catch (err) {
                 console.error('Error in registerUserAndGetBalance:', err);
+                tg.showAlert('Error connecting to the service. Please try again later.');
             }
         }
         
@@ -1173,10 +1184,10 @@
                 balanceElement.textContent = userBalance.toLocaleString();
             }
             
-            // Also update balance in profile
-            const profileBalanceElement = document.getElementById('profile-balance');
-            if (profileBalanceElement) {
-                profileBalanceElement.textContent = userBalance.toLocaleString();
+            // Also update balance in profile section
+            const profileBalance = document.querySelector('.wallet span');
+            if (profileBalance) {
+                profileBalance.textContent = userBalance.toLocaleString() + ' UCoin';
             }
         }
         
@@ -1185,8 +1196,11 @@
             try {
                 if (!telegramId) {
                     console.error('No Telegram ID available');
-                    return;
+                    tg.showAlert('Unable to identify user. Please restart the app.');
+                    return false;
                 }
+                
+                console.log('Updating balance:', { telegramId, amount, description, type });
                 
                 const { data, error } = await supabase.rpc('update_balance', {
                     p_telegram_id: telegramId,
@@ -1197,14 +1211,17 @@
                 
                 if (error) {
                     console.error('Error updating balance:', error);
+                    tg.showAlert('Error processing transaction. Please try again.');
                     return false;
                 }
                 
                 userBalance = data || 0;
                 updateBalanceDisplay();
+                console.log('Balance updated successfully:', userBalance);
                 return true;
             } catch (err) {
                 console.error('Error in updateUserBalance:', err);
+                tg.showAlert('Error processing transaction. Please try again.');
                 return false;
             }
         }
@@ -1444,8 +1461,7 @@
         
         // Initialize app
         document.addEventListener('DOMContentLoaded', async () => {
-            // Debug: Log user data from Telegram
-            console.log('Telegram user data:', tg.initDataUnsafe?.user);
+            console.log('App initialized');
             
             // Register user and get balance from Supabase
             await registerUserAndGetBalance();
