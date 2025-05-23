@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UnboxdNFT</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            padding: 20px;
+        }
+        h1 {
+            color: #8774e1;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UnboxdNFT</h1>
+        <p>Hello user!</p>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        
+        // Enable closing confirmation
+        tg.enableClosingConfirmation();
+        
+        // Initialize the Web App
+        tg.expand();
+        
+        // Set the header color
+        tg.setHeaderColor('#1e1e1e');
+        
+        // Set the background color
+        tg.setBackgroundColor('#1e1e1e');
+        
+        // You can add more interactive elements and functionality here
+    </script>
+</body>
+</html> 
