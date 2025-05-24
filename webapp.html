@@ -1803,15 +1803,26 @@
         let telegramId = user.id;
         let userBalance = 0;
 
+        // Log extended debug info for Telegram connection
+        console.log("Detailed user data:", {
+            telegramId: telegramId,
+            firstName: userFirstName,
+            lastName: userLastName,
+            userName: userName,
+            photoUrl: userPhotoUrl
+        });
+        
+        // Log more details about the Telegram connection
+        console.log("Is Telegram WebApp defined:", typeof window.Telegram !== "undefined" && typeof window.Telegram.WebApp !== "undefined");
+        if (window.Telegram && window.Telegram.WebApp) {
+            console.log("Telegram WebApp initData:", window.Telegram.WebApp.initData ? "present" : "missing");
+            console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
+        }
+
         // Debug: Log Telegram user data
         console.log('Telegram user data:', user);
         console.log('Telegram ID:', telegramId);
-    // Log more details about the Telegram connection
-    console.log("Is Telegram WebApp defined:", typeof window.Telegram !== "undefined" && typeof window.Telegram.WebApp !== "undefined");
-    if (window.Telegram && window.Telegram.WebApp) {
-        console.log("Telegram WebApp initData:", window.Telegram.WebApp.initData ? "present" : "missing");
-        console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
-    }
+
         // Update profile wallet display to use ucoin img instead of "UCoin" text
         function updateProfileWalletDisplay() {
             const profileWallet = document.querySelector('.profile-section .wallet');
@@ -2088,14 +2099,7 @@
                 
                 // Show the rarity navigation for the cases tab
                 updateRarityNavVisibility('cases-tab');
-            
-            // Final check if we have Telegram user ID
-            if (!telegramId) {
-                console.error("No Telegram ID available after initialization");
-                showCustomDialog("Unable to connect to Telegram. Please restart the app.");
-            } else {
-                console.log("Telegram connection validated with ID:", telegramId);
-            }            });
+            });
         }
         
         // Case opening animation with balance integration
@@ -2235,22 +2239,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('App initialized');
             
-            // Verify Telegram connection before proceeding
-            if (!telegramId) {
-                console.error('No Telegram ID available at initialization');
-                
-                // Try to get data again
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-                    console.log('Found Telegram ID on retry:', window.Telegram.WebApp.initDataUnsafe.user.id);
-                    telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                } else {
-                    showCustomDialog('Unable to connect to Telegram. Please restart the app.');
-                    return; // Stop initialization if we can't get Telegram ID
-                }
-            }
-            
-            console.log('Proceeding with Telegram ID:', telegramId);
-            
             // Register user and get balance from Supabase
             await registerUserAndGetBalance();
             
@@ -2265,8 +2253,6 @@
             
             // Set initial rarity nav visibility
             updateRarityNavVisibility('cases-tab');
-            
-            console.log('Initialization complete with Telegram ID:', telegramId);
         });
 
         // Function to show case detail
@@ -2308,14 +2294,7 @@
             
             // Show rarity nav
             updateRarityNavVisibility('cases-tab');
-            
-            // Final check if we have Telegram user ID
-            if (!telegramId) {
-                console.error("No Telegram ID available after initialization");
-                showCustomDialog("Unable to connect to Telegram. Please restart the app.");
-            } else {
-                console.log("Telegram connection validated with ID:", telegramId);
-            }        });
+        });
 
         // Labubu skins data with tiers
         const labubuSkins = [
@@ -2704,14 +2683,7 @@
             
             // Set initial rarity nav visibility
             updateRarityNavVisibility('cases-tab');
-            
-            // Final check if we have Telegram user ID
-            if (!telegramId) {
-                console.error("No Telegram ID available after initialization");
-                showCustomDialog("Unable to connect to Telegram. Please restart the app.");
-            } else {
-                console.log("Telegram connection validated with ID:", telegramId);
-            }        });
+        });
 
         // Load inventory when that tab is selected
         bottomNavBtns.forEach(btn => {
@@ -2748,97 +2720,6 @@
 
         // Replace all Telegram showAlert calls with our custom dialog
         // Function to create Telegram user object if testing outside Telegram
-        // Function to check and log Telegram API availability
-        function ensureTelegramApiAvailable() {
-            if (typeof window.Telegram === 'undefined' || typeof window.Telegram.WebApp === 'undefined') {
-                console.warn("Telegram WebApp API not available - this might be a development environment");
-                // Only create mock in development, not in production
-                if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-                    console.log("Creating mock Telegram API for development");
-                    window.Telegram = {
-                        WebApp: {
-                            initData: '',
-                            initDataUnsafe: { 
-                                user: { 
-                                    id: 12345678,
-                                    first_name: 'Test',
-                                    username: 'testuser' 
-                                } 
-                            },
-                            expand: function() {},
-                            showAlert: function(message) {
-                                console.log('Alert would show:', message);
-                                showCustomDialog(message);
-                            },
-                            showConfirm: function(message) {
-                                console.log('Confirm would show:', message);
-                                return true;
-                            }
-                        }
-                    };
-                } else {
-                    // We're in production but Telegram API is not available
-                    console.error("CRITICAL: Telegram WebApp API not available in production environment!");
-                    
-                    // Try to reload the page to fix the issue
-                    setTimeout(function() {
-                        if (confirm("Connection to Telegram failed. Reload the page?")) {
-                            window.location.reload();
-                        }
-                    }, 1000);
-                }
-            } else {
-                console.log("Real Telegram WebApp API detected - Version:", window.Telegram.WebApp.version);
-                console.log("Telegram user data:", window.Telegram.WebApp.initDataUnsafe?.user);
-                
-                // Check if we have a valid Telegram user ID
-                if (!window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-                    console.error("CRITICAL: No Telegram user ID available!");
-                    
-                    // Try to reload the page to fix the issue
-                    setTimeout(function() {
-                        if (confirm("Unable to get your Telegram ID. Reload the page?")) {
-                            window.location.reload();
-                        }
-                    }, 1000);
-                } else {
-                    console.log("Valid Telegram ID found:", window.Telegram.WebApp.initDataUnsafe.user.id);
-                    
-                    // Make sure telegramId is set globally
-                    if (typeof telegramId === 'undefined' || !telegramId) {
-                        telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                        console.log("Fixed missing telegramId:", telegramId);
-                    }
-                }
-                
-                // Log more details about the Telegram connection
-                console.log("Is Telegram WebApp fully defined:", 
-                    typeof window.Telegram !== "undefined" && 
-                    typeof window.Telegram.WebApp !== "undefined" &&
-                    typeof window.Telegram.WebApp.initDataUnsafe !== "undefined");
-                
-                if (window.Telegram && window.Telegram.WebApp) {
-                    console.log("Telegram WebApp initData:", window.Telegram.WebApp.initData ? "present" : "missing");
-                    console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
-                }
-            }
-        }
-        
-        // Call this function at app initialization
-        ensureTelegramApiAvailable();
-        
-        // Make extra sure telegramId is set correctly
-        if (typeof telegramId === 'undefined' || !telegramId) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-                telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                console.log("Fixed telegramId after initialization:", telegramId);
-            } else {
-                console.error("CRITICAL: Failed to get Telegram ID even after initialization attempts");
-                // Create a fallback ID for testing only - this should not happen in production
-                telegramId = Math.floor(Math.random() * 10000000) + 10000000;
-                console.warn("Created emergency fallback telegramId:", telegramId);
-            }
-        }
 
         // Override Telegram.WebApp.showAlert to use our custom dialog
         const originalShowAlert = window.Telegram.WebApp.showAlert;
@@ -2989,16 +2870,18 @@
             }
         });
 
-        // Add initialization check to make sure we have valid Telegram data
-        document.addEventListener("DOMContentLoaded", function() {
-            console.log("DOM fully loaded");
-            if (!telegramId) {
-                console.warn("No Telegram ID available - app may not function correctly");
-                showCustomDialog("Unable to connect to Telegram. Please restart the app.");
+        // Call this function at app initialization
+        ensureTelegramApiAvailable();
+        
+        // Make extra sure telegramId is set correctly
+        if (typeof telegramId === 'undefined' || !telegramId) {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+                telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+                console.log("Fixed telegramId after initialization:", telegramId);
             } else {
-                console.log("Telegram ID found:", telegramId);
+                console.error("CRITICAL: Failed to get Telegram ID even after initialization attempts");
             }
-        });
+        }
     </script>
 </body>
 </html>
