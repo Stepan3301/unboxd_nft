@@ -2300,30 +2300,60 @@
         const resultImage = document.getElementById('result-image');
         const resultName = document.getElementById('result-name');
 
+        // Fisher-Yates shuffle algorithm for randomizing NFT order
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         // Initialize roulette
         function initializeRoulette() {
             // Clear previous items
             rouletteTrack.innerHTML = '';
             
-            // Create roulette items (3 copies of each skin to make it longer)
-            for (let i = 0; i < 3; i++) {
-                labubuSkins.forEach(skin => {
-                    const item = document.createElement('div');
-                    item.className = 'roulette-item';
-                    
-                    const img = document.createElement('img');
-                    img.src = skin.image;
-                    img.alt = skin.name;
-                    
-                    const name = document.createElement('div');
-                    name.className = `roulette-item-name tier-${skin.tier}`;
-                    name.textContent = skin.name;
-                    
-                    item.appendChild(img);
-                    item.appendChild(name);
-                    rouletteTrack.appendChild(item);
-                });
-            }
+            // We'll create three sets of shuffled skins for a better experience
+            // This ensures a longer track and more variability
+            
+            // First set - completely random
+            const firstSet = shuffleArray(labubuSkins);
+            // Second set - different shuffle
+            const secondSet = shuffleArray(labubuSkins);
+            // Third set - different shuffle again
+            const thirdSet = shuffleArray(labubuSkins);
+            
+            // Combine all sets
+            const allSets = [...firstSet, ...secondSet, ...thirdSet];
+            
+            // Create roulette items
+            allSets.forEach(skin => {
+                const item = document.createElement('div');
+                item.className = 'roulette-item';
+                item.dataset.skinName = skin.name; // Store the skin name for reference
+                item.dataset.skinTier = skin.tier; // Store the tier for reference
+                
+                const img = document.createElement('img');
+                img.src = skin.image;
+                img.alt = skin.name;
+                
+                const name = document.createElement('div');
+                name.className = `roulette-item-name tier-${skin.tier}`;
+                name.textContent = skin.name;
+                
+                item.appendChild(img);
+                item.appendChild(name);
+                rouletteTrack.appendChild(item);
+            });
+            
+            // Reset transition and transform
+            rouletteTrack.style.transition = 'none';
+            rouletteTrack.style.transform = 'translateX(0)';
+            
+            // Force a reflow to ensure the transition reset is applied
+            rouletteTrack.offsetHeight;
         }
 
         // Function to get random skin based on probability
@@ -2494,48 +2524,159 @@
         }
 
         // Improved roulette animation function for ultra-smooth motion
-        function startRouletteAnimation(finalPosition, selectedSkin) {
+        function startRouletteAnimation(selectedSkin) {
+            // Store the current selected skin
             currentResultSkin = selectedSkin;
             
-            // Set the sell price
+            // Set the sell price with coin icon
             const sellPrice = skinPrices[selectedSkin.tier];
-            document.getElementById('sell-price').textContent = sellPrice;
+            const sellPriceElement = document.getElementById('sell-price');
+            sellPriceElement.innerHTML = `<img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin: 0 5px;"> ${sellPrice}`;
             
             // Style the result name according to tier
             const resultNameElement = document.getElementById('result-name');
             resultNameElement.className = `tier-${selectedSkin.tier}`;
             resultNameElement.textContent = selectedSkin.name;
             
-            // Set the total duration and easing
-            const totalDuration = 7000; // 7 seconds
+            // Get all roulette items
+            const items = document.querySelectorAll('.roulette-item');
             
-            // Using cubic-bezier for super smooth animation
-            // This specific bezier curve will start fast and gradually slow down
-            const easingFunction = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+            // Find the item that matches our selected skin
+            let targetItem = null;
+            let targetIndex = -1;
             
-            // Set up the animation
-            rouletteTrack.style.transition = `transform ${totalDuration}ms ${easingFunction}`;
-            rouletteTrack.style.transform = `translateX(-${finalPosition}px)`;
-            
-            // When animation ends, show the result
-            setTimeout(() => {
-                // Update result display
-                resultImage.src = selectedSkin.image;
-                
-                // Show result
-                rouletteResult.classList.add('active');
-                
-                // If legendary or epic, update stats
-                if (selectedSkin.rarity === 'legendary') {
-                    updateUserStat('legendary_count', 1);
+            items.forEach((item, index) => {
+                if (item.dataset.skinName === selectedSkin.name) {
+                    // We want to find one in the middle section ideally
+                    if (targetItem === null || 
+                        (index >= items.length / 3 && index <= (items.length * 2) / 3)) {
+                        targetItem = item;
+                        targetIndex = index;
+                    }
                 }
+            });
+            
+            // If we couldn't find the exact item (shouldn't happen), use the first match
+            if (targetItem === null) {
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].dataset.skinName === selectedSkin.name) {
+                        targetItem = items[i];
+                        targetIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Still no target? Use a fallback (shouldn't happen)
+            if (targetItem === null) {
+                console.error('Could not find target item in roulette:', selectedSkin.name);
+                targetItem = items[Math.floor(items.length / 2)]; // Use middle item as fallback
+                targetIndex = Math.floor(items.length / 2);
+            }
+            
+            // Calculate dimensions
+            const itemWidth = 130; // Width of each item including margins
+            const viewportWidth = window.innerWidth;
+            const centerPosition = viewportWidth / 2;
+            
+            // Get current position
+            const currentTransform = window.getComputedStyle(rouletteTrack).getPropertyValue('transform');
+            const matrix = new DOMMatrix(currentTransform);
+            const currentX = matrix.m41;
+            
+            // Calculate the position needed to center the target item
+            const itemOffsetLeft = targetIndex * itemWidth;
+            const targetX = -(itemOffsetLeft - centerPosition + (itemWidth / 2));
+            
+            // Animation duration
+            const duration = 7000; // 7 seconds
+            
+            // Start time of animation (for requestAnimationFrame approach)
+            const startTime = performance.now();
+            // Starting position
+            const startX = currentX;
+            
+            // Calculate how far we need to move to reach the target
+            let totalDistance;
+            
+            // Calculate total roulette width
+            const rouletteWidth = items.length * itemWidth;
+            
+            // If target is to the right of current position, we need to go left (negative)
+            // by wrapping around the entire roulette
+            if (targetX > startX) {
+                totalDistance = targetX - startX - rouletteWidth;
+            } else {
+                // If target is already to the left, just go directly there
+                totalDistance = targetX - startX;
+            }
+            
+            // Ensure we move at least 3000px for a good spin effect
+            if (Math.abs(totalDistance) < 3000) {
+                // Add additional full rotations to ensure minimum distance
+                const additionalRotations = Math.ceil((3000 - Math.abs(totalDistance)) / rouletteWidth);
+                totalDistance -= additionalRotations * rouletteWidth;
+            }
+            
+            // Reset transition to ensure smooth animation
+            rouletteTrack.style.transition = 'none';
+            rouletteTrack.style.transform = `translateX(${startX}px)`;
+            rouletteTrack.offsetHeight; // Force a reflow
+            
+            // Animation function using requestAnimationFrame for smoother animation
+            function animateSpin(currentTime) {
+                // Calculate elapsed time
+                const elapsedTime = currentTime - startTime;
                 
-                // Update NFT count
-                updateUserStat('nft_count', 1);
-                
-                // Add to user's inventory
-                addToInventory(selectedSkin);
-            }, totalDuration + 200); // Add a small buffer for animation completion
+                if (elapsedTime < duration) {
+                    // Calculate progress (0 to 1)
+                    const progress = elapsedTime / duration;
+                    
+                    // Easing function - starts fast, slows down (ease-out)
+                    // Using cubic ease-out for smooth deceleration
+                    const easedProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    // Calculate current position
+                    let currentPosition = startX + (totalDistance * easedProgress);
+                    
+                    // Handle cycling of the roulette
+                    // If we've moved past the end of the roulette, wrap around
+                    // This ensures the items are always visible during scrolling
+                    const normalizedPosition = currentPosition % rouletteWidth;
+                    
+                    // Apply the new position
+                    rouletteTrack.style.transform = `translateX(${normalizedPosition}px)`;
+                    
+                    // Continue animation
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    // Animation complete - ensure we're exactly at target position
+                    rouletteTrack.style.transform = `translateX(${targetX}px)`;
+                    
+                    // Show result
+                    setTimeout(() => {
+                        // Update result display
+                        resultImage.src = selectedSkin.image;
+                        
+                        // Show result
+                        rouletteResult.classList.add('active');
+                        
+                        // If legendary or epic, update stats
+                        if (selectedSkin.tier >= 4) { // Tier 4 or higher is legendary
+                            updateUserStat('legendary_count', 1);
+                        }
+                        
+                        // Update NFT count
+                        updateUserStat('nft_count', 1);
+                        
+                        // Add to user's inventory
+                        addToInventory(selectedSkin);
+                    }, 200); // Small delay for animation completion
+                }
+            }
+            
+            // Start the animation
+            requestAnimationFrame(animateSpin);
         }
 
         // Function to open case - also reset the roulette state
@@ -2562,11 +2703,13 @@
                     return;
                 }
                 
-                // Initialize roulette
+                // Initialize roulette with randomized order
                 initializeRoulette();
                 
-                // Reset roulette position
+                // Reset roulette position and ensure transitions are reset
+                rouletteTrack.style.transition = 'none';
                 rouletteTrack.style.transform = 'translateX(0)';
+                rouletteTrack.offsetHeight; // Force a reflow
                 
                 // Hide result
                 rouletteResult.classList.remove('active');
@@ -2589,21 +2732,8 @@
                 // Pick a random skin based on probability
                 const selectedSkin = getRandomSkinByProbability();
                 
-                // Calculate roulette position
-                const itemWidth = 130; // item width + margin
-                const centerPosition = window.innerWidth / 2;
-                
-                // Position the selected item in the center (with the middle set of items)
-                // Find the index of the selected skin in the labubuSkins array
-                const selectedIndex = labubuSkins.findIndex(skin => skin.name === selectedSkin.name);
-                const selectedPosition = labubuSkins.length + selectedIndex; // Use the middle set of items
-                const finalPosition = selectedPosition * itemWidth - centerPosition + itemWidth / 2;
-                
-                // Add a small random offset for more natural feel
-                const randomOffset = Math.random() * 10 - 5;
-                
-                // Start the animation with gradually decreasing speed
-                startRouletteAnimation(finalPosition + randomOffset, selectedSkin);
+                // Start the enhanced animation with the selected skin
+                startRouletteAnimation(selectedSkin);
             } catch (err) {
                 console.error('Error in openCase:', err);
                 showCustomDialog('An error occurred. Please try again.');
