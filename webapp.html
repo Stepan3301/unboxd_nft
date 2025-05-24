@@ -969,9 +969,11 @@
         .case-detail {
             display: none;
             animation: fadeIn 0.3s ease-in-out;
-            padding-bottom: 70px;
+            padding: 0;
+            margin: 0;
             overflow-y: auto;
-            height: calc(100vh - 120px);
+            height: 100vh;
+            background: rgba(20, 20, 35, 0.9);
         }
         
         .case-detail.active {
@@ -981,7 +983,9 @@
         .case-detail-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin: 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
         }
         
         .case-detail-back {
@@ -1007,7 +1011,12 @@
             font-weight: 700;
             color: white;
         }
-
+        
+        .case-detail .featured-card {
+            margin-top: 0;
+            border-radius: 0;
+        }
+        
         /* Custom Dialog Styles */
         .custom-dialog {
             position: fixed;
@@ -1403,11 +1412,11 @@
             </div>
         </div>
         
-        <h2 class="section-title" style="margin-top: 30px;">
+        <h2 class="section-title" style="margin-top: 30px; padding-left: 20px;">
             <i class="fas fa-list"></i> Possible Drops
         </h2>
         
-        <div class="skins-grid">
+        <div class="skins-grid" style="padding: 0 20px 20px;">
             <div class="skin-card">
                 <div class="skin-image">
                     <img src="SkeletonLabubu.png" alt="Skeleton Labubu">
@@ -1455,7 +1464,7 @@
             
             <div class="skin-card">
                 <div class="skin-image">
-                    <img src="DeepSeaLabubu.png" alt="Deep Sea Labubu">
+                    <img src="NewDeepSeaLabubu.png" alt="Deep Sea Labubu">
                 </div>
                 <div class="skin-info">
                     <div class="skin-name">Deep Sea Labubu</div>
@@ -1883,7 +1892,7 @@
                         const priceText = priceElement.textContent.trim();
                         const match = priceText.match(/([0-9]*[.])?[0-9]+/);
                         if (match) {
-                            price = parseFloat(match[0]) * 100; // Convert to game currency
+                            price = parseFloat(match[0]); // Convert to number
                         }
                     }
                     
@@ -2003,7 +2012,7 @@
             { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "epic" },
             { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "rare" },
             { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "uncommon" },
-            { name: "Deep Sea Labubu", image: "DeepSeaLabubu.png", rarity: "rare" },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "rare" },
             { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "uncommon" },
             { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "uncommon" },
             { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "legendary" }
@@ -2326,6 +2335,45 @@
             // Add to collection
             userCollection.prepend(card);
         }
+
+        // Replace all Telegram showAlert calls with our custom dialog
+        // Function to create Telegram user object if testing outside Telegram
+        function ensureTelegramApiAvailable() {
+            if (typeof window.Telegram === 'undefined' || typeof window.Telegram.WebApp === 'undefined') {
+                // Create mock Telegram object for testing
+                window.Telegram = {
+                    WebApp: {
+                        initData: '',
+                        initDataUnsafe: { 
+                            user: { 
+                                id: 12345678,
+                                first_name: 'Test',
+                                username: 'testuser' 
+                            } 
+                        },
+                        expand: function() {},
+                        showAlert: function(message) {
+                            console.log('Alert would show:', message);
+                            showCustomDialog(message);
+                        },
+                        showConfirm: function(message) {
+                            console.log('Confirm would show:', message);
+                            return true;
+                        }
+                    }
+                };
+            }
+        }
+
+        // Call this function at app initialization
+        ensureTelegramApiAvailable();
+
+        // Override Telegram.WebApp.showAlert to use our custom dialog
+        const originalShowAlert = window.Telegram.WebApp.showAlert;
+        window.Telegram.WebApp.showAlert = function(message) {
+            console.log('Alert intercepted:', message);
+            showCustomDialog(message);
+        };
     </script>
 </body>
 </html>
