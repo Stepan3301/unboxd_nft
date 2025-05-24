@@ -161,6 +161,8 @@
             padding-bottom: 70px;
             overflow-y: auto;
             height: calc(100vh - 120px);
+            position: relative;
+            z-index: 5;
         }
         
         .tab-content.active {
@@ -608,7 +610,7 @@
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 100;
+            z-index: 300; /* Higher than case-detail */
         }
         
         .nav-btn {
@@ -1029,12 +1031,17 @@
         /* Case Detail View */
         .case-detail {
             display: none;
-            animation: fadeIn 0.3s ease-in-out;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 100%;
+            z-index: 200;
             background: rgba(20, 20, 35, 0.9);
+            overflow-y: auto;
+            padding-bottom: var(--tab-height);
         }
         
         .case-detail.active {
@@ -1042,11 +1049,15 @@
         }
         
         .case-detail-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
             display: flex;
             align-items: center;
             margin: 0;
             padding: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
         }
         
         .case-detail-back {
@@ -2070,6 +2081,17 @@
         const centerBtn = document.querySelector('.nav-btn.center');
         if (centerBtn) {
             centerBtn.addEventListener('click', () => {
+                // Check if we're in case detail view first and close it
+                if (document.querySelector('.bottom-nav').hasAttribute('data-case-detail-open')) {
+                    // Hide all case details
+                    document.querySelectorAll('.case-detail').forEach(detail => {
+                        detail.classList.remove('active');
+                    });
+                    
+                    // Reset bottom nav state
+                    document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
+                }
+                
                 // Show the cases tab
                 bottomNavBtns.forEach(btn => {
                     if (btn !== centerBtn) btn.classList.remove('active');
@@ -2256,6 +2278,10 @@
             
             // Hide rarity nav
             updateRarityNavVisibility('none');
+            
+            // Important: Disable bottom navigation temporarily to prevent UI conflicts
+            // We don't actually disable it because we want it visible, but we'll track state
+            document.querySelector('.bottom-nav').setAttribute('data-case-detail-open', 'true');
         }
 
         // View case button
@@ -2278,6 +2304,9 @@
             
             // Show rarity nav
             updateRarityNavVisibility('cases-tab');
+            
+            // Reset bottom nav state
+            document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
         });
 
         // Labubu skins data with tiers
@@ -2802,6 +2831,17 @@
         // Load inventory when that tab is selected
         bottomNavBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
+                // Check if we're in case detail view first and close it
+                if (document.querySelector('.bottom-nav').hasAttribute('data-case-detail-open')) {
+                    // Hide all case details
+                    document.querySelectorAll('.case-detail').forEach(detail => {
+                        detail.classList.remove('active');
+                    });
+                    
+                    // Reset bottom nav state
+                    document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
+                }
+                
                 // Remove active class from all buttons
                 bottomNavBtns.forEach(nav => nav.classList.remove('active'));
                 
