@@ -1007,6 +1007,106 @@
             font-weight: 700;
             color: white;
         }
+
+        /* Custom Dialog Styles */
+        .custom-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-dialog.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .dialog-content {
+            background: rgba(20, 20, 35, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.5);
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-dialog.active .dialog-content {
+            transform: scale(1);
+        }
+
+        .dialog-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dialog-message {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dialog-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        .dialog-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dialog-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+
+        .dialog-confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1081,90 +1181,25 @@
                     <i class="fas fa-boxes"></i> Popular Cases
                 </h2>
                 
+                <!-- No dummy cases here, only showing the featured Labubu case -->
                 <div class="cases-grid">
                     <div class="case-card">
                         <div class="case-image">
                             <div class="case-glow"></div>
-                            <img src="https://picsum.photos/seed/case2/300" alt="Bored Ape NFT Case">
+                            <img src="LabubuCase.png" alt="Labubu Case">
                         </div>
                         <div class="case-info">
-                            <h3 class="case-name">Bored Ape Case</h3>
-                            <div class="case-rarity epic">
-                                <div class="rarity-indicator"></div>
-                                <div class="rarity-text">EPIC</div>
-                            </div>
-                            <div class="case-price">
-                                <div class="price">
-                                    <i class="fab fa-ethereum"></i> 0.085
-                                </div>
-                                <button class="open-btn">
-                                    Open <i class="fas fa-unlock-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="case-card">
-                        <div class="case-image">
-                            <div class="case-glow"></div>
-                            <img src="https://picsum.photos/seed/case3/300" alt="Azuki NFT Case">
-                        </div>
-                        <div class="case-info">
-                            <h3 class="case-name">Azuki Case</h3>
+                            <h3 class="case-name">Labubu Collection</h3>
                             <div class="case-rarity rare">
                                 <div class="rarity-indicator"></div>
                                 <div class="rarity-text">RARE</div>
                             </div>
                             <div class="case-price">
                                 <div class="price">
-                                    <i class="fab fa-ethereum"></i> 0.065
+                                    <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 100
                                 </div>
-                                <button class="open-btn">
-                                    Open <i class="fas fa-unlock-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="case-card">
-                        <div class="case-image">
-                            <div class="case-glow"></div>
-                            <img src="https://picsum.photos/seed/case4/300" alt="Starter NFT Case">
-                        </div>
-                        <div class="case-info">
-                            <h3 class="case-name">Starter Case</h3>
-                            <div class="case-rarity common">
-                                <div class="rarity-indicator"></div>
-                                <div class="rarity-text">COMMON</div>
-                            </div>
-                            <div class="case-price">
-                                <div class="price">
-                                    <i class="fab fa-ethereum"></i> 0.025
-                                </div>
-                                <button class="open-btn">
-                                    Open <i class="fas fa-unlock-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="case-card">
-                        <div class="case-image">
-                            <div class="case-glow"></div>
-                            <img src="https://picsum.photos/seed/case5/300" alt="Mystery NFT Case">
-                        </div>
-                        <div class="case-info">
-                            <h3 class="case-name">Mystery Case</h3>
-                            <div class="case-rarity legendary">
-                                <div class="rarity-indicator"></div>
-                                <div class="rarity-text">LEGENDARY</div>
-                            </div>
-                            <div class="case-price">
-                                <div class="price">
-                                    <i class="fab fa-ethereum"></i> 0.045
-                                </div>
-                                <button class="open-btn">
-                                    Open <i class="fas fa-unlock-alt"></i>
+                                <button class="open-btn" data-case="labubu">
+                                    View <i class="fas fa-arrow-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -1491,6 +1526,18 @@
             </div>
             <div class="roulette-result-name" id="result-name"></div>
             <button class="roulette-close" id="roulette-close">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Custom Dialog -->
+    <div class="custom-dialog" id="custom-dialog">
+        <div class="dialog-content">
+            <div class="dialog-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="dialog-title">Congratulations!</div>
+            <div class="dialog-message" id="dialog-message">You've won a brand new item!</div>
+            <button class="dialog-btn" id="dialog-btn">Awesome!</button>
         </div>
     </div>
 
@@ -2015,7 +2062,7 @@
         async function openCase(caseId) {
             // Check if user has enough balance
             if (userBalance < 100) {
-                tg.showAlert('Not enough balance to open this case. Please add funds to your wallet.');
+                showCustomDialog('Not enough balance to open this case. Please add funds to your wallet.');
                 return;
             }
             
@@ -2035,7 +2082,7 @@
             const success = await updateUserBalance(-100, `Opened Labubu case`, 'purchase');
             
             if (!success) {
-                tg.showAlert('Failed to process the transaction. Please try again.');
+                showCustomDialog('Failed to process the transaction. Please try again.');
                 rouletteOverlay.classList.remove('active');
                 return;
             }
@@ -2135,6 +2182,67 @@
                 return false;
             }
         }
+
+        // Show custom dialog function
+        function showCustomDialog(message, callback) {
+            const dialog = document.getElementById('custom-dialog');
+            const dialogMessage = document.getElementById('dialog-message');
+            const dialogBtn = document.getElementById('dialog-btn');
+            
+            // Set message
+            dialogMessage.textContent = message;
+            
+            // Show dialog
+            dialog.classList.add('active');
+            
+            // Create confetti effect
+            createDialogConfetti();
+            
+            // Handle button click
+            dialogBtn.onclick = function() {
+                dialog.classList.remove('active');
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            };
+        }
+
+        // Create confetti inside dialog
+        function createDialogConfetti() {
+            const dialogContent = document.querySelector('.dialog-content');
+            const colors = ['#6c5ce7', '#fd79a8', '#00cec9', '#fdcb6e', '#ff7675'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'dialog-confetti';
+                
+                // Random styles
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = -20 + 'px';
+                confetti.style.width = Math.random() * 8 + 5 + 'px';
+                confetti.style.height = Math.random() * 8 + 5 + 'px';
+                confetti.style.opacity = '1';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                dialogContent.appendChild(confetti);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Add click handler for the case cards' buttons
+        document.querySelectorAll('.open-btn[data-case]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const caseId = this.getAttribute('data-case');
+                showCaseDetail(caseId);
+            });
+        });
     </script>
 </body>
 </html>
