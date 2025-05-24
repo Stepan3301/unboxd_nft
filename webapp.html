@@ -1525,20 +1525,29 @@
                     <div class="featured-stats">
                         <div class="stat">
                             <div class="stat-value" id="profile-nfts-count">0</div>
-        .roulette-sell {
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+                            <div class="stat-label">NFTs</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-cases-opened">0</div>
+                            <div class="stat-label">CASES OPENED</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-legendary-count">0</div>
+                            <div class="stat-label">LEGENDARY</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
+                        <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                        <span id="profile-balance">0</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 20px;">
+                    <i class="fas fa-crown"></i> Achievements
+                </h2>
+                
+                <div class="cases-grid">        }
         
         .roulette-sell i {
             margin-right: 8px;
@@ -1547,7 +1556,34 @@
         .roulette-sell:hover {
             transform: scale(1.05);
             box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
-        }                    <div class="inventory-item" style="width: 100%;">
+
+        /* Add style for inventory sell button */
+        .inventory-sell-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inventory-sell-btn i {
+            margin-right: 5px;
+        }
+
+        .inventory-sell-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+        }        }                    <div class="inventory-item" style="width: 100%;">
                         <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
                         <div class="inventory-details">
                             <div class="inventory-title">First Legendary</div>
@@ -1647,34 +1683,6 @@
                     <div class="skin-name tier-6">Volcanic Labubu</div>
                     <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />10000</div>
                 </div>
-
-        /* Add style for inventory sell button */
-        .inventory-sell-btn {
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            padding: 8px 0;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            text-align: center;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .inventory-sell-btn i {
-            margin-right: 5px;
-        }
-
-        .inventory-sell-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
-        }
             </div>
             
             <div class="skin-card">
@@ -2308,6 +2316,15 @@
         });
 
         // Labubu skins data with tiers
+// Define skin prices by tier for selling
+const skinPrices = {
+    1: 20,
+    2: 50,
+    3: 120,
+    4: 300,
+    5: 750,
+    6: 10000
+};
         const labubuSkins = [
             { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 50 },
             { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 25 },
@@ -2332,7 +2349,6 @@ async function getUserInventory() {
         const { data: inventoryData, error: inventoryError } = await supabase.rpc('get_user_inventory', {
             p_telegram_id: telegramId
         });
-        
         if (inventoryError) {
             console.error('Error getting user inventory:', inventoryError);
             return;
@@ -2340,7 +2356,7 @@ async function getUserInventory() {
         
         // Clear existing inventory display
         const userCollection = document.getElementById('user-collection');
-        userCollection.innerHTML = ';
+        userCollection.innerHTML = '';
         
         // Check if inventory is empty
         if (!inventoryData || inventoryData.length === 0) {
@@ -2426,72 +2442,7 @@ async function getUserInventory() {
     } catch (err) {
         console.error('Error in getUserInventory:', err);
     }
-}                inventoryData.forEach(item => {
-                    // Create new card for the collection
-                    const card = document.createElement('div');
-                    card.className = 'nft-card';
-                    
-                    // Add rarity badge based on tier
-                    let rarityClass;
-                    switch(item.skin_tier) {
-                        case 1: rarityClass = 'common'; break;
-                        case 2: rarityClass = 'rare'; break;
-                        case 3: rarityClass = 'epic'; break;
-                        case 4: rarityClass = 'legendary'; break;
-                        case 5: rarityClass = 'mythic'; break;
-                        case 6: rarityClass = 'divine'; break;
-                        default: rarityClass = 'common';
-                    }
-                    
-                    const rarityBadge = document.createElement('span');
-                    rarityBadge.className = `rarity-badge rarity-${rarityClass}`;
-                    rarityBadge.textContent = rarityClass.toUpperCase();
-                    card.appendChild(rarityBadge);
-                    
-                    // Add image
-                    const img = document.createElement('img');
-                    img.src = item.skin_image;
-                    img.alt = item.skin_name;
-                    img.className = 'nft-image';
-                    card.appendChild(img);
-                    
-                    // Add info
-                    const info = document.createElement('div');
-                    info.className = 'nft-info';
-                    
-                    const title = document.createElement('div');
-                    title.className = `nft-title tier-${item.skin_tier}`;
-                    title.textContent = item.skin_name;
-                    info.appendChild(title);
-                    
-                    // Add acquisition date
-                    const date = document.createElement('div');
-                    date.style.fontSize = '0.7rem';
-                    date.style.color = 'rgba(255,255,255,0.5)';
-                    date.textContent = new Date(item.acquired_date).toLocaleDateString();
-                    info.appendChild(date);
-                    
-                    // Add sell button
-                    const sellPrice = skinPrices[item.skin_tier];
-                    const sellBtn = document.createElement('button');
-                    sellBtn.className = 'inventory-sell-btn';
-                    sellBtn.innerHTML = `<i class="fas fa-coins"></i> Sell for <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; margin: 0 3px;"> ${sellPrice}`;
-                    sellBtn.onclick = async () => {
-                        await sellNFT(item.skin_name, item.skin_image, item.skin_tier);
-                    };
-                    info.appendChild(sellBtn);
-                    
-                    card.appendChild(info);
-                    
-                    // Add to collection
-                    userCollection.appendChild(card);
-                });
-                
-                console.log('User inventory loaded:', inventoryData);
-            } catch (err) {
-                console.error('Error in getUserInventory:', err);
-            }
-        }
+}
 
         // Function to update user stats
         async function updateUserStat(statName, changeAmount) {
@@ -2658,7 +2609,14 @@ async function openCase(caseId) {
         showCustomDialog('An error occurred. Please try again.');
         rouletteOverlay.classList.remove('active');
     }
-}                    p_telegram_id: telegramId,
+}
+
+        // Function to add skin to user's inventory
+        async function addToInventory(skin) {
+            try {
+                // Call the custom function we created in Supabase
+                const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                    p_telegram_id: telegramId,
                     p_skin_name: skin.name,
                     p_skin_image: skin.image,
                     p_skin_tier: skin.tier
@@ -2706,30 +2664,30 @@ async function openCase(caseId) {
                 
                 // Add active class to clicked button
                 btn.classList.add('active');
-                
-                // Show corresponding tab content
-                const tabId = btn.getAttribute('data-tab');
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                const targetTab = document.getElementById(tabId);
-                if (targetTab) targetTab.classList.add('active');
-                
-                // Update rarity navigation visibility based on tab
-                updateRarityNavVisibility(tabId);
-                
-                // If profile tab is selected, update user data
-                if (tabId === 'profile-tab') {
-                    updateUserData();
-                }
-                
-                // If inventory tab is selected, refresh the inventory
-                if (tabId === 'inventory-tab') {
-                    await getUserInventory();
-                }
-            });
+// Function to add skin to user's inventory
+async function addToInventory(skin) {
+    try {
+        // Call the custom function we created in Supabase
+        const { data, error } = await supabase.rpc("add_skin_to_inventory", {
+            p_telegram_id: telegramId,
+            p_skin_name: skin.name,
+            p_skin_image: skin.image,
+            p_skin_tier: skin.tier
         });
+        
+        if (error) {
+            console.error("Error adding skin to inventory:", error);
+            return;
+        }
+        
+        console.log("Skin added to inventory:", skin.name);
+        
+        // Now update the UI - we'll reload the entire inventory to ensure consistency
+        getUserInventory();
+    } catch (err) {
+        console.error("Error in addToInventory:", err);
+    }
+}        });
 
         // Replace all Telegram showAlert calls with our custom dialog
         // Function to create Telegram user object if testing outside Telegram
@@ -2888,55 +2846,7 @@ document.getElementById('roulette-sell').addEventListener('click', async functio
     } catch (err) {
         console.error('Error in sell button click handler:', err);
     }
-});                const sellPrice = skinPrices[skinTier];
-                
-                // Remove from inventory
-                const { data: removeData, error: removeError } = await supabase.rpc('remove_skin_from_inventory', {
-                    p_telegram_id: telegramId,
-                    p_skin_name: skinName,
-                    p_skin_image: skinImage
-                });
-                
-                if (removeError) {
-                    console.error('Error removing skin from inventory:', removeError);
-                    showCustomDialog('Error selling the skin. Please try again.');
-                    return false;
-                }
-                
-                // Update balance
-                const success = await updateUserBalance(sellPrice, `Sold ${skinName}`, 'sale');
-                
-                if (success) {
-                    showCustomDialog(`You sold ${skinName} for ${sellPrice} UCoins!`);
-                    
-                    // Refresh inventory
-                    await getUserInventory();
-                    
-                    // Update stats
-                    await updateUserStat('nft_count', -1);
-                    return true;
-                } else {
-                    showCustomDialog('Error processing the transaction. Please try again.');
-                    return false;
-                }
-            } catch (err) {
-                console.error('Error in sellNFT:', err);
-                showCustomDialog('An error occurred. Please try again.');
-                return false;
-            }
-        }
-
-        // Sell button functionality
-        document.getElementById('roulette-sell').addEventListener('click', async function() {
-            if (!currentResultSkin) return;
-            
-            try {
-                await sellNFT(currentResultSkin.name, currentResultSkin.image, currentResultSkin.tier);
-                rouletteOverlay.classList.remove('active');
-            } catch (err) {
-                console.error('Error in sell button click handler:', err);
-            }
-        });
+});
     </script>
 </body>
 </html>
