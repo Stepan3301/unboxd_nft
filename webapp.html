@@ -982,6 +982,50 @@
             box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
         }
         
+        .roulette-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .roulette-sell {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .roulette-sell i {
+            margin-right: 8px;
+        }
+        
+        .roulette-sell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 184, 148, 0.7);
+        }
+        
+        .skin-price {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        
+        .skin-price img {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+        }
+        
         /* Case Detail View */
         .case-detail {
             display: none;
@@ -1545,28 +1589,11 @@
         <div class="skins-grid" style="padding: 0 20px 20px;">
             <div class="skin-card">
                 <div class="skin-image">
-                    <img src="SkeletonLabubu.png" alt="Skeleton Labubu">
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name">Skeleton Labubu</div>
-                </div>
-            </div>
-            
-            <div class="skin-card">
-                <div class="skin-image">
-                    <img src="ZombieLabubu.png" alt="Zombie Labubu">
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name">Zombie Labubu</div>
-                </div>
-            </div>
-            
-            <div class="skin-card">
-                <div class="skin-image">
                     <img src="VolcanicLabubu.png" alt="Volcanic Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Volcanic Labubu</div>
+                    <div class="skin-name tier-6">Volcanic Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />10000</div>
                 </div>
             </div>
             
@@ -1575,7 +1602,8 @@
                     <img src="GrinchLabubu.png" alt="Grinch Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Grinch Labubu</div>
+                    <div class="skin-name tier-5">Grinch Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />750</div>
                 </div>
             </div>
             
@@ -1584,7 +1612,8 @@
                     <img src="GrassLabubu.png" alt="Grass Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Grass Labubu</div>
+                    <div class="skin-name tier-4">Grass Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
                 </div>
             </div>
             
@@ -1593,7 +1622,8 @@
                     <img src="NewDeepSeaLabubu.png" alt="Deep Sea Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Deep Sea Labubu</div>
+                    <div class="skin-name tier-4">Deep Sea Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
                 </div>
             </div>
             
@@ -1602,16 +1632,8 @@
                     <img src="CircusLabubu.png" alt="Circus Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Circus Labubu</div>
-                </div>
-            </div>
-            
-            <div class="skin-card">
-                <div class="skin-image">
-                    <img src="CandyLabubu.png" alt="Candy Labubu">
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name">Candy Labubu</div>
+                    <div class="skin-name tier-3">Circus Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />120</div>
                 </div>
             </div>
             
@@ -1620,7 +1642,38 @@
                     <img src="AlienLabubu.png" alt="Alien Labubu">
                 </div>
                 <div class="skin-info">
-                    <div class="skin-name">Alien Labubu</div>
+                    <div class="skin-name tier-3">Alien Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />120</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="ZombieLabubu.png" alt="Zombie Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-2">Zombie Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />50</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="CandyLabubu.png" alt="Candy Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-2">Candy Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />50</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="SkeletonLabubu.png" alt="Skeleton Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-1">Skeleton Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />20</div>
                 </div>
             </div>
         </div>
@@ -1644,7 +1697,12 @@
                 <img id="result-image" src="" alt="Your new skin">
             </div>
             <div class="roulette-result-name" id="result-name"></div>
-            <button class="roulette-close" id="roulette-close">Awesome!</button>
+            <div class="roulette-buttons">
+                <button class="roulette-close" id="roulette-close">Awesome!</button>
+                <button class="roulette-sell" id="roulette-sell">
+                    <i class="fas fa-coins"></i> Sell for <span id="sell-price">0</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1976,8 +2034,13 @@
         }
         
         // Case opening animation with balance integration
-        const openButtons = document.querySelectorAll('.open-btn, .featured-btn');
-        openButtons.forEach(btn => {
+        const caseOpenButtons = document.querySelectorAll('.open-btn, .featured-btn');
+        caseOpenButtons.forEach(btn => {
+            // Skip buttons that have data-case attribute if they don't have the open-case-btn class
+            if (btn.hasAttribute('data-case') && !btn.classList.contains('open-case-btn')) {
+                return;
+            }
+            
             btn.addEventListener('click', async function() {
                 const card = this.closest('.case-card, .featured-card');
                 const img = card.querySelector('img');
@@ -2200,7 +2263,7 @@
                     img.alt = skin.name;
                     
                     const name = document.createElement('div');
-                    name.className = 'roulette-item-name';
+                    name.className = `roulette-item-name tier-${skin.tier}`;
                     name.textContent = skin.name;
                     
                     item.appendChild(img);
@@ -2708,6 +2771,132 @@
                 const caseId = this.getAttribute('data-case');
                 showCaseDetail(caseId);
             });
+        });
+
+        // Modified to include tier-based skin selling prices
+        const skinPrices = {
+            1: 20,   // Tier 1
+            2: 50,   // Tier 2
+            3: 120,  // Tier 3
+            4: 300,  // Tier 4
+            5: 750,  // Tier 5
+            6: 10000 // Tier 6
+        };
+
+        // Store the current skin being viewed in the result
+        let currentResultSkin = null;
+
+        // Initialize roulette - Modified for tier-based styling
+        function initializeRoulette() {
+            // Clear previous items
+            rouletteTrack.innerHTML = '';
+            
+            // Create roulette items (3 copies of each skin to make it longer)
+            for (let i = 0; i < 3; i++) {
+                labubuSkins.forEach(skin => {
+                    const item = document.createElement('div');
+                    item.className = 'roulette-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = skin.image;
+                    img.alt = skin.name;
+                    
+                    const name = document.createElement('div');
+                    name.className = `roulette-item-name tier-${skin.tier}`;
+                    name.textContent = skin.name;
+                    
+                    item.appendChild(img);
+                    item.appendChild(name);
+                    rouletteTrack.appendChild(item);
+                });
+            }
+        }
+
+        // Improved roulette animation function for ultra-smooth motion
+        function startRouletteAnimation(finalPosition, selectedSkin) {
+            currentResultSkin = selectedSkin;
+            
+            // Set the sell price
+            const sellPrice = skinPrices[selectedSkin.tier];
+            document.getElementById('sell-price').textContent = sellPrice;
+            
+            // Style the result name according to tier
+            const resultNameElement = document.getElementById('result-name');
+            resultNameElement.className = `tier-${selectedSkin.tier}`;
+            resultNameElement.textContent = selectedSkin.name;
+            
+            // Set the total duration and easing
+            const totalDuration = 7000; // 7 seconds
+            
+            // Using cubic-bezier for super smooth animation
+            // This specific bezier curve will start fast and gradually slow down
+            const easingFunction = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+            
+            // Set up the animation
+            rouletteTrack.style.transition = `transform ${totalDuration}ms ${easingFunction}`;
+            rouletteTrack.style.transform = `translateX(-${finalPosition}px)`;
+            
+            // When animation ends, show the result
+            setTimeout(() => {
+                // Update result display
+                resultImage.src = selectedSkin.image;
+                
+                // Show result
+                rouletteResult.classList.add('active');
+                
+                // If legendary or epic, update stats
+                if (selectedSkin.rarity === 'legendary') {
+                    updateUserStat('legendary_count', 1);
+                }
+                
+                // Update NFT count
+                updateUserStat('nft_count', 1);
+                
+                // Add to user's inventory
+                addToInventory(selectedSkin);
+            }, totalDuration + 200); // Add a small buffer for animation completion
+        }
+
+        // Sell button functionality
+        document.getElementById('roulette-sell').addEventListener('click', async function() {
+            if (!currentResultSkin) return;
+            
+            try {
+                // Get the sell price
+                const sellPrice = skinPrices[currentResultSkin.tier];
+                
+                // Remove from inventory
+                const { data: removeData, error: removeError } = await supabase.rpc('remove_skin_from_inventory', {
+                    p_telegram_id: telegramId,
+                    p_skin_name: currentResultSkin.name,
+                    p_skin_image: currentResultSkin.image
+                });
+                
+                if (removeError) {
+                    console.error('Error removing skin from inventory:', removeError);
+                    showCustomDialog('Error selling the skin. Please try again.');
+                    return;
+                }
+                
+                // Update balance
+                const success = await updateUserBalance(sellPrice, `Sold ${currentResultSkin.name}`, 'sale');
+                
+                if (success) {
+                    showCustomDialog(`You sold ${currentResultSkin.name} for ${sellPrice} UCoins!`);
+                    rouletteOverlay.classList.remove('active');
+                    
+                    // Refresh inventory
+                    await getUserInventory();
+                    
+                    // Update stats
+                    await updateUserStat('nft_count', -1);
+                } else {
+                    showCustomDialog('Error processing the transaction. Please try again.');
+                }
+            } catch (err) {
+                console.error('Error in sellSkin:', err);
+                showCustomDialog('An error occurred. Please try again.');
+            }
         });
     </script>
 </body>

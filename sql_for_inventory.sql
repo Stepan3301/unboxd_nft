@@ -54,4 +54,32 @@ BEGIN
     ORDER BY 
         ui.acquired_date DESC;
 END;
+$$;
+
+-- Function to delete a skin from user inventory
+CREATE OR REPLACE FUNCTION remove_skin_from_inventory(
+    p_telegram_id BIGINT,
+    p_skin_name VARCHAR(255),
+    p_skin_image VARCHAR(255)
+) RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    deleted_count INTEGER;
+BEGIN
+    -- Delete the oldest matching skin from the user's inventory
+    WITH deleted AS (
+        DELETE FROM user_inventory
+        WHERE telegram_id = p_telegram_id 
+        AND skin_name = p_skin_name
+        AND skin_image = p_skin_image
+        RETURNING *
+    )
+    SELECT COUNT(*) INTO deleted_count FROM deleted;
+    
+    RETURN deleted_count > 0;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN FALSE;
+END;
 $$; 
