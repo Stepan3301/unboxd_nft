@@ -773,7 +773,7 @@
             <div class="user-info">
                 <div class="wallet">
                     <img src="ucoin2.png" alt="UCoin" />
-                    <span id="user-balance">1,250</span>
+                    <span id="user-balance">0</span>
                 </div>
                 <div class="avatar" id="user-avatar">
                     <img src="https://picsum.photos/seed/profile/300" alt="User Avatar">
@@ -1026,15 +1026,15 @@
                     
                     <div class="featured-stats">
                         <div class="stat">
-                            <div class="stat-value">12</div>
+                            <div class="stat-value" id="profile-nfts-count">0</div>
                             <div class="stat-label">NFTs</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-value">42</div>
+                            <div class="stat-value" id="profile-cases-opened">0</div>
                             <div class="stat-label">CASES OPENED</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-value">3</div>
+                            <div class="stat-value" id="profile-legendary-count">0</div>
                             <div class="stat-label">LEGENDARY</div>
                         </div>
                     </div>
@@ -1100,12 +1100,11 @@
             </div>
             <div class="nav-btn center">
                 <i class="fas fa-box-open"></i>
-                <span>Open</span>
+                <span>Cases</span>
             </div>
             <div class="nav-btn" data-tab="inventory-tab">
                 <i class="fas fa-trophy"></i>
                 <span>Inventory</span>
-                <div class="notification-badge">2</div>
             </div>
             <div class="nav-btn" data-tab="profile-tab">
                 <i class="fas fa-user"></i>
@@ -1395,10 +1394,6 @@
                 
                 // Show the rarity navigation for the cases tab
                 updateRarityNavVisibility('cases-tab');
-                
-                // Show opening animation for featured case
-                const featuredBtn = document.querySelector('.featured-btn');
-                if (featuredBtn) featuredBtn.click();
             });
         }
         
@@ -1498,12 +1493,48 @@
             }
         });
         
+        // Get user stats
+        async function getUserStats() {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                // Get user statistics
+                const { data: statsData, error: statsError } = await supabase.rpc('get_user_stats', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (statsError) {
+                    console.error('Error getting user stats:', statsError);
+                    return;
+                }
+                
+                // Update the profile stats with real data
+                const nftCountElement = document.getElementById('profile-nfts-count');
+                const casesOpenedElement = document.getElementById('profile-cases-opened');
+                const legendaryCountElement = document.getElementById('profile-legendary-count');
+                
+                if (nftCountElement && statsData) nftCountElement.textContent = statsData.nft_count || '0';
+                if (casesOpenedElement && statsData) casesOpenedElement.textContent = statsData.cases_opened || '0';
+                if (legendaryCountElement && statsData) legendaryCountElement.textContent = statsData.legendary_count || '0';
+                
+                console.log('User stats retrieved:', statsData);
+            } catch (err) {
+                console.error('Error in getUserStats:', err);
+            }
+        }
+        
         // Initialize app
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('App initialized');
             
             // Register user and get balance from Supabase
             await registerUserAndGetBalance();
+            
+            // Get user stats
+            await getUserStats();
             
             // Update user data
             updateUserData();
