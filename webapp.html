@@ -550,6 +550,23 @@
             background: var(--gradient-common);
         }
         
+        .rarity-mythic {
+            background: linear-gradient(45deg, #f1c40f, #e74c3c);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+        }
+        
+        .rarity-divine {
+            background: linear-gradient(45deg, #ffffff, #6a11cb, #2575fc, #ffffff);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+            animation: rainbow-glow 3s infinite;
+        }
+        
+        @keyframes rainbow-glow {
+            0% { box-shadow: 0 0 15px rgba(106, 17, 203, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(37, 117, 252, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(106, 17, 203, 0.8); }
+        }
+        
         /* Particles */
         .particles {
             position: absolute;
@@ -1116,6 +1133,115 @@
                 opacity: 0;
             }
         }
+
+        /* Not Enough Balance Dialog */
+        .not-enough-balance-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .not-enough-balance-dialog.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .not-enough-balance-content {
+            background: rgba(20, 20, 35, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .not-enough-balance-dialog.active .not-enough-balance-content {
+            transform: scale(1);
+        }
+
+        .not-enough-balance-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff4757;
+        }
+
+        .not-enough-balance-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ff4757;
+        }
+
+        .not-enough-balance-message {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .not-enough-balance-btn {
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .not-enough-balance-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+        }
+
+        /* Add tier-based text colors */
+        .tier-1 {
+            color: #95a5a6; /* Grey */
+        }
+
+        .tier-2 {
+            color: #3498db; /* Blue */
+        }
+
+        .tier-3 {
+            color: #9b59b6; /* Purple */
+        }
+
+        .tier-4 {
+            color: #e74c3c; /* Red */
+        }
+
+        .tier-5 {
+            color: #f1c40f; /* Golden */
+        }
+
+        .tier-6 {
+            background: linear-gradient(to right, #f5f7fa, #c3cfe2, #6a11cb, #2575fc, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
     </style>
 </head>
 <body>
@@ -1132,7 +1258,7 @@
                     <span id="user-balance">0</span>
                 </div>
                 <div class="avatar" id="user-avatar">
-                    <img src="https://picsum.photos/seed/profile/300" alt="User Avatar">
+                    <!-- No image by default, will be set when user data is loaded -->
                 </div>
             </div>
         </header>
@@ -1295,7 +1421,7 @@
                 </h2>
                 
                 <div class="profile-section">
-                    <img src="https://picsum.photos/seed/profile/300" alt="Profile" class="profile-avatar" id="profile-avatar">
+                    <img alt="Profile" class="profile-avatar" id="profile-avatar">
                     <h2 class="profile-username" id="profile-username">CryptoCollector</h2>
                     <p class="profile-bio" id="profile-bio">NFT enthusiast and collector since 2021</p>
                     
@@ -1534,6 +1660,18 @@
         </div>
     </div>
 
+    <!-- Not Enough Balance Dialog -->
+    <div class="not-enough-balance-dialog" id="not-enough-balance-dialog">
+        <div class="not-enough-balance-content">
+            <div class="not-enough-balance-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="not-enough-balance-title">Insufficient Balance</div>
+            <div class="not-enough-balance-message">Sorry, you don't have enough UCoins for this case.</div>
+            <button class="not-enough-balance-btn" id="not-enough-balance-btn">Okay</button>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
@@ -1718,10 +1856,19 @@
             // Avatar
             const avatarContainer = document.getElementById('user-avatar');
             if (avatarContainer) {
-                const avatarImg = avatarContainer.querySelector('img');
-                if (avatarImg) {
+                // Clear any existing content
+                avatarContainer.innerHTML = '';
+                
+                // Only add an image if we have a valid photo URL
+                if (userPhotoUrl && userPhotoUrl !== 'undefined') {
+                    const avatarImg = document.createElement('img');
                     avatarImg.src = userPhotoUrl;
                     avatarImg.alt = `${userFirstName}'s avatar`;
+                    avatarContainer.appendChild(avatarImg);
+                } else {
+                    // Create a fallback with user's initials
+                    const initials = userFirstName ? userFirstName.charAt(0) : 'U';
+                    avatarContainer.textContent = initials;
                 }
             }
             
@@ -1730,7 +1877,17 @@
             const profileName = document.getElementById('profile-username');
             const profileBio = document.getElementById('profile-bio');
             
-            if (profileAvatar) profileAvatar.src = userPhotoUrl;
+            if (profileAvatar) {
+                // Only set src if we have a valid photo URL
+                if (userPhotoUrl && userPhotoUrl !== 'undefined') {
+                    profileAvatar.src = userPhotoUrl;
+                    profileAvatar.alt = `${userFirstName}'s avatar`;
+                } else {
+                    // Use a blank transparent image as fallback
+                    profileAvatar.style.display = 'none';
+                }
+            }
+            
             if (profileName) profileName.textContent = userFirstName + (userLastName ? ' ' + userLastName : '');
             if (profileBio) profileBio.textContent = userName || 'NFT enthusiast since 2022';
             
@@ -1839,7 +1996,7 @@
                 
                 // Check if user has enough balance
                 if (userBalance < price) {
-                    tg.showAlert('Not enough balance to open this case. Please add funds to your wallet.');
+                    showNotEnoughBalanceDialog();
                     return;
                 }
                 
@@ -1874,8 +2031,7 @@
                     
                     this.disabled = false;
                     
-                    // Here you would typically show the NFT reveal animation
-                    tg.showAlert('NFT Case opened! You got a rare item!');
+                    // We don't need to show an alert here since we have a custom animation
                 }, 1500);
             });
         });
@@ -1898,7 +2054,7 @@
                     
                     // Check if user has enough balance
                     if (userBalance < price) {
-                        tg.showAlert('Not enough balance to buy this NFT. Please add funds to your wallet.');
+                        showNotEnoughBalanceDialog();
                         return;
                     }
                     
@@ -1957,6 +2113,9 @@
             // Get user stats
             await getUserStats();
             
+            // Get user inventory
+            await getUserInventory();
+            
             // Update user data
             updateUserData();
             
@@ -2005,17 +2164,17 @@
             updateRarityNavVisibility('cases-tab');
         });
 
-        // Labubu skins data
+        // Labubu skins data with tiers
         const labubuSkins = [
-            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "epic" },
-            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare" },
-            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "epic" },
-            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "rare" },
-            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "uncommon" },
-            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "rare" },
-            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "uncommon" },
-            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "uncommon" },
-            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "legendary" }
+            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 50 },
+            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "mythic", tier: 5, probability: 1 },
+            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "divine", tier: 6, probability: 0.00001 }
         ];
 
         // Roulette functionality
@@ -2051,147 +2210,123 @@
             }
         }
 
-        // Function to open case
-        async function openCase(caseId) {
+        // Function to get random skin based on probability
+        function getRandomSkinByProbability() {
+            // Generate a random number between 0 and 100
+            const rand = Math.random() * 100;
+            
+            // Total probability to keep track
+            let cumulativeProbability = 0;
+            
+            // Create probability ranges for each skin
+            for (const skin of labubuSkins) {
+                cumulativeProbability += skin.probability;
+                if (rand <= cumulativeProbability) {
+                    return skin;
+                }
+            }
+            
+            // Fallback to first skin if something goes wrong
+            return labubuSkins[0];
+        }
+
+        // Function to get user inventory from database
+        async function getUserInventory() {
             try {
-                // Get fresh balance data first
-                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                // Get user inventory from Supabase
+                const { data: inventoryData, error: inventoryError } = await supabase.rpc('get_user_inventory', {
                     p_telegram_id: telegramId
                 });
+                
+                if (inventoryError) {
+                    console.error('Error getting user inventory:', inventoryError);
+                    return;
+                }
+                
+                // Clear existing inventory display
+                const userCollection = document.getElementById('user-collection');
+                userCollection.innerHTML = '';
+                
+                // Check if inventory is empty
+                if (!inventoryData || inventoryData.length === 0) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'empty-collection-message';
+                    emptyMessage.style.width = '100%';
+                    emptyMessage.style.textAlign = 'center';
+                    emptyMessage.style.padding = '30px';
+                    emptyMessage.style.color = 'rgba(255,255,255,0.7)';
                     
-                if (balanceError) {
-                    console.error('Error getting balance:', balanceError);
-                    showCustomDialog('Error retrieving your balance. Please try again.');
-                    return;
-                }
+                    emptyMessage.innerHTML = `
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
+                    `;
                     
-                // Update the local userBalance variable with fresh data
-                userBalance = balanceData || 0;
-                updateBalanceDisplay();
-                
-                // Now check if user has enough balance
-                if (userBalance < 100) {
-                    showCustomDialog('Not enough balance to open this case. Please add funds to your wallet.');
+                    userCollection.appendChild(emptyMessage);
                     return;
                 }
                 
-                // Initialize roulette
-                initializeRoulette();
+                // Display each item in the inventory
+                inventoryData.forEach(item => {
+                    // Create new card for the collection
+                    const card = document.createElement('div');
+                    card.className = 'nft-card';
+                    
+                    // Add rarity badge based on tier
+                    let rarityClass;
+                    switch(item.skin_tier) {
+                        case 1: rarityClass = 'common'; break;
+                        case 2: rarityClass = 'rare'; break;
+                        case 3: rarityClass = 'epic'; break;
+                        case 4: rarityClass = 'legendary'; break;
+                        case 5: rarityClass = 'mythic'; break;
+                        case 6: rarityClass = 'divine'; break;
+                        default: rarityClass = 'common';
+                    }
+                    
+                    const rarityBadge = document.createElement('span');
+                    rarityBadge.className = `rarity-badge rarity-${rarityClass}`;
+                    rarityBadge.textContent = rarityClass.toUpperCase();
+                    card.appendChild(rarityBadge);
+                    
+                    // Add image
+                    const img = document.createElement('img');
+                    img.src = item.skin_image;
+                    img.alt = item.skin_name;
+                    img.className = 'nft-image';
+                    card.appendChild(img);
+                    
+                    // Add info
+                    const info = document.createElement('div');
+                    info.className = 'nft-info';
+                    
+                    const title = document.createElement('div');
+                    title.className = `nft-title tier-${item.skin_tier}`;
+                    title.textContent = item.skin_name;
+                    info.appendChild(title);
+                    
+                    // Add acquisition date
+                    const date = document.createElement('div');
+                    date.style.fontSize = '0.7rem';
+                    date.style.color = 'rgba(255,255,255,0.5)';
+                    date.textContent = new Date(item.acquired_date).toLocaleDateString();
+                    info.appendChild(date);
+                    
+                    card.appendChild(info);
+                    
+                    // Add to collection
+                    userCollection.appendChild(card);
+                });
                 
-                // Reset roulette position
-                rouletteTrack.style.transform = 'translateX(0)';
-                
-                // Hide result
-                rouletteResult.classList.remove('active');
-                
-                // Show roulette overlay
-                rouletteOverlay.classList.add('active');
-                
-                // Deduct balance
-                const success = await updateUserBalance(-100, `Opened Labubu case`, 'purchase');
-                
-                if (!success) {
-                    showCustomDialog('Failed to process the transaction. Please try again.');
-                    rouletteOverlay.classList.remove('active');
-                    return;
-                }
-                
-                // Update cases opened stat
-                await updateUserStat('cases_opened', 1);
-                
-                // Pick a random skin
-                const randomIndex = Math.floor(Math.random() * labubuSkins.length);
-                const selectedSkin = labubuSkins[randomIndex];
-                
-                // Calculate roulette position
-                const itemWidth = 130; // item width + margin
-                const centerPosition = window.innerWidth / 2;
-                
-                // Position the selected item in the center (with the middle set of items)
-                const selectedPosition = labubuSkins.length + randomIndex; // Use the middle set of items
-                const finalPosition = selectedPosition * itemWidth - centerPosition + itemWidth / 2;
-                
-                // Add a small random offset for more natural feel
-                const randomOffset = Math.random() * 10 - 5;
-                
-                // Start the animation with gradually decreasing speed
-                startRouletteAnimation(finalPosition + randomOffset, selectedSkin);
+                console.log('User inventory loaded:', inventoryData);
             } catch (err) {
-                console.error('Error in openCase:', err);
-                showCustomDialog('An error occurred. Please try again.');
-                rouletteOverlay.classList.remove('active');
+                console.error('Error in getUserInventory:', err);
             }
         }
-
-        // Function to animate the roulette with decreasing speed
-        function startRouletteAnimation(finalPosition, selectedSkin) {
-            const totalDuration = 7000; // 7 seconds total
-            const stepDuration = 500; // 0.5 seconds per step
-            const steps = totalDuration / stepDuration;
-            const initialSpeed = 1.0; // 100% speed
-            let currentStep = 0;
-            
-            const animateStep = () => {
-                currentStep++;
-                
-                // Calculate current speed percentage (exponential decrease)
-                const progress = currentStep / steps;
-                const speedPercentage = Math.pow(1 - progress, 2); // Squared for exponential effect
-                
-                // Calculate how far we should move in this step
-                const totalDistance = finalPosition;
-                const distancePerStep = totalDistance / steps;
-                const adjustedDistance = distancePerStep * (1 + speedPercentage * 4); // Adjust for decreasing speed
-                
-                const currentPosition = totalDistance * (1 - Math.pow(1 - progress, 3)); // Cubic easing
-                
-                // Apply the transform
-                rouletteTrack.style.transition = `transform ${stepDuration}ms cubic-bezier(0.17, 0.67, 0.83, 0.67)`;
-                rouletteTrack.style.transform = `translateX(-${currentPosition}px)`;
-                
-                // Continue if we haven't reached the final step
-                if (currentStep < steps) {
-                    setTimeout(animateStep, stepDuration);
-                } else {
-                    // Final position reached
-                    setTimeout(() => {
-                        // Update result display
-                        resultImage.src = selectedSkin.image;
-                        resultName.textContent = selectedSkin.name;
-                        
-                        // Show result
-                        rouletteResult.classList.add('active');
-                        
-                        // If legendary or epic, update stats
-                        if (selectedSkin.rarity === 'legendary') {
-                            updateUserStat('legendary_count', 1);
-                        }
-                        
-                        // Update NFT count
-                        updateUserStat('nft_count', 1);
-                        
-                        // Add to user's inventory
-                        addToInventory(selectedSkin);
-                    }, 300);
-                }
-            };
-            
-            // Start the animation
-            setTimeout(animateStep, 100);
-        }
-
-        // Open case button
-        document.querySelectorAll('.open-case-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const caseId = this.getAttribute('data-case');
-                openCase(caseId);
-            });
-        });
-
-        // Close roulette
-        document.getElementById('roulette-close').addEventListener('click', function() {
-            rouletteOverlay.classList.remove('active');
-        });
 
         // Function to update user stats
         async function updateUserStat(statName, changeAmount) {
@@ -2230,6 +2365,288 @@
                 console.error(`Error in updateUserStat (${statName}):`, err);
                 return false;
             }
+        }
+
+        // Function to open case
+        async function openCase(caseId) {
+            try {
+                // Get fresh balance data first
+                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+                    
+                if (balanceError) {
+                    console.error('Error getting balance:', balanceError);
+                    showCustomDialog('Error retrieving your balance. Please try again.');
+                    return;
+                }
+                    
+                // Update the local userBalance variable with fresh data
+                userBalance = balanceData || 0;
+                updateBalanceDisplay();
+                
+                // Now check if user has enough balance
+                if (userBalance < 100) {
+                    showNotEnoughBalanceDialog();
+                    return;
+                }
+                
+                // Initialize roulette
+                initializeRoulette();
+                
+                // Reset roulette position
+                rouletteTrack.style.transform = 'translateX(0)';
+                
+                // Hide result
+                rouletteResult.classList.remove('active');
+                
+                // Show roulette overlay
+                rouletteOverlay.classList.add('active');
+                
+                // Deduct balance
+                const success = await updateUserBalance(-100, `Opened Labubu case`, 'purchase');
+                
+                if (!success) {
+                    showCustomDialog('Failed to process the transaction. Please try again.');
+                    rouletteOverlay.classList.remove('active');
+                    return;
+                }
+                
+                // Update cases opened stat
+                await updateUserStat('cases_opened', 1);
+                
+                // Pick a random skin based on probability
+                const selectedSkin = getRandomSkinByProbability();
+                
+                // Calculate roulette position
+                const itemWidth = 130; // item width + margin
+                const centerPosition = window.innerWidth / 2;
+                
+                // Position the selected item in the center (with the middle set of items)
+                // Find the index of the selected skin in the labubuSkins array
+                const selectedIndex = labubuSkins.findIndex(skin => skin.name === selectedSkin.name);
+                const selectedPosition = labubuSkins.length + selectedIndex; // Use the middle set of items
+                const finalPosition = selectedPosition * itemWidth - centerPosition + itemWidth / 2;
+                
+                // Add a small random offset for more natural feel
+                const randomOffset = Math.random() * 10 - 5;
+                
+                // Start the animation with gradually decreasing speed
+                startRouletteAnimation(finalPosition + randomOffset, selectedSkin);
+            } catch (err) {
+                console.error('Error in openCase:', err);
+                showCustomDialog('An error occurred. Please try again.');
+                rouletteOverlay.classList.remove('active');
+            }
+        }
+
+        // Updated roulette animation function with smooth 1% deceleration
+        function startRouletteAnimation(finalPosition, selectedSkin) {
+            const totalDuration = 7000; // 7 seconds total duration
+            const stepDuration = 100; // 0.1 seconds per step
+            const steps = totalDuration / stepDuration; // 70 steps
+            let currentStep = 0;
+            let currentSpeed = 100; // Start at 100% speed
+            let currentPosition = 0;
+            
+            // Calculate how much to move for each 1% of speed
+            const distancePerSpeedPercent = finalPosition / 5050; // Sum of 1 to 100 = 5050
+            
+            const animateStep = () => {
+                currentStep++;
+                
+                // Decrease speed by 1% each step
+                if (currentSpeed > 0) {
+                    currentSpeed -= 1;
+                }
+                
+                // Calculate how far to move in this step based on current speed percentage
+                const stepDistance = currentSpeed * distancePerSpeedPercent;
+                
+                // Update current position
+                currentPosition += stepDistance;
+                
+                // Apply the transform with easing for smoother motion
+                rouletteTrack.style.transition = `transform ${stepDuration}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                rouletteTrack.style.transform = `translateX(-${currentPosition}px)`;
+                
+                // Continue if we haven't reached the end
+                if (currentStep < steps && currentSpeed > 0) {
+                    setTimeout(animateStep, stepDuration);
+                } else {
+                    // Make sure we reach the exact final position
+                    rouletteTrack.style.transition = `transform 500ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                    rouletteTrack.style.transform = `translateX(-${finalPosition}px)`;
+                    
+                    // Final position reached
+                    setTimeout(() => {
+                        // Update result display
+                        resultImage.src = selectedSkin.image;
+                        resultName.textContent = selectedSkin.name;
+                        
+                        // Show result
+                        rouletteResult.classList.add('active');
+                        
+                        // If legendary or epic, update stats
+                        if (selectedSkin.rarity === 'legendary') {
+                            updateUserStat('legendary_count', 1);
+                        }
+                        
+                        // Update NFT count
+                        updateUserStat('nft_count', 1);
+                        
+                        // Add to user's inventory
+                        addToInventory(selectedSkin);
+                    }, 500);
+                }
+            };
+            
+            // Start the animation
+            setTimeout(animateStep, 100);
+        }
+
+        // Open case button
+        document.querySelectorAll('.open-case-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const caseId = this.getAttribute('data-case');
+                openCase(caseId);
+            });
+        });
+
+        // Close roulette
+        document.getElementById('roulette-close').addEventListener('click', function() {
+            rouletteOverlay.classList.remove('active');
+        });
+
+        // Updated function to add skin to inventory both in UI and database
+        async function addToInventory(skin) {
+            try {
+                // Add to database first
+                const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                    p_telegram_id: telegramId,
+                    p_skin_name: skin.name,
+                    p_skin_image: skin.image,
+                    p_skin_tier: skin.tier
+                });
+                
+                if (error) {
+                    console.error('Error adding skin to inventory:', error);
+                    return;
+                }
+                
+                console.log('Skin added to inventory:', skin.name);
+                
+                // Now update the UI - we'll reload the entire inventory to ensure consistency
+                getUserInventory();
+            } catch (err) {
+                console.error('Error in addToInventory:', err);
+            }
+        }
+
+        // Load user inventory when app initializes and when inventory tab is selected
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('App initialized');
+            
+            // Register user and get balance from Supabase
+            await registerUserAndGetBalance();
+            
+            // Get user stats
+            await getUserStats();
+            
+            // Get user inventory
+            await getUserInventory();
+            
+            // Update user data
+            updateUserData();
+            
+            // Set initial rarity nav visibility
+            updateRarityNavVisibility('cases-tab');
+        });
+
+        // Load inventory when that tab is selected
+        bottomNavBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                // Remove active class from all buttons
+                bottomNavBtns.forEach(nav => nav.classList.remove('active'));
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const targetTab = document.getElementById(tabId);
+                if (targetTab) targetTab.classList.add('active');
+                
+                // Update rarity navigation visibility based on tab
+                updateRarityNavVisibility(tabId);
+                
+                // If profile tab is selected, update user data
+                if (tabId === 'profile-tab') {
+                    updateUserData();
+                }
+                
+                // If inventory tab is selected, refresh the inventory
+                if (tabId === 'inventory-tab') {
+                    await getUserInventory();
+                }
+            });
+        });
+
+        // Replace all Telegram showAlert calls with our custom dialog
+        // Function to create Telegram user object if testing outside Telegram
+        function ensureTelegramApiAvailable() {
+            if (typeof window.Telegram === 'undefined' || typeof window.Telegram.WebApp === 'undefined') {
+                // Create mock Telegram object for testing
+                window.Telegram = {
+                    WebApp: {
+                        initData: '',
+                        initDataUnsafe: { 
+                            user: { 
+                                id: 12345678,
+                                first_name: 'Test',
+                                username: 'testuser' 
+                            } 
+                        },
+                        expand: function() {},
+                        showAlert: function(message) {
+                            console.log('Alert would show:', message);
+                            showCustomDialog(message);
+                        },
+                        showConfirm: function(message) {
+                            console.log('Confirm would show:', message);
+                            return true;
+                        }
+                    }
+                };
+            }
+        }
+
+        // Call this function at app initialization
+        ensureTelegramApiAvailable();
+
+        // Override Telegram.WebApp.showAlert to use our custom dialog
+        const originalShowAlert = window.Telegram.WebApp.showAlert;
+        window.Telegram.WebApp.showAlert = function(message) {
+            console.log('Alert intercepted:', message);
+            showCustomDialog(message);
+        };
+
+        // Function to show not enough balance dialog
+        function showNotEnoughBalanceDialog() {
+            const dialog = document.getElementById('not-enough-balance-dialog');
+            const okayBtn = document.getElementById('not-enough-balance-btn');
+            
+            // Show dialog
+            dialog.classList.add('active');
+            
+            // Handle button click
+            okayBtn.onclick = function() {
+                dialog.classList.remove('active');
+            };
         }
 
         // Show custom dialog function
@@ -2292,88 +2709,6 @@
                 showCaseDetail(caseId);
             });
         });
-
-        // Show result after animation and add to inventory
-        function addToInventory(skin) {
-            // Get user collection container
-            const userCollection = document.getElementById('user-collection');
-            
-            // Remove empty collection message if it exists
-            const emptyMessage = userCollection.querySelector('.empty-collection-message');
-            if (emptyMessage) {
-                emptyMessage.remove();
-            }
-            
-            // Create new card for the collection
-            const card = document.createElement('div');
-            card.className = 'nft-card';
-            
-            // Add rarity badge
-            const rarityBadge = document.createElement('span');
-            rarityBadge.className = `rarity-badge rarity-${skin.rarity}`;
-            rarityBadge.textContent = skin.rarity.toUpperCase();
-            card.appendChild(rarityBadge);
-            
-            // Add image
-            const img = document.createElement('img');
-            img.src = skin.image;
-            img.alt = skin.name;
-            img.className = 'nft-image';
-            card.appendChild(img);
-            
-            // Add info
-            const info = document.createElement('div');
-            info.className = 'nft-info';
-            
-            const title = document.createElement('div');
-            title.className = 'nft-title';
-            title.textContent = skin.name;
-            info.appendChild(title);
-            
-            card.appendChild(info);
-            
-            // Add to collection
-            userCollection.prepend(card);
-        }
-
-        // Replace all Telegram showAlert calls with our custom dialog
-        // Function to create Telegram user object if testing outside Telegram
-        function ensureTelegramApiAvailable() {
-            if (typeof window.Telegram === 'undefined' || typeof window.Telegram.WebApp === 'undefined') {
-                // Create mock Telegram object for testing
-                window.Telegram = {
-                    WebApp: {
-                        initData: '',
-                        initDataUnsafe: { 
-                            user: { 
-                                id: 12345678,
-                                first_name: 'Test',
-                                username: 'testuser' 
-                            } 
-                        },
-                        expand: function() {},
-                        showAlert: function(message) {
-                            console.log('Alert would show:', message);
-                            showCustomDialog(message);
-                        },
-                        showConfirm: function(message) {
-                            console.log('Confirm would show:', message);
-                            return true;
-                        }
-                    }
-                };
-            }
-        }
-
-        // Call this function at app initialization
-        ensureTelegramApiAvailable();
-
-        // Override Telegram.WebApp.showAlert to use our custom dialog
-        const originalShowAlert = window.Telegram.WebApp.showAlert;
-        window.Telegram.WebApp.showAlert = function(message) {
-            console.log('Alert intercepted:', message);
-            showCustomDialog(message);
-        };
     </script>
 </body>
 </html>
