@@ -1803,22 +1803,6 @@
         let telegramId = user.id;
         let userBalance = 0;
 
-        // Log extended debug info for Telegram connection
-        console.log("Detailed user data:", {
-            telegramId: telegramId,
-            firstName: userFirstName,
-            lastName: userLastName,
-            userName: userName,
-            photoUrl: userPhotoUrl
-        });
-        
-        // Log more details about the Telegram connection
-        console.log("Is Telegram WebApp defined:", typeof window.Telegram !== "undefined" && typeof window.Telegram.WebApp !== "undefined");
-        if (window.Telegram && window.Telegram.WebApp) {
-            console.log("Telegram WebApp initData:", window.Telegram.WebApp.initData ? "present" : "missing");
-            console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
-        }
-
         // Debug: Log Telegram user data
         console.log('Telegram user data:', user);
         console.log('Telegram ID:', telegramId);
@@ -2720,6 +2704,35 @@
 
         // Replace all Telegram showAlert calls with our custom dialog
         // Function to create Telegram user object if testing outside Telegram
+        function ensureTelegramApiAvailable() {
+            if (typeof window.Telegram === 'undefined' || typeof window.Telegram.WebApp === 'undefined') {
+                // Create mock Telegram object for testing
+                window.Telegram = {
+                    WebApp: {
+                        initData: '',
+                        initDataUnsafe: { 
+                            user: { 
+                                id: 12345678,
+                                first_name: 'Test',
+                                username: 'testuser' 
+                            } 
+                        },
+                        expand: function() {},
+                        showAlert: function(message) {
+                            console.log('Alert would show:', message);
+                            showCustomDialog(message);
+                        },
+                        showConfirm: function(message) {
+                            console.log('Confirm would show:', message);
+                            return true;
+                        }
+                    }
+                };
+            }
+        }
+
+        // Call this function at app initialization
+        ensureTelegramApiAvailable();
 
         // Override Telegram.WebApp.showAlert to use our custom dialog
         const originalShowAlert = window.Telegram.WebApp.showAlert;
@@ -2869,19 +2882,6 @@
                 console.error('Error in sell button click handler:', err);
             }
         });
-
-        // Call this function at app initialization
-        ensureTelegramApiAvailable();
-        
-        // Make extra sure telegramId is set correctly
-        if (typeof telegramId === 'undefined' || !telegramId) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-                telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                console.log("Fixed telegramId after initialization:", telegramId);
-            } else {
-                console.error("CRITICAL: Failed to get Telegram ID even after initialization attempts");
-            }
-        }
     </script>
 </body>
 </html>

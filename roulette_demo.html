@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Improved Roulette Animation Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --success: #00b894;
+            --light-text: #dfe6e9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+        
+        .description {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .description ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .description li {
+            margin-bottom: 8px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+        
+        /* Roulette Styles */
+        .roulette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .roulette-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .roulette-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+        
+        .roulette-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .roulette-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .roulette-track {
+            display: flex;
+            transition: transform 7s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+        
+        .roulette-item {
+            flex: 0 0 120px;
+            height: 150px;
+            background: rgba(20, 20, 35, 0.8);
+            margin: 0 5px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .roulette-item img {
+            max-width: 90%;
+            max-height: 90px;
+            object-fit: contain;
+        }
+        
+        .roulette-item-name {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        
+        .roulette-marker {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.8);
+        }
+        
+        .roulette-result {
+            margin-top: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+        
+        .roulette-result.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .roulette-result-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid rgba(108, 92, 231, 0.5);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
+        }
+        
+        .roulette-result-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .roulette-result-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .roulette-close {
+            margin-top: 20px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .roulette-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .roulette-sell {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tier-1 {
+            color: #95a5a6; /* Grey */
+        }
+
+        .tier-2 {
+            color: #3498db; /* Blue */
+        }
+
+        .tier-3 {
+            color: #9b59b6; /* Purple */
+        }
+
+        .tier-4 {
+            color: #e74c3c; /* Red */
+        }
+
+        .tier-5 {
+            color: #f1c40f; /* Golden */
+        }
+
+        .tier-6 {
+            background: linear-gradient(to right, #f5f7fa, #c3cfe2, #6a11cb, #2575fc, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Improved Roulette Animation Demo</h1>
+        
+        <div class="description">
+            <p>This demo showcases the improved roulette animation with:</p>
+            <ul>
+                <li>Randomized NFT positions for each spin</li>
+                <li>Smoother animation with cubic-bezier timing function</li>
+                <li>Fixed images that don't disappear during scrolling</li>
+                <li>Consistent left-to-right movement</li>
+                <li>Natural start-fast and gradually-slow deceleration</li>
+                <li>Minimum spin distance for satisfying effect</li>
+            </ul>
+        </div>
+        
+        <div class="controls">
+            <button id="start-demo">
+                <i class="fas fa-play"></i> Start Animation
+            </button>
+            <button id="reset-demo">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+    </div>
+    
+    <!-- Roulette Overlay -->
+    <div class="roulette-overlay" id="roulette-overlay">
+        <div class="roulette-header">
+            <h2>Opening Labubu Case</h2>
+            <p>Good luck!</p>
+        </div>
+        
+        <div class="roulette-container">
+            <div class="roulette-marker"></div>
+            <div class="roulette-track" id="roulette-track"></div>
+        </div>
+        
+        <div class="roulette-result" id="roulette-result">
+            <h3>Congratulations!</h3>
+            <div class="roulette-result-image">
+                <img id="result-image" src="" alt="Your new skin">
+            </div>
+            <div class="roulette-result-name" id="result-name"></div>
+            <div class="roulette-buttons">
+                <button class="roulette-close" id="roulette-close">Awesome!</button>
+                <button class="roulette-sell" id="roulette-sell">
+                    <i class="fas fa-coins"></i> <span id="sell-price">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Labubu skins data with tiers
+        const labubuSkins = [
+            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 50 },
+            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "mythic", tier: 5, probability: 1 },
+            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "divine", tier: 6, probability: 0.00001 }
+        ];
+
+        // Define skin prices
+        const skinPrices = {
+            1: 20,   // Tier 1
+            2: 50,   // Tier 2
+            3: 120,  // Tier 3
+            4: 300,  // Tier 4
+            5: 750,  // Tier 5
+            6: 10000 // Tier 6
+        };
+        
+        // Elements
+        const rouletteOverlay = document.getElementById('roulette-overlay');
+        const rouletteTrack = document.getElementById('roulette-track');
+        const rouletteResult = document.getElementById('roulette-result');
+        const resultImage = document.getElementById('result-image');
+        const resultName = document.getElementById('result-name');
+        const startDemoBtn = document.getElementById('start-demo');
+        const resetDemoBtn = document.getElementById('reset-demo');
+        const closeRouletteBtn = document.getElementById('roulette-close');
+        
+        let currentResultSkin = null;
+        
+        // Function to shuffle an array using Fisher-Yates algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        // Initialize roulette
+        function initializeRoulette() {
+            // Clear previous items
+            rouletteTrack.innerHTML = '';
+            
+            // We'll create three sets of shuffled skins for a better experience
+            // This ensures a longer track and more variability
+            
+            // First set - completely random
+            const firstSet = shuffleArray(labubuSkins);
+            // Second set - different shuffle
+            const secondSet = shuffleArray(labubuSkins);
+            // Third set - different shuffle again
+            const thirdSet = shuffleArray(labubuSkins);
+            
+            // Combine all sets
+            const allSets = [...firstSet, ...secondSet, ...thirdSet];
+            
+            // Create roulette items
+            allSets.forEach(skin => {
+                const item = document.createElement('div');
+                item.className = 'roulette-item';
+                item.dataset.skinName = skin.name; // Store the skin name for reference
+                item.dataset.skinTier = skin.tier; // Store the tier for reference
+                
+                const img = document.createElement('img');
+                img.src = skin.image;
+                img.alt = skin.name;
+                
+                const name = document.createElement('div');
+                name.className = `roulette-item-name tier-${skin.tier}`;
+                name.textContent = skin.name;
+                
+                item.appendChild(img);
+                item.appendChild(name);
+                rouletteTrack.appendChild(item);
+            });
+            
+            // Reset transition and transform
+            rouletteTrack.style.transition = 'none';
+            rouletteTrack.style.transform = 'translateX(0)';
+            
+            // Force a reflow to ensure the transition reset is applied
+            rouletteTrack.offsetHeight;
+            
+            console.log('Roulette initialized with randomized items');
+        }
+
+        // Function to get random skin based on probability
+        function getRandomSkinByProbability() {
+            // Generate a random number between 0 and 100
+            const rand = Math.random() * 100;
+            
+            // Total probability to keep track
+            let cumulativeProbability = 0;
+            
+            // Create probability ranges for each skin
+            for (const skin of labubuSkins) {
+                cumulativeProbability += skin.probability;
+                if (rand <= cumulativeProbability) {
+                    return skin;
+                }
+            }
+            
+            // Fallback to first skin if something goes wrong
+            return labubuSkins[0];
+        }
+        
+        // Enhanced roulette animation with improved physics and smoothness
+        function startRouletteAnimation(selectedSkin) {
+            // Store the current selected skin
+            currentResultSkin = selectedSkin;
+            
+            // Set the sell price with coin icon
+            const sellPrice = skinPrices[selectedSkin.tier];
+            const sellPriceElement = document.getElementById('sell-price');
+            sellPriceElement.textContent = sellPrice;
+            
+            // Style the result name according to tier
+            const resultNameElement = document.getElementById('result-name');
+            resultNameElement.className = `tier-${selectedSkin.tier}`;
+            resultNameElement.textContent = selectedSkin.name;
+            
+            // Get all roulette items
+            const items = document.querySelectorAll('.roulette-item');
+            
+            // Find the item that matches our selected skin
+            let targetItem = null;
+            let targetIndex = -1;
+            
+            items.forEach((item, index) => {
+                if (item.dataset.skinName === selectedSkin.name) {
+                    // We want to find one in the middle section ideally
+                    if (targetItem === null || 
+                        (index >= items.length / 3 && index <= (items.length * 2) / 3)) {
+                        targetItem = item;
+                        targetIndex = index;
+                    }
+                }
+            });
+            
+            // If we couldn't find the exact item (shouldn't happen), use the first match
+            if (targetItem === null) {
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].dataset.skinName === selectedSkin.name) {
+                        targetItem = items[i];
+                        targetIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Still no target? Use a fallback (shouldn't happen)
+            if (targetItem === null) {
+                console.error('Could not find target item in roulette:', selectedSkin.name);
+                targetItem = items[Math.floor(items.length / 2)]; // Use middle item as fallback
+                targetIndex = Math.floor(items.length / 2);
+            }
+            
+            // Calculate dimensions
+            const itemWidth = 130; // Width of each item including margins
+            const viewportWidth = window.innerWidth;
+            const centerPosition = viewportWidth / 2;
+            
+            // Calculate the position needed to center the target item
+            const itemOffsetLeft = targetIndex * itemWidth;
+            const finalPosition = itemOffsetLeft - centerPosition + (itemWidth / 2);
+            
+            // Ensure we have enough spin distance for a satisfying effect
+            const minSpinDistance = viewportWidth * 2; // At least 2 viewport widths
+            
+            // Calculate the total distance to spin
+            let totalSpinDistance = finalPosition;
+            
+            // If the distance is too small, add additional revolutions
+            if (totalSpinDistance < minSpinDistance) {
+                // Add enough full revolutions to exceed minimum distance
+                const additionalDistance = Math.ceil((minSpinDistance - totalSpinDistance) / (items.length * itemWidth)) * (items.length * itemWidth);
+                totalSpinDistance += additionalDistance;
+            }
+            
+            // Add a small random variance for natural feel (within 20px)
+            const randomVariance = (Math.random() * 40 - 20);
+            totalSpinDistance += randomVariance;
+            
+            // Reset animation state
+            rouletteTrack.style.transition = 'none';
+            rouletteTrack.style.transform = 'translateX(0)';
+            rouletteTrack.offsetHeight; // Force a reflow
+            
+            // Set the total duration and easing
+            const duration = 7000; // Exactly 7 seconds as requested
+            
+            // Use an advanced cubic-bezier curve for realistic physics
+            // This curve starts fast and gradually slows down in a natural way
+            const easingFunction = 'cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+            
+            // Start the animation after a brief delay to ensure transition is properly reset
+            setTimeout(() => {
+                console.log(`Starting animation to position: ${totalSpinDistance}px`);
+                rouletteTrack.style.transition = `transform ${duration}ms ${easingFunction}`;
+                rouletteTrack.style.transform = `translateX(-${totalSpinDistance}px)`;
+                
+                // When animation ends, show the result
+                setTimeout(() => {
+                    // Update result display
+                    resultImage.src = selectedSkin.image;
+                    
+                    // Show result
+                    rouletteResult.classList.add('active');
+                    
+                }, duration + 200); // Add a small buffer for animation completion
+            }, 50);
+        }
+        
+        // Start demo
+        startDemoBtn.addEventListener('click', function() {
+            // Initialize roulette with randomized order
+            initializeRoulette();
+            
+            // Hide result
+            rouletteResult.classList.remove('active');
+            
+            // Show roulette overlay
+            rouletteOverlay.classList.add('active');
+            
+            // Pick a random skin based on probability
+            const selectedSkin = getRandomSkinByProbability();
+            console.log('Selected skin:', selectedSkin);
+            
+            // Start the enhanced animation with the selected skin
+            startRouletteAnimation(selectedSkin);
+        });
+        
+        // Reset demo
+        resetDemoBtn.addEventListener('click', function() {
+            rouletteOverlay.classList.remove('active');
+            rouletteResult.classList.remove('active');
+        });
+        
+        // Close roulette
+        closeRouletteBtn.addEventListener('click', function() {
+            rouletteOverlay.classList.remove('active');
+        });
+    </script>
+</body>
+</html> 
