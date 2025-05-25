@@ -2257,6 +2257,9 @@
             // Update user data
             updateUserData();
             
+            // Load case opening data
+            loadCaseOpeningData();
+            
             // Set initial rarity nav visibility
             updateRarityNavVisibility('cases-tab');
         });
@@ -2311,15 +2314,15 @@
 
         // Labubu skins data with tiers
         const labubuSkins = [
-            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 50 },
-            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 25 },
-            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "rare", tier: 2, probability: 25 },
-            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "epic", tier: 3, probability: 15 },
-            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "epic", tier: 3, probability: 15 },
-            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
-            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
-            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "mythic", tier: 5, probability: 1 },
-            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "divine", tier: 6, probability: 0.00001 }
+            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 73.0 },
+            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 10.0 },
+            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "rare", tier: 2, probability: 10.0 },
+            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "epic", tier: 3, probability: 2.5 },
+            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "epic", tier: 3, probability: 2.5 },
+            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "legendary", tier: 4, probability: 0.7 },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "legendary", tier: 4, probability: 0.7 },
+            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "mythic", tier: 5, probability: 0.5 },
+            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "divine", tier: 6, probability: 0.1 }
         ];
 
         // Roulette functionality
@@ -2328,6 +2331,56 @@
         const rouletteResult = document.getElementById('roulette-result');
         const resultImage = document.getElementById('result-image');
         const resultName = document.getElementById('result-name');
+        
+        // Case opening tracking for guaranteed rewards
+        let caseOpeningsCount = 0;
+        let guaranteedTier3NextOpening = false;
+        
+        // Function to track and determine if a guaranteed Tier 3 drop should happen
+        function shouldProvideGuaranteedTier3() {
+            // Increment the case openings counter
+            caseOpeningsCount++;
+            
+            // If this opening was already marked for a guaranteed Tier 3
+            if (guaranteedTier3NextOpening) {
+                guaranteedTier3NextOpening = false;
+                return true;
+            }
+            
+            // Every fourth opening (4, 8, 12, etc.) gets a guaranteed Tier 3 or better
+            if (caseOpeningsCount % 4 === 0) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Function to get a guaranteed Tier 3 or better skin
+        function getGuaranteedTier3OrBetter() {
+            // Filter skins that are Tier 3 or better
+            const tier3OrBetter = labubuSkins.filter(skin => skin.tier >= 3);
+            
+            // Adjust probabilities within this filtered set
+            const totalProbability = tier3OrBetter.reduce((sum, skin) => sum + skin.probability, 0);
+            const normalizedSkins = tier3OrBetter.map(skin => ({
+                ...skin,
+                normalizedProbability: skin.probability / totalProbability * 100
+            }));
+            
+            // Get a random skin based on normalized probabilities
+            const rand = Math.random() * 100;
+            let cumulativeProbability = 0;
+            
+            for (const skin of normalizedSkins) {
+                cumulativeProbability += skin.normalizedProbability;
+                if (rand <= cumulativeProbability) {
+                    return skin;
+                }
+            }
+            
+            // Fallback to first Tier 3 skin if something goes wrong
+            return tier3OrBetter[0];
+        }
 
         // Fisher-Yates shuffle algorithm for randomizing NFT order
         function shuffleArray(array) {
@@ -2387,6 +2440,13 @@
 
         // Function to get random skin based on probability
         function getRandomSkinByProbability() {
+            // Check if this should be a guaranteed Tier 3 or better drop
+            if (shouldProvideGuaranteedTier3()) {
+                console.log('Providing guaranteed Tier 3 or better item');
+                return getGuaranteedTier3OrBetter();
+            }
+            
+            // Regular random drop based on probabilities
             // Generate a random number between 0 and 100
             const rand = Math.random() * 100;
             
@@ -2761,6 +2821,9 @@
                 // Pick a random skin based on probability
                 const selectedSkin = getRandomSkinByProbability();
                 
+                // Save case opening data
+                saveCaseOpeningData();
+                
                 // Start the enhanced animation with the selected skin
                 startRouletteAnimation(selectedSkin);
             } catch (err) {
@@ -2823,6 +2886,9 @@
             
             // Update user data
             updateUserData();
+            
+            // Load case opening data
+            loadCaseOpeningData();
             
             // Set initial rarity nav visibility
             updateRarityNavVisibility('cases-tab');
@@ -3052,6 +3118,31 @@
                 console.error('Error in sell button click handler:', err);
             }
         });
+
+        // Load opening count from localStorage
+        function loadCaseOpeningData() {
+            if (telegramId) {
+                const savedData = localStorage.getItem(`caseOpeningData_${telegramId}`);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    caseOpeningsCount = parsedData.count || 0;
+                    guaranteedTier3NextOpening = parsedData.guaranteed || false;
+                    console.log(`Loaded case opening data: Count=${caseOpeningsCount}, Guaranteed=${guaranteedTier3NextOpening}`);
+                }
+            }
+        }
+        
+        // Save opening count to localStorage
+        function saveCaseOpeningData() {
+            if (telegramId) {
+                const dataToSave = {
+                    count: caseOpeningsCount,
+                    guaranteed: guaranteedTier3NextOpening
+                };
+                localStorage.setItem(`caseOpeningData_${telegramId}`, JSON.stringify(dataToSave));
+                console.log(`Saved case opening data: Count=${caseOpeningsCount}, Guaranteed=${guaranteedTier3NextOpening}`);
+            }
+        }
     </script>
 </body>
 </html>
