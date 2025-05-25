@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+        }
+        .item img {
+            max-width: 100%;
+            height: auto;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Test</h1>
+    
+    <div class="card">
+        <h2>Connection Settings</h2>
+        <div>
+            <label for="telegramId">Telegram ID:</label>
+            <input type="text" id="telegramId" placeholder="Enter telegram ID">
+        </div>
+        <p>Using Supabase URL: <span id="supabaseUrl"></span></p>
+        <button id="testConnection">Test Connection</button>
+        <button id="fetchInventory">Fetch Inventory</button>
+    </div>
+    
+    <div class="card">
+        <h2>Status</h2>
+        <div id="status">Ready</div>
+        <div id="error"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Raw Response</h2>
+        <pre id="rawResponse">No data yet</pre>
+    </div>
+    
+    <div class="card">
+        <h2>Inventory Items</h2>
+        <div id="inventoryItems" class="item-grid">
+            <!-- Items will be displayed here -->
+        </div>
+    </div>
+    
+    <script>
+        // Supabase client initialization
+        const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Display Supabase URL
+        document.getElementById('supabaseUrl').textContent = SUPABASE_URL;
+        
+        // Get DOM elements
+        const telegramIdInput = document.getElementById('telegramId');
+        const testConnectionBtn = document.getElementById('testConnection');
+        const fetchInventoryBtn = document.getElementById('fetchInventory');
+        const statusElement = document.getElementById('status');
+        const errorElement = document.getElementById('error');
+        const rawResponseElement = document.getElementById('rawResponse');
+        const inventoryItemsElement = document.getElementById('inventoryItems');
+        
+        // Test connection
+        testConnectionBtn.addEventListener('click', async () => {
+            statusElement.textContent = 'Testing connection...';
+            errorElement.textContent = '';
+            
+            try {
+                const { data, error } = await supabase.from('users').select('count(*)');
+                
+                if (error) throw error;
+                
+                statusElement.textContent = 'Connection successful!';
+                rawResponseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                statusElement.textContent = 'Connection failed!';
+                errorElement.textContent = err.message;
+                console.error('Connection error:', err);
+            }
+        });
+        
+        // Fetch inventory
+        fetchInventoryBtn.addEventListener('click', async () => {
+            const telegramId = telegramIdInput.value.trim();
+            
+            if (!telegramId) {
+                errorElement.textContent = 'Please enter a Telegram ID';
+                return;
+            }
+            
+            statusElement.textContent = 'Fetching inventory...';
+            errorElement.textContent = '';
+            inventoryItemsElement.innerHTML = '';
+            
+            try {
+                const { data, error } = await supabase.rpc('get_user_inventory', {
+                    p_telegram_id: parseInt(telegramId)
+                });
+                
+                if (error) throw error;
+                
+                statusElement.textContent = `Fetched ${data ? data.length : 0} items`;
+                rawResponseElement.textContent = JSON.stringify(data, null, 2);
+                
+                if (!data || data.length === 0) {
+                    inventoryItemsElement.innerHTML = '<p>No items found in inventory</p>';
+                    return;
+                }
+                
+                // Display items
+                data.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'item';
+                    itemElement.innerHTML = `
+                        <img src="${item.skin_image}" alt="${item.skin_name}">
+                        <h3>${item.skin_name}</h3>
+                        <p>Tier: ${item.skin_tier}</p>
+                        <p>Acquired: ${new Date(item.acquired_date).toLocaleString()}</p>
+                        <p>ID: ${item.unique_id}</p>
+                    `;
+                    inventoryItemsElement.appendChild(itemElement);
+                });
+                
+            } catch (err) {
+                statusElement.textContent = 'Failed to fetch inventory!';
+                errorElement.textContent = err.message;
+                console.error('Inventory error:', err);
+            }
+        });
+    </script>
+</body>
+</html> 
