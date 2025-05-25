@@ -1706,6 +1706,153 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Marketplace Tab -->
+            <div class="tab-content" id="marketplace-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-store"></i> Marketplace
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-legendary">Legendary</span>
+                        <img src="AlienLabubu.png" alt="Alien Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Alien Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 250
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-epic">Epic</span>
+                        <img src="SkeletonLabubu.png" alt="Skeleton Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Skeleton Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 180
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-rare">Rare</span>
+                        <img src="ZombieLabubu.png" alt="Zombie Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Zombie Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 95
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-uncommon">Uncommon</span>
+                        <img src="GrassLabubu.png" alt="Grass Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Grass Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 35
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Tab -->
+            <div class="tab-content" id="inventory-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-box-open"></i> Your Collection
+                </h2>
+                
+                <div id="user-collection" class="cases-grid">
+                    <!-- This will be populated dynamically when user opens cases -->
+                    <div class="empty-collection-message" style="width: 100%; text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profile-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> Profile
+                </h2>
+                
+                <div class="profile-section">
+                    <img alt="Profile" class="profile-avatar" id="profile-avatar">
+                    <h2 class="profile-username" id="profile-username">CryptoCollector</h2>
+                    <p class="profile-bio" id="profile-bio">NFT enthusiast and collector since 2021</p>
+                    
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="profile-nfts-count">0</div>
+                            <div class="stat-label">NFTs</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-cases-opened">0</div>
+                            <div class="stat-label">CASES OPENED</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-legendary-count">0</div>
+                            <div class="stat-label">LEGENDARY</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
+                        <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                        <span id="profile-balance">1.25 ETH</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 20px;">
+                    <i class="fas fa-crown"></i> Achievements
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="inventory-item" style="width: 100%;">
+                        <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
+                        <div class="inventory-details">
+                            <div class="inventory-title">First Legendary</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Obtained your first legendary NFT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Tab -->
+            <div class="tab-content" id="info-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i> About
+                </h2>
+                
+                <div class="info-section">
+                    <h2>About UnboxdNFT</h2>
+                    <p>UnboxdNFT is a platform that allows users to open digital cases containing NFTs of varying rarity. The platform uses blockchain technology to ensure transparency and authenticity of all transactions and NFT ownership.</p>
+                    
+                    <h3>How it Works</h3>
+                    <p>1. Purchase a case using ETH or UCoins<br>
+                    2. Open the case to reveal your NFT<br>
+                    3. Keep your NFT in your collection or sell it on the marketplace</p>
+                    
+                    <h3>Rarity Levels</h3>
+                    <ul>
+                        <li><span class="rarity-text" style="color: #f1c40f;">Legendary</span> - Extremely rare and valuable NFTs (1% chance)</li>
+                        <li><span class="rarity-text" style="color: #9b59b6;">Epic</span> - Very rare NFTs with special attributes (5% chance)</li>
+                        <li><span class="rarity-text" style="color: #3498db;">Rare</span> - Uncommon NFTs with unique features (15% chance)</li>
+                        <li><span class="rarity-text" style="color: #95a5a6;">Common</span> - Standard NFTs that are more widely available (79% chance)</li>
+                    </ul>
+                    
+                    <h3>Contact Support</h3>
+                    <p>Need help or have questions? Contact our support team through the Telegram bot. We're available 24/7 to assist with any issues or inquiries about the platform.</p>
+                </div>
+            </div>
         </main>
         
         <!-- Bottom Navigation -->
@@ -2218,10 +2365,10 @@
                 // Show the shop/cases tab
                 bottomNavBtns.forEach(btn => {
                     btn.classList.remove('active');
-                    if (btn.getAttribute('data-tab') === 'shop-tab') {
-                        btn.classList.add('active');
-                    }
                 });
+                
+                // Add active class to center button
+                centerBtn.classList.add('active');
                 
                 document.querySelectorAll('.tab-content').forEach(tab => {
                     tab.classList.remove('active');
@@ -3315,9 +3462,8 @@
                 return;
             }
             
-            // Load saved reward data
-            const rewardData = loadRewardData();
-            updateRewardUI(rewardData);
+            // Check reward availability from database
+            checkRewardAvailability();
             
             // Add event listener to claim button
             dailyRewardBtn.addEventListener('click', claimDailyReward);
@@ -3328,7 +3474,44 @@
             });
         }
         
-        // Load reward data from localStorage
+        // Check reward availability from database
+        async function checkRewardAvailability() {
+            try {
+                // Call the database function to check availability
+                const { data, error } = await supabase.rpc('check_reward_availability', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (error) {
+                    console.error('Error checking reward availability:', error);
+                    // Fallback to local storage if database call fails
+                    const rewardData = loadRewardData();
+                    updateRewardUI(rewardData);
+                    return;
+                }
+                
+                console.log('Reward availability data:', data);
+                
+                // Convert database response to a format compatible with our UI
+                const rewardData = {
+                    lastClaimed: data.last_claimed ? new Date(data.last_claimed).getTime() : 0,
+                    nextAvailable: new Date(data.next_available).getTime()
+                };
+                
+                // Update the UI with the retrieved data
+                updateRewardUI(rewardData);
+                
+                // Also update localStorage as a backup
+                saveRewardData(rewardData);
+            } catch (err) {
+                console.error('Error in checkRewardAvailability:', err);
+                // Fallback to localStorage if there's an error
+                const rewardData = loadRewardData();
+                updateRewardUI(rewardData);
+            }
+        }
+        
+        // Load reward data from localStorage (backup)
         function loadRewardData() {
             const savedData = localStorage.getItem(`dailyReward_${telegramId}`);
             if (!savedData) {
@@ -3342,7 +3525,7 @@
             return JSON.parse(savedData);
         }
         
-        // Save reward data to localStorage
+        // Save reward data to localStorage (backup)
         function saveRewardData(data) {
             localStorage.setItem(`dailyReward_${telegramId}`, JSON.stringify(data));
         }
@@ -3387,8 +3570,7 @@
                 // If countdown reached zero, refresh the UI
                 if (timeLeft <= 0) {
                     clearInterval(countdownInterval);
-                    const rewardData = loadRewardData();
-                    updateRewardUI(rewardData);
+                    checkRewardAvailability(); // Check from database instead of local
                 }
             }, 1000);
         }
@@ -3415,40 +3597,47 @@
         
         // Claim daily reward
         async function claimDailyReward() {
-            // Get current reward data
-            const rewardData = loadRewardData();
-            const now = Date.now();
-            
-            // Verify reward is available (double-check)
-            if (now < rewardData.nextAvailable) {
-                console.log('Reward not yet available, cannot claim');
-                return;
-            }
-            
-            // Add the reward to user's balance
-            const success = await updateUserBalance(
-                REWARD_AMOUNT, 
-                'Daily reward claimed', 
-                'reward'
-            );
-            
-            if (success) {
-                // Update reward data
-                rewardData.lastClaimed = now;
-                rewardData.nextAvailable = now + REWARD_COOLDOWN_MS;
-                saveRewardData(rewardData);
+            try {
+                // Call the database function to claim reward
+                const { data, error } = await supabase.rpc('claim_reward', {
+                    p_telegram_id: telegramId,
+                    p_amount: REWARD_AMOUNT
+                });
                 
-                // Update UI
+                if (error) {
+                    console.error('Error claiming reward:', error);
+                    showCustomDialog('Failed to claim your reward. Please try again.');
+                    return;
+                }
+                
+                if (!data.success) {
+                    console.log('Reward not available:', data.message);
+                    showCustomDialog(data.message);
+                    return;
+                }
+                
+                console.log('Reward claimed successfully:', data);
+                
+                // Update user balance display
+                userBalance = data.balance;
+                updateBalanceDisplay();
+                
+                // Update the reward UI
+                const rewardData = {
+                    lastClaimed: new Date().getTime(),
+                    nextAvailable: new Date(data.next_available).getTime()
+                };
                 updateRewardUI(rewardData);
+                saveRewardData(rewardData);
                 
                 // Show success dialog
                 dailyRewardDialog.classList.add('active');
                 
                 // Add to activity log
                 addToActivityLog('Claimed daily reward', 'reward');
-            } else {
-                // Show error message
-                showCustomDialog('Failed to claim your reward. Please try again.');
+            } catch (err) {
+                console.error('Error in claimDailyReward:', err);
+                showCustomDialog('An error occurred. Please try again.');
             }
         }
         
