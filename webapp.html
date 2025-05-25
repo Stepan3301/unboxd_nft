@@ -1762,23 +1762,25 @@
                     
                     <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
                         <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
-                        <span id="profile-balance">1.25 ETH</span>
+                        <span id="profile-balance">0</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 20px;">
+                    <i class="fas fa-box-open"></i> Your Collection
+                </h2>
+                
+                <div id="profile-collection" class="cases-grid">
+                    <!-- This will be populated dynamically -->
+                    <div class="empty-collection-message" style="width: 100%; text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
                     </div>
                 </div>
                 
                 <h2 class="section-title" style="margin-top: 20px;">
                     <i class="fas fa-crown"></i> Achievements
                 </h2>
-                
-                <div class="cases-grid">
-                    <div class="inventory-item" style="width: 100%;">
-                        <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
-                        <div class="inventory-details">
-                            <div class="inventory-title">First Legendary</div>
-                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Obtained your first legendary NFT</div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Info Tab -->
@@ -2706,27 +2708,42 @@
         // Function to get user inventory from database
         async function getUserInventory() {
             try {
+                console.log('getUserInventory called');
+                
                 if (!telegramId) {
                     console.error('No Telegram ID available');
                     return;
                 }
                 
+                console.log('Using telegram ID:', telegramId);
+                
                 // Get user inventory from Supabase
+                console.log('Fetching inventory from Supabase...');
                 const { data: inventoryData, error: inventoryError } = await supabase.rpc('get_user_inventory', {
                     p_telegram_id: telegramId
                 });
                 
                 if (inventoryError) {
                     console.error('Error getting user inventory:', inventoryError);
+                    console.error('Error details:', inventoryError.message, inventoryError.details, inventoryError.hint);
                     return;
                 }
                 
+                console.log('Inventory data received:', inventoryData);
+                
                 // Clear existing inventory display
                 const userCollection = document.getElementById('user-collection');
+                if (!userCollection) {
+                    console.error('user-collection element not found in DOM');
+                    return;
+                }
+                
+                console.log('Clearing existing inventory display');
                 userCollection.innerHTML = '';
                 
                 // Check if inventory is empty
                 if (!inventoryData || inventoryData.length === 0) {
+                    console.log('Inventory is empty, showing empty message');
                     const emptyMessage = document.createElement('div');
                     emptyMessage.className = 'empty-collection-message';
                     emptyMessage.style.width = '100%';
@@ -2743,8 +2760,12 @@
                     return;
                 }
                 
+                console.log('Creating cards for ' + inventoryData.length + ' inventory items');
+                
                 // Display each item in the inventory
-                inventoryData.forEach(item => {
+                inventoryData.forEach((item, index) => {
+                    console.log(`Processing item ${index + 1}:`, item);
+                    
                     // Create new card for the collection
                     const card = document.createElement('div');
                     card.className = 'nft-card';
@@ -2808,7 +2829,7 @@
                     userCollection.appendChild(card);
                 });
                 
-                console.log('User inventory loaded:', inventoryData);
+                console.log('User inventory loaded successfully:', inventoryData.length, 'items');
             } catch (err) {
                 console.error('Error in getUserInventory:', err);
             }
