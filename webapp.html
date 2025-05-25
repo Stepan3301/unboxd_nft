@@ -1713,54 +1713,9 @@
                     <i class="fas fa-store"></i> Marketplace
                 </h2>
                 
-                <div class="cases-grid">
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-legendary">Legendary</span>
-                        <img src="AlienLabubu.png" alt="Alien Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Alien Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 250
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-epic">Epic</span>
-                        <img src="SkeletonLabubu.png" alt="Skeleton Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Skeleton Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 180
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-rare">Rare</span>
-                        <img src="ZombieLabubu.png" alt="Zombie Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Zombie Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 95
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-uncommon">Uncommon</span>
-                        <img src="GrassLabubu.png" alt="Grass Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Grass Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 35
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
+                <div class="empty-marketplace-message" style="width: 100%; text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">
+                    <i class="fas fa-store" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Marketplace coming soon!</p>
                 </div>
             </div>
             
@@ -2794,6 +2749,9 @@
                     const card = document.createElement('div');
                     card.className = 'nft-card';
                     
+                    // Store the unique ID as a data attribute
+                    card.dataset.uniqueId = item.unique_id;
+                    
                     // Add rarity badge based on tier
                     let rarityClass;
                     switch(item.skin_tier) {
@@ -2840,7 +2798,7 @@
                     sellBtn.className = 'inventory-sell-btn';
                     sellBtn.innerHTML = `<i class="fas fa-coins"></i> Sell for <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; margin: 0 3px;"> ${sellPrice}`;
                     sellBtn.onclick = async () => {
-                        await sellNFT(item.skin_name, item.skin_image, item.skin_tier);
+                        await sellNFT(item.skin_name, item.skin_tier, item.unique_id);
                     };
                     info.appendChild(sellBtn);
                     
@@ -3112,6 +3070,25 @@
                 
                 // Start the enhanced animation with the selected skin
                 startRouletteAnimation(selectedSkin);
+                
+                // Wait for animation to complete (approx 7 seconds)
+                setTimeout(async () => {
+                    // Add the skin to inventory and get the updated skin with unique ID
+                    const skinWithId = await addToInventory(selectedSkin);
+                    
+                    // Update the currentResultSkin with the unique ID
+                    if (skinWithId && skinWithId.unique_id) {
+                        currentResultSkin = skinWithId;
+                    }
+                    
+                    // If legendary or epic, update stats
+                    if (selectedSkin.tier >= 4) { // Tier 4 or higher is legendary
+                        updateUserStat('legendary_count', 1);
+                    }
+                    
+                    // Update NFT count
+                    updateUserStat('nft_count', 1);
+                }, 7000);
             } catch (err) {
                 console.error('Error in openCase:', err);
                 showCustomDialog('An error occurred. Please try again.');
@@ -3145,15 +3122,34 @@
                 
                 if (error) {
                     console.error('Error adding skin to inventory:', error);
-                    return;
+                    return null;
                 }
                 
                 console.log('Skin added to inventory:', skin.name);
                 
+                // Get the newly added skin with its unique ID
+                const { data: newSkinData, error: getSkinError } = await supabase.rpc('get_user_inventory', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (getSkinError || !newSkinData || newSkinData.length === 0) {
+                    console.error('Error retrieving newly added skin:', getSkinError);
+                    return null;
+                }
+                
+                // The first item should be our newly added skin (ordered by acquired_date DESC)
+                const newSkin = newSkinData[0];
+                
+                // Store the unique ID in the current skin object for potential selling
+                skin.unique_id = newSkin.unique_id;
+                
                 // Now update the UI - we'll reload the entire inventory to ensure consistency
                 getUserInventory();
+                
+                return skin;
             } catch (err) {
                 console.error('Error in addToInventory:', err);
+                return null;
             }
         }
 
@@ -3357,16 +3353,15 @@
         let currentResultSkin = null;
 
         // Common function for selling NFTs from anywhere
-        async function sellNFT(skinName, skinImage, skinTier) {
+        async function sellNFT(skinName, skinTier, uniqueId) {
             try {
                 // Get the sell price
                 const sellPrice = skinPrices[skinTier];
                 
-                // Remove from inventory
+                // Remove from inventory using unique ID
                 const { data: removeData, error: removeError } = await supabase.rpc('remove_skin_from_inventory', {
                     p_telegram_id: telegramId,
-                    p_skin_name: skinName,
-                    p_skin_image: skinImage
+                    p_unique_id: uniqueId
                 });
                 
                 if (removeError) {
@@ -3403,13 +3398,19 @@
 
         // Sell button functionality
         document.getElementById('roulette-sell').addEventListener('click', async function() {
-            if (!currentResultSkin) return;
+            if (!currentResultSkin || !currentResultSkin.unique_id) {
+                showCustomDialog('Cannot sell this item right now. Please try again later.');
+                return;
+            }
             
             try {
-                await sellNFT(currentResultSkin.name, currentResultSkin.image, currentResultSkin.tier);
-                rouletteOverlay.classList.remove('active');
+                const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
+                if (success) {
+                    rouletteOverlay.classList.remove('active');
+                }
             } catch (err) {
                 console.error('Error in sell button click handler:', err);
+                showCustomDialog('An error occurred while selling. Please try again.');
             }
         });
 
