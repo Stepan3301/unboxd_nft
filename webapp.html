@@ -189,6 +189,205 @@
             color: var(--accent);
         }
         
+        /* App Instructions */
+        .app-instructions {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+        
+        .app-instructions h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .instruction-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .instruction-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .instruction-list li i {
+            width: 24px;
+            margin-right: 10px;
+            color: var(--secondary);
+            text-align: center;
+        }
+        
+        /* Daily Reward */
+        .daily-reward-container {
+            margin-bottom: 25px;
+        }
+        
+        .daily-reward-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .daily-reward-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .daily-reward-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .reward-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: var(--accent);
+            background: rgba(0, 0, 0, 0.3);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(108, 92, 231, 0.5);
+        }
+        
+        .reward-text h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .reward-text p {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        .daily-reward-ready {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .daily-reward-timer {
+            display: none;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .daily-reward-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .daily-reward-btn i {
+            margin-right: 8px;
+        }
+        
+        .daily-reward-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+        
+        .daily-reward-btn.disabled {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Recent Activity */
+        .recent-activity {
+            margin-bottom: 20px;
+        }
+        
+        .activity-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--secondary);
+        }
+        
+        .activity-details {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+            color: white;
+        }
+        
+        .activity-time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-activity-message {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-activity-message i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+        
         /* Featured Case */
         .featured-case {
             margin-bottom: 30px;
@@ -1381,6 +1580,64 @@
         <main class="main">
             <!-- Cases Tab -->
             <div class="tab-content active" id="cases-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-house"></i> Home
+                </h2>
+                
+                <!-- App Instructions -->
+                <div class="app-instructions">
+                    <h3>Welcome to UnboxdNFT</h3>
+                    <ul class="instruction-list">
+                        <li><i class="fas fa-gift"></i> Collect your rewards every 12 hours</li>
+                        <li><i class="fas fa-box-open"></i> Open NFT cases to win exclusive items</li>
+                        <li><i class="fas fa-users"></i> Compete with friends for the best collection</li>
+                        <li><i class="fas fa-trophy"></i> Showcase your rarest NFTs</li>
+                    </ul>
+                </div>
+                
+                <!-- Daily Reward -->
+                <div class="daily-reward-container">
+                    <h3 class="daily-reward-title">Daily Reward</h3>
+                    <div class="daily-reward-card" id="daily-reward-card">
+                        <div class="daily-reward-status">
+                            <div class="daily-reward-ready" id="daily-reward-ready">
+                                <i class="fas fa-gift reward-icon"></i>
+                                <div class="reward-text">
+                                    <h3>Your reward is ready!</h3>
+                                    <p>Claim 50 UCoins now</p>
+                                </div>
+                            </div>
+                            <div class="daily-reward-timer" id="daily-reward-timer">
+                                <i class="fas fa-clock reward-icon"></i>
+                                <div class="reward-text">
+                                    <h3>Next reward in</h3>
+                                    <p id="reward-countdown">12:00:00</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="daily-reward-btn" id="daily-reward-btn">
+                            <i class="fas fa-hand-point-right"></i> Claim Reward
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line"></i> Recent Activity
+                    </h3>
+                    <div class="activity-list" id="activity-list">
+                        <!-- This will be populated dynamically -->
+                        <div class="empty-activity-message">
+                            <i class="fas fa-history"></i>
+                            <p>Your recent activity will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shop/Cases Tab -->
+            <div class="tab-content" id="shop-tab">
                 <div class="featured-case">
                     <h2 class="section-title">
                         <i class="fas fa-star"></i> Featured Case
@@ -1449,155 +1706,9 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Marketplace Tab -->
-            <div class="tab-content" id="marketplace-tab">
-                <h2 class="section-title">
-                    <i class="fas fa-store"></i> Marketplace
-                </h2>
-                
-                <div class="cases-grid">
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-legendary">Legendary</span>
-                        <img src="AlienLabubu.png" alt="Alien Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Alien Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 250
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-epic">Epic</span>
-                        <img src="SkeletonLabubu.png" alt="Skeleton Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Skeleton Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 180
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-rare">Rare</span>
-                        <img src="ZombieLabubu.png" alt="Zombie Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Zombie Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 95
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                    
-                    <div class="nft-card">
-                        <span class="rarity-badge rarity-uncommon">Uncommon</span>
-                        <img src="GrassLabubu.png" alt="Grass Labubu" class="nft-image">
-                        <div class="nft-info">
-                            <div class="nft-title">Grass Labubu</div>
-                            <div class="nft-price">
-                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 35
-                            </div>
-                            <button class="btn">Buy Now</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Inventory Tab -->
-            <div class="tab-content" id="inventory-tab">
-                <h2 class="section-title">
-                    <i class="fas fa-box-open"></i> Your Collection
-                </h2>
-                
-                <div id="user-collection" class="cases-grid">
-                    <!-- This will be populated dynamically when user opens cases -->
-                    <div class="empty-collection-message" style="width: 100%; text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">
-                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Profile Tab -->
-            <div class="tab-content" id="profile-tab">
-                <h2 class="section-title">
-                    <i class="fas fa-user"></i> Profile
-                </h2>
-                
-                <div class="profile-section">
-                    <img alt="Profile" class="profile-avatar" id="profile-avatar">
-                    <h2 class="profile-username" id="profile-username">CryptoCollector</h2>
-                    <p class="profile-bio" id="profile-bio">NFT enthusiast and collector since 2021</p>
-                    
-                    <div class="featured-stats">
-                        <div class="stat">
-                            <div class="stat-value" id="profile-nfts-count">0</div>
-                            <div class="stat-label">NFTs</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value" id="profile-cases-opened">0</div>
-                            <div class="stat-label">CASES OPENED</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value" id="profile-legendary-count">0</div>
-                            <div class="stat-label">LEGENDARY</div>
-                        </div>
-                    </div>
-                    
-                    <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
-                        <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
-                        <span id="profile-balance">1.25 ETH</span>
-                    </div>
-                </div>
-                
-                <h2 class="section-title" style="margin-top: 20px;">
-                    <i class="fas fa-crown"></i> Achievements
-                </h2>
-                
-                <div class="cases-grid">
-                    <div class="inventory-item" style="width: 100%;">
-                        <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
-                        <div class="inventory-details">
-                            <div class="inventory-title">First Legendary</div>
-                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Obtained your first legendary NFT</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Info Tab -->
-            <div class="tab-content" id="info-tab">
-                <h2 class="section-title">
-                    <i class="fas fa-info-circle"></i> About
-                </h2>
-                
-                <div class="info-section">
-                    <h2>About UnboxdNFT</h2>
-                    <p>UnboxdNFT is a platform that allows users to open digital cases containing NFTs of varying rarity. The platform uses blockchain technology to ensure transparency and authenticity of all transactions and NFT ownership.</p>
-                    
-                    <h3>How it Works</h3>
-                    <p>1. Purchase a case using ETH or UCoins<br>
-                    2. Open the case to reveal your NFT<br>
-                    3. Keep your NFT in your collection or sell it on the marketplace</p>
-                    
-                    <h3>Rarity Levels</h3>
-                    <ul>
-                        <li><span class="rarity-text" style="color: #f1c40f;">Legendary</span> - Extremely rare and valuable NFTs (1% chance)</li>
-                        <li><span class="rarity-text" style="color: #9b59b6;">Epic</span> - Very rare NFTs with special attributes (5% chance)</li>
-                        <li><span class="rarity-text" style="color: #3498db;">Rare</span> - Uncommon NFTs with unique features (15% chance)</li>
-                        <li><span class="rarity-text" style="color: #95a5a6;">Common</span> - Standard NFTs that are more widely available (79% chance)</li>
-                    </ul>
-                    
-                    <h3>Contact Support</h3>
-                    <p>Need help or have questions? Contact our support team through the Telegram bot. We're available 24/7 to assist with any issues or inquiries about the platform.</p>
-                </div>
-            </div>
         </main>
         
+        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <div class="nav-btn active" data-tab="cases-tab">
                 <i class="fas fa-home"></i>
@@ -1607,7 +1718,7 @@
                 <i class="fas fa-search"></i>
                 <span>Explore</span>
             </div>
-            <div class="nav-btn center">
+            <div class="nav-btn center" data-tab="shop-tab">
                 <i class="fas fa-box-open"></i>
                 <span>Cases</span>
             </div>
@@ -1794,6 +1905,18 @@
         </div>
     </div>
 
+    <!-- Daily Reward Dialog -->
+    <div class="custom-dialog" id="daily-reward-dialog">
+        <div class="dialog-content">
+            <div class="dialog-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <div class="dialog-title">Daily Reward Claimed!</div>
+            <div class="dialog-message">You've received 50 UCoins!</div>
+            <button class="dialog-btn" id="daily-reward-dialog-btn">Awesome!</button>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
@@ -1832,7 +1955,7 @@
         // Function to control the visibility of the rarity nav
         function updateRarityNavVisibility(tabId) {
             const rarityNav = document.getElementById('rarity-nav');
-            if (tabId === 'cases-tab') {
+            if (tabId === 'shop-tab') {
                 rarityNav.classList.add('show');
             } else {
                 rarityNav.classList.remove('show');
@@ -2092,19 +2215,22 @@
                     document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
                 }
                 
-                // Show the cases tab
+                // Show the shop/cases tab
                 bottomNavBtns.forEach(btn => {
-                    if (btn !== centerBtn) btn.classList.remove('active');
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-tab') === 'shop-tab') {
+                        btn.classList.add('active');
+                    }
                 });
                 
                 document.querySelectorAll('.tab-content').forEach(tab => {
                     tab.classList.remove('active');
                 });
                 
-                document.getElementById('cases-tab').classList.add('active');
+                document.getElementById('shop-tab').classList.add('active');
                 
                 // Show the rarity navigation for the cases tab
-                updateRarityNavVisibility('cases-tab');
+                updateRarityNavVisibility('shop-tab');
             });
         }
         
@@ -2260,6 +2386,12 @@
             // Load case opening data
             loadCaseOpeningData();
             
+            // Initialize daily rewards system
+            initDailyRewards();
+            
+            // Update activity log
+            updateActivityLog();
+            
             // Set initial rarity nav visibility
             updateRarityNavVisibility('cases-tab');
         });
@@ -2302,11 +2434,15 @@
                 detail.classList.remove('active');
             });
             
-            // Show cases tab
-            document.getElementById('cases-tab').classList.add('active');
+            // Show shop tab
+            document.getElementById('shop-tab').classList.add('active');
+            
+            // Update bottom nav
+            bottomNavBtns.forEach(nav => nav.classList.remove('active'));
+            document.querySelector('.nav-btn.center').classList.add('active');
             
             // Show rarity nav
-            updateRarityNavVisibility('cases-tab');
+            updateRarityNavVisibility('shop-tab');
             
             // Reset bottom nav state
             document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
@@ -2818,6 +2954,9 @@
                 // Update cases opened stat
                 await updateUserStat('cases_opened', 1);
                 
+                // Add to activity log
+                addToActivityLog('Opened Labubu case', 'purchase');
+                
                 // Pick a random skin based on probability
                 const selectedSkin = getRandomSkinByProbability();
                 
@@ -2934,6 +3073,11 @@
                 // If inventory tab is selected, refresh the inventory
                 if (tabId === 'inventory-tab') {
                     await getUserInventory();
+                }
+                
+                // If home tab is selected, refresh the activity log
+                if (tabId === 'cases-tab') {
+                    updateActivityLog();
                 }
             });
         });
@@ -3090,6 +3234,9 @@
                 if (success) {
                     showCustomDialog(`You sold ${skinName} for ${sellPrice} UCoins!`);
                     
+                    // Add to activity log
+                    addToActivityLog(`Sold ${skinName} for ${sellPrice} UCoins`, 'sale');
+                    
                     // Refresh inventory
                     await getUserInventory();
                     
@@ -3142,6 +3289,248 @@
                 localStorage.setItem(`caseOpeningData_${telegramId}`, JSON.stringify(dataToSave));
                 console.log(`Saved case opening data: Count=${caseOpeningsCount}, Guaranteed=${guaranteedTier3NextOpening}`);
             }
+        }
+
+        // === DAILY REWARDS SYSTEM ===
+        
+        // Constants for daily rewards
+        const REWARD_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+        const REWARD_AMOUNT = 50; // UCoin amount for each reward
+        
+        // DOM elements
+        const dailyRewardBtn = document.getElementById('daily-reward-btn');
+        const dailyRewardReady = document.getElementById('daily-reward-ready');
+        const dailyRewardTimer = document.getElementById('daily-reward-timer');
+        const rewardCountdown = document.getElementById('reward-countdown');
+        const dailyRewardDialog = document.getElementById('daily-reward-dialog');
+        const dailyRewardDialogBtn = document.getElementById('daily-reward-dialog-btn');
+        
+        // Countdown interval reference
+        let countdownInterval = null;
+        
+        // Initialize daily reward system
+        function initDailyRewards() {
+            if (!telegramId) {
+                console.error('No Telegram ID available for daily rewards');
+                return;
+            }
+            
+            // Load saved reward data
+            const rewardData = loadRewardData();
+            updateRewardUI(rewardData);
+            
+            // Add event listener to claim button
+            dailyRewardBtn.addEventListener('click', claimDailyReward);
+            
+            // Add event listener to dialog close button
+            dailyRewardDialogBtn.addEventListener('click', function() {
+                dailyRewardDialog.classList.remove('active');
+            });
+        }
+        
+        // Load reward data from localStorage
+        function loadRewardData() {
+            const savedData = localStorage.getItem(`dailyReward_${telegramId}`);
+            if (!savedData) {
+                // First time user - reward is ready immediately
+                return {
+                    lastClaimed: 0,
+                    nextAvailable: 0
+                };
+            }
+            
+            return JSON.parse(savedData);
+        }
+        
+        // Save reward data to localStorage
+        function saveRewardData(data) {
+            localStorage.setItem(`dailyReward_${telegramId}`, JSON.stringify(data));
+        }
+        
+        // Update the UI based on reward availability
+        function updateRewardUI(rewardData) {
+            const now = Date.now();
+            const isRewardAvailable = now >= rewardData.nextAvailable;
+            
+            if (isRewardAvailable) {
+                // Reward is available
+                dailyRewardReady.style.display = 'flex';
+                dailyRewardTimer.style.display = 'none';
+                dailyRewardBtn.classList.remove('disabled');
+                dailyRewardBtn.disabled = false;
+            } else {
+                // Reward is on cooldown
+                dailyRewardReady.style.display = 'none';
+                dailyRewardTimer.style.display = 'flex';
+                dailyRewardBtn.classList.add('disabled');
+                dailyRewardBtn.disabled = true;
+                
+                // Start countdown
+                startCountdown(rewardData.nextAvailable);
+            }
+        }
+        
+        // Start countdown timer
+        function startCountdown(targetTime) {
+            // Clear any existing interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // Update immediately
+            updateCountdown(targetTime);
+            
+            // Set interval for updates
+            countdownInterval = setInterval(() => {
+                const timeLeft = updateCountdown(targetTime);
+                
+                // If countdown reached zero, refresh the UI
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    const rewardData = loadRewardData();
+                    updateRewardUI(rewardData);
+                }
+            }, 1000);
+        }
+        
+        // Update countdown display and return time left
+        function updateCountdown(targetTime) {
+            const now = Date.now();
+            const timeLeft = Math.max(0, targetTime - now);
+            
+            if (timeLeft > 0) {
+                // Format time remaining
+                const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+                
+                rewardCountdown.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                rewardCountdown.textContent = '00:00:00';
+            }
+            
+            return timeLeft;
+        }
+        
+        // Claim daily reward
+        async function claimDailyReward() {
+            // Get current reward data
+            const rewardData = loadRewardData();
+            const now = Date.now();
+            
+            // Verify reward is available (double-check)
+            if (now < rewardData.nextAvailable) {
+                console.log('Reward not yet available, cannot claim');
+                return;
+            }
+            
+            // Add the reward to user's balance
+            const success = await updateUserBalance(
+                REWARD_AMOUNT, 
+                'Daily reward claimed', 
+                'reward'
+            );
+            
+            if (success) {
+                // Update reward data
+                rewardData.lastClaimed = now;
+                rewardData.nextAvailable = now + REWARD_COOLDOWN_MS;
+                saveRewardData(rewardData);
+                
+                // Update UI
+                updateRewardUI(rewardData);
+                
+                // Show success dialog
+                dailyRewardDialog.classList.add('active');
+                
+                // Add to activity log
+                addToActivityLog('Claimed daily reward', 'reward');
+            } else {
+                // Show error message
+                showCustomDialog('Failed to claim your reward. Please try again.');
+            }
+        }
+        
+        // Activity log system
+        function addToActivityLog(activity, type) {
+            if (!telegramId) return;
+            
+            // Get existing log or create new one
+            const storedLog = localStorage.getItem(`activityLog_${telegramId}`);
+            let activityLog = storedLog ? JSON.parse(storedLog) : [];
+            
+            // Add new activity
+            activityLog.unshift({
+                activity,
+                type,
+                timestamp: Date.now()
+            });
+            
+            // Keep only the 10 most recent activities
+            if (activityLog.length > 10) {
+                activityLog = activityLog.slice(0, 10);
+            }
+            
+            // Save updated log
+            localStorage.setItem(`activityLog_${telegramId}`, JSON.stringify(activityLog));
+            
+            // Update UI
+            updateActivityLog();
+        }
+        
+        // Update activity log UI
+        function updateActivityLog() {
+            const activityList = document.getElementById('activity-list');
+            if (!activityList) return;
+            
+            // Clear current content
+            activityList.innerHTML = '';
+            
+            // Get activity log
+            const storedLog = localStorage.getItem(`activityLog_${telegramId}`);
+            if (!storedLog || JSON.parse(storedLog).length === 0) {
+                // No activities yet
+                activityList.innerHTML = `
+                    <div class="empty-activity-message">
+                        <i class="fas fa-history"></i>
+                        <p>Your recent activity will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Add each activity to the list
+            const activityLog = JSON.parse(storedLog);
+            activityLog.forEach(item => {
+                // Get icon based on activity type
+                let icon;
+                switch (item.type) {
+                    case 'reward': icon = 'fas fa-gift'; break;
+                    case 'purchase': icon = 'fas fa-shopping-cart'; break;
+                    case 'sale': icon = 'fas fa-coins'; break;
+                    default: icon = 'fas fa-history';
+                }
+                
+                // Format timestamp
+                const timestamp = new Date(item.timestamp);
+                const timeString = timestamp.toLocaleString();
+                
+                // Create activity item
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="${icon}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${item.activity}</div>
+                        <div class="activity-time">${timeString}</div>
+                    </div>
+                `;
+                
+                activityList.appendChild(activityItem);
+            });
         }
     </script>
 </body>
