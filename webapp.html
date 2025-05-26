@@ -3694,15 +3694,6 @@
             // 6. Show Roulette Animation
             console.log('[CaseOpen] Starting roulette animation for:', wonSkin.name);
             startRoulette(wonSkin);
-
-
-            // Close the case detail view after opening
-            const labubuCaseDetail = document.getElementById('labubu-case-detail');
-            if (labubuCaseDetail && labubuCaseDetail.classList.contains('active')) {
-                labubuCaseDetail.classList.remove('active');
-                document.querySelector('.main').style.display = 'block';
-                document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
-            }
         }
 
         // Function to start the roulette animation
@@ -3739,10 +3730,10 @@
                 items.push(skin);
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
-                // Corrected template literal for itemEl.innerHTML
+                // Corrected template literal for itemEl.innerHTML and added tier class
                 itemEl.innerHTML = `
                     <img src="${skin.image}" alt="${skin.name}">
-                    <div class="roulette-item-name">${skin.name}</div>
+                    <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
                 `;
                 rouletteTrack.appendChild(itemEl);
             }
@@ -3756,7 +3747,7 @@
             if (trackChildren[winningItemIndex]) {
                  trackChildren[winningItemIndex].innerHTML = `
                     <img src="${wonSkin.image}" alt="${wonSkin.name}">
-                    <div class="roulette-item-name">${wonSkin.name}</div>
+                    <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
                 `;
             } else {
                 console.error("[Roulette] Winning item index out of bounds for track children.");
@@ -3793,6 +3784,10 @@
                 console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
                 resultImage.src = wonSkin.image;
                 resultImage.alt = wonSkin.name;
+                
+                // Apply tier class to result name
+                resultName.className = 'roulette-result-name'; // Reset classes
+                resultName.classList.add(`tier-${wonSkin.tier}`);
                 resultName.textContent = wonSkin.name;
                 
                 const price = skinPrices[wonSkin.tier] || 0;
