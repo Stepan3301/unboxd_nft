@@ -2145,22 +2145,61 @@
         async function testDatabaseConnection() {
             try {
                 console.log('Testing database connection...');
+                console.log('Supabase URL:', 'https://vjlsmlkwoiwpercoljfo.supabase.co');
+                console.log('Supabase client created:', !!supabase);
                 
-                // Try a simple query that should always work
-                const { data, error } = await supabase
+                // Test 1: Try a simple count query
+                console.log('Test 1: Trying simple count query...');
+                const { data: countData, error: countError } = await supabase
                     .from('users')
-                    .select('count(*)', { count: 'exact' })
-                    .limit(1);
+                    .select('*', { count: 'exact', head: true });
                 
-                if (error) {
-                    console.error('Database test query error:', error);
-                    return false;
+                if (countError) {
+                    console.error('Count query error:', countError);
+                    
+                    // Test 2: Try calling a function directly
+                    console.log('Test 2: Trying to call database function...');
+                    const { data: funcData, error: funcError } = await supabase.rpc('get_balance', {
+                        p_telegram_id: 123456789
+                    });
+                    
+                    if (funcError) {
+                        console.error('Function call error:', funcError);
+                        
+                        // Test 3: Try basic connection test
+                        console.log('Test 3: Trying basic connection test...');
+                        try {
+                            const { data: basicData, error: basicError } = await supabase
+                                .from('users')
+                                .select('id')
+                                .limit(1);
+                            
+                            if (basicError) {
+                                console.error('Basic query error:', basicError);
+                                return false;
+                            } else {
+                                console.log('Basic connection test passed');
+                                return true;
+                            }
+                        } catch (basicException) {
+                            console.error('Basic connection test exception:', basicException);
+                            return false;
+                        }
+                    } else {
+                        console.log('Function call test passed:', funcData);
+                        return true;
+                    }
+                } else {
+                    console.log('Count query test passed');
+                    return true;
                 }
-                
-                console.log('Database connection test successful');
-                return true;
             } catch (error) {
                 console.error('Database connection test exception:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 return false;
             }
         }
