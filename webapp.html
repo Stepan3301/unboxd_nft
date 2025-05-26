@@ -2841,7 +2841,6 @@
         
         // Constants for daily rewards
         const REWARD_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
-        const REWARD_AMOUNT = 50; // UCoin amount for each reward
         
         // DOM elements
         const dailyRewardBtn = document.getElementById('daily-reward-btn');
@@ -2852,7 +2851,6 @@
         const dailyRewardDialogBtn = document.getElementById('daily-reward-dialog-btn');
         
         // Countdown interval reference
-        let countdownInterval = null;
         
         // Initialize daily reward system
         function initDailyRewards() {
