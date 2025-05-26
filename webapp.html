@@ -2022,10 +2022,7 @@
 
     <script>
         // Initialize Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // Global variables
+        let tg;
         let supabase;
         let telegramId;
         let userBalance = 0;
@@ -2044,8 +2041,48 @@
             6: 10000 // Divine
         };
         
+        // Initialize Telegram WebApp safely
+        function initializeTelegramWebApp() {
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    tg = window.Telegram.WebApp;
+                    tg.expand();
+                    console.log('Telegram WebApp initialized successfully');
+                    return true;
+                } else {
+                    console.error('Telegram WebApp not available');
+                    // For testing outside Telegram, create a mock object
+                    tg = {
+                        initDataUnsafe: {
+                            user: {
+                                id: 123456789,
+                                first_name: 'Test',
+                                last_name: 'User',
+                                username: 'testuser'
+                            }
+                        },
+                        showAlert: (message) => alert(message),
+                        expand: () => console.log('Mock expand called')
+                    };
+                    console.log('Using mock Telegram WebApp for testing');
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error initializing Telegram WebApp:', error);
+                return false;
+            }
+        }
+        
         // Check if Supabase is loaded and initialize app
         function initializeApp() {
+            console.log('Starting app initialization...');
+            
+            // First, initialize Telegram WebApp
+            if (!initializeTelegramWebApp()) {
+                alert('Failed to initialize Telegram WebApp. Please restart the app.');
+                return;
+            }
+            
             if (typeof window.supabase === 'undefined') {
                 console.error('Supabase client not loaded! Loading from CDN again...');
                 // Try to load it again
@@ -2053,7 +2090,7 @@
                 script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js';
                 script.onload = function() {
                     console.log('Supabase client loaded asynchronously');
-                    initSupabaseAndApp();
+                    setTimeout(() => initSupabaseAndApp(), 100); // Small delay to ensure script is fully loaded
                 };
                 script.onerror = () => {
                     console.error('Failed to load Supabase client!');
@@ -2069,6 +2106,13 @@
         // Initialize Supabase client and setup app
         function initSupabaseAndApp() {
             try {
+                console.log('Initializing Supabase client...');
+                
+                // Check if Supabase is available
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Supabase client not available');
+                }
+                
                 // Initialize Supabase client
                 const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
                 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
@@ -2076,15 +2120,16 @@
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('Supabase client initialized successfully');
                 
-                // Test the connection
-                supabase.from('users').select('count(*)', { count: 'exact' }).limit(1)
-                    .then(response => {
-                        if (response.error) {
-                            throw response.error;
+                // Test the connection with a more robust approach
+                testDatabaseConnection()
+                    .then(success => {
+                        if (success) {
+                            console.log('Database connection successful');
+                            // Continue with app initialization
+                            setupApp();
+                        } else {
+                            throw new Error('Database connection test failed');
                         }
-                        console.log('Database connection successful');
-                        // Continue with app initialization
-                        setupApp();
                     })
                     .catch(error => {
                         console.error('Database connection test failed:', error);
@@ -2096,10 +2141,41 @@
             }
         }
         
+        // Test database connection with better error handling
+        async function testDatabaseConnection() {
+            try {
+                console.log('Testing database connection...');
+                
+                // Try a simple query that should always work
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('count(*)', { count: 'exact' })
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Database test query error:', error);
+                    return false;
+                }
+                
+                console.log('Database connection test successful');
+                return true;
+            } catch (error) {
+                console.error('Database connection test exception:', error);
+                return false;
+            }
+        }
+        
         // Function to set up the app after Supabase is initialized
         async function setupApp() {
             try {
                 console.log('Setting up app...');
+                
+                // Wait for DOM to be ready
+                if (document.readyState === 'loading') {
+                    console.log('DOM still loading, waiting...');
+                    document.addEventListener('DOMContentLoaded', setupApp);
+                    return;
+                }
                 
                 // Get user data from Telegram
                 const user = tg.initDataUnsafe?.user || {};
@@ -2143,8 +2219,20 @@
                 updateRarityNavVisibility('cases-tab');
                 
                 // Make the first tab active
-                document.querySelector('.nav-btn[data-tab="cases-tab"]').classList.add('active');
-                document.getElementById('cases-tab').classList.add('active');
+                const casesNavBtn = document.querySelector('.nav-btn[data-tab="cases-tab"]');
+                const casesTab = document.getElementById('cases-tab');
+                
+                if (casesNavBtn) {
+                    casesNavBtn.classList.add('active');
+                } else {
+                    console.warn('Cases navigation button not found');
+                }
+                
+                if (casesTab) {
+                    casesTab.classList.add('active');
+                } else {
+                    console.warn('Cases tab content not found');
+                }
                 
                 console.log('App setup completed successfully');
                 
@@ -2156,8 +2244,18 @@
             }
         }
         
-        // Start app initialization
-        initializeApp();
+        // Initialize the app when DOM is ready
+        function startApp() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeApp);
+            } else {
+                // DOM is already ready
+                initializeApp();
+            }
+        }
+        
+        // Start the app
+        startApp();
         
         // Function to attach event listeners
         function attachEventListeners() {
