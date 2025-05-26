@@ -2031,6 +2031,14 @@
         let userName = '';
         let userPhotoUrl = '';
         
+        // Constants for Activity Log System
+        const MAX_ACTIVITIES = 10; // Show 10 in UI
+        const MAX_STORED_ACTIVITIES = 20; // Store 20 in localStorage
+
+        // Constants for Daily Reward - SINGLE GLOBAL DECLARATION
+        const REWARD_AMOUNT = 50; 
+        let countdownInterval; // SINGLE GLOBAL DECLARATION
+
         // Skin prices based on tiers
         const skinPrices = {
             1: 20,   // Common
@@ -2463,6 +2471,14 @@
                      if (rouletteOverlayEl) rouletteOverlayEl.classList.remove('active');
                 });
             }
+
+            // Labubu Case Open Button (inside the case detail view)
+            const openLabubuCaseButton = document.querySelector('.case-detail#labubu-case-detail .open-case-btn');
+            if (openLabubuCaseButton) {
+                openLabubuCaseButton.addEventListener('click', openLabubuCase);
+            } else {
+                console.warn('Open Labubu Case button inside detail view not found for event listener.');
+            }
         }
 
         // Update profile wallet display to use ucoin img instead of "UCoin" text
@@ -2845,14 +2861,8 @@
                 return;
             }
             console.log("Initializing daily rewards system...");
-            // Check reward availability from database
+            // REWARD_AMOUNT and countdownInterval are global, no redeclaration needed.
             checkRewardAvailability();
-            
-            // Event listeners are now attached in attachEventListeners to ensure DOM is ready
-            // dailyRewardBtn.addEventListener('click', claimDailyReward); 
-            // dailyRewardDialogBtn.addEventListener('click', function() {
-            // dailyRewardDialog.classList.remove('active');
-            // });
         }
         
         // Check reward availability from database
@@ -2983,7 +2993,7 @@
                 // Call the database function to claim reward
                 const { data, error } = await supabase.rpc('claim_reward', {
                     p_telegram_id: telegramId,
-                    p_amount: REWARD_AMOUNT
+                    p_amount: REWARD_AMOUNT // Uses the single global REWARD_AMOUNT
                 });
                 
                 if (error) {
@@ -3002,11 +3012,15 @@
                 
                 console.log('Reward claimed successfully:', data);
                 
-                // Update user balance display
-                userBalance = data.new_balance; // Assuming 'new_balance' is returned
-                updateBalanceDisplay();
+                // The 'claim_reward' SQL function returns a JSONB object that includes 'balance'
+                if (typeof data.balance !== 'undefined') {
+                    userBalance = parseFloat(data.balance); 
+                } else {
+                    // Fallback if balance is not directly in response, though SQL should provide it.
+                    await getUserBalance(); // This will also update display
+                }
+                updateBalanceDisplay(); // Ensure display is updated with the new balance
                 
-                // Update the reward UI
                 const rewardData = {
                     lastClaimed: new Date().getTime(), // Use current time for lastClaimed
                     nextAvailable: new Date(data.next_available).getTime()
@@ -3027,10 +3041,987 @@
             }
         }
 
-        // Unified Activity Log System
-        const MAX_ACTIVITIES = 10; // Show 10 in UI
-        const MAX_STORED_ACTIVITIES = 20; // Store 20 in localStorage
+        // Unified Activity Log System (MAX_ACTIVITIES and MAX_STORED_ACTIVITIES are global)
+        function addActivity(type, data) {
+            console.log('[Activity] Adding activity:', type, data);
+            if (!telegramId) {
+                console.warn('[Activity] No telegramId, cannot save activity.');
+                return;
+            }
+            
+            const activityKey = `unboxd_activityLog_${telegramId}`;
+            let activities = [];
+            try {
+                activities = JSON.parse(localStorage.getItem(activityKey) || '[]');
+            } catch (e) {
+                console.error('[Activity] Error parsing stored activities:', e);
+                activities = []; // Reset if parsing fails
+            }
 
+            let text;
+            let iconClass;
+
+            switch(type) {
+                case 'case_open':
+                    iconClass = 'fas fa-box-open';
+                    text = `Opened ${data.caseName} and got ${data.skinName}`;
+                    break;
+                case 'sale':
+                    iconClass = 'fas fa-coins';
+                    text = `Sold ${data.skinName} for ${data.price} UCoins`;
+                    break;
+                case 'daily_reward':
+                    iconClass = 'fas fa-gift';
+                    text = `Claimed daily reward: ${data.amount} UCoins`;
+                    break;
+                case 'purchase': // Example, if you add purchases later
+                    iconClass = 'fas fa-shopping-cart';
+                    text = `Purchased ${data.itemName} for ${data.price} UCoins`;
+                    break;
+                default:
+                    iconClass = 'fas fa-info-circle';
+                    text = data.text || 'Activity recorded';
+            }
+            
+            activities.unshift({
+                type,
+                text, // Store the processed text
+                iconClass, // Store the icon class
+                timestamp: new Date().toISOString()
+            });
+            
+            // Keep only the last MAX_STORED_ACTIVITIES
+            if (activities.length > MAX_STORED_ACTIVITIES) {
+                activities = activities.slice(0, MAX_STORED_ACTIVITIES);
+            }
+            
+            localStorage.setItem(activityKey, JSON.stringify(activities));
+            updateActivityLog(); // Refresh UI
+        }
+        
+        function updateActivityLog() {
+            console.log('[Activity] Updating activity log UI');
+            const activityList = document.getElementById('activity-list');
+            if (!activityList) {
+                console.error('[Activity] activity-list element not found in DOM');
+                return;
+            }
+            
+            activityList.innerHTML = ''; // Clear existing activities
+            
+            if (!telegramId) {
+                console.warn('[Activity] No telegramId, cannot load activities for UI.');
+                // Show empty message (optional, or could show generic loading/error)
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-activity-message';
+                emptyMessage.innerHTML = `<i class="fas fa-history"></i><p>Activity will appear here once you log in.</p>`;
+                activityList.appendChild(emptyMessage);
+                return;
+            }
+
+            const activityKey = `unboxd_activityLog_${telegramId}`;
+            let activities = [];
+            try {
+                activities = JSON.parse(localStorage.getItem(activityKey) || '[]');
+            } catch (e) {
+                console.error('[Activity] Error parsing stored activities for UI:', e);
+            }
+            
+            if (activities.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-activity-message';
+                emptyMessage.innerHTML = `<i class="fas fa-history"></i><p>Your recent activity will appear here</p>`;
+                activityList.appendChild(emptyMessage);
+                return;
+            }
+            
+            const recentActivities = activities.slice(0, MAX_ACTIVITIES);
+            
+            recentActivities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                const timestamp = new Date(activity.timestamp);
+                // Use toLocaleString for a more user-friendly date/time format
+                const timeString = timestamp.toLocaleString(undefined, { hour: 'numeric', minute: 'numeric', day: 'numeric', month: 'short' });
+
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="${activity.iconClass || 'fas fa-history'}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${activity.text}</div>
+                        <div class="activity-time">${timeString}</div>
+                    </div>
+                `;
+                activityList.appendChild(activityItem);
+            });
+        }
+
+        // Function to get user balance from database
+        async function getUserBalance() {
+            try {
+                console.log('Getting user balance');
+                
+                if (!telegramId) {
+                    console.error('No telegram ID available for getting user balance');
+                    return 0;
+                }
+                
+                // Uses the revised get_balance function
+                const { data, error } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (error) {
+                    console.error('Error getting user balance:', error);
+                    return 0;
+                }
+                
+                const newBalance = parseFloat(data) || 0;
+                userBalance = newBalance; // Update global variable
+                updateBalanceDisplay(); // Update all UI elements
+                
+                console.log('Current balance from getUserBalance:', newBalance);
+                return newBalance;
+            } catch (err) {
+                console.error('Error in getUserBalance:', err);
+                return 0;
+            }
+        }
+        
+        // Function to update a user stat (this function seems to target 'users' table directly, needs revision if stats are only in user_stats)
+        // For now, the SQL function get_user_stats reads from user_stats table directly.
+        // The add_skin_to_inventory and remove_skin_from_inventory SQL functions now update user_stats.
+        // So, this JS function might not be strictly needed if all stat updates happen server-side via RPC.
+        // However, if direct client-side stat updates are intended, this would need to call an RPC that modifies user_stats.
+        async function updateUserStat(statName, increment) {
+            try {
+                console.log(`Updating user stat: ${statName} by ${increment} (Note: review if this JS function is still needed or if SQL handles it)`);
+                
+                if (!telegramId) {
+                    console.error('No telegram ID available for updating user stat');
+                    return false;
+                }
+
+                // Example: if you had a specific RPC call to update a stat:
+                // const { error } = await supabase.rpc('increment_user_stat', {
+                // p_telegram_id: telegramId,
+                // p_stat_name: statName,
+                // p_increment_value: increment
+                // });
+                // if (error) { ... }
+                // For now, we assume SQL functions for adding/removing skins handle stat updates.
+                // We will rely on getUserStats() to refresh the profile display.
+                console.warn('updateUserStat in JS is not calling an RPC. Stat updates are expected via SQL functions like add_skin_to_inventory.');
+                await getUserStats(); // Refresh stats after an action that might change them
+                return true; 
+            } catch (err) {
+                console.error(`Error in updateUserStat (${statName}):`, err);
+                return false;
+            }
+        }
+
+        // Function to sell an NFT
+        async function sellNFT(skinName, skinTier, uniqueId) {
+            try {
+                if (!telegramId) {
+                    alert('Error: You must be logged in to sell NFTs');
+                    return false;
+                }
+                
+                console.log('Selling NFT:', skinName, 'with unique ID:', uniqueId);
+                
+                // Confirmation dialog
+                if (!confirm(`Are you sure you want to sell ${skinName}?`)) {
+                    return false;
+                }
+                
+                // Get NFT price based on tier
+                const nftPrice = skinPrices[skinTier];
+                if (!nftPrice) {
+                    alert('Error: Could not determine NFT price');
+                    return false;
+                }
+                
+                // First add the coins to the user's balance
+                const { data: updateData, error: updateError } = await supabase.rpc('add_coins_to_user', {
+                    p_telegram_id: telegramId,
+                    p_amount: nftPrice
+                });
+                
+                if (updateError) {
+                    console.error('Error adding coins:', updateError);
+                    alert('Error adding coins to your balance');
+                    return false;
+                }
+                
+                // Then remove the NFT from the user's inventory using the unique ID
+                const { data: removeData, error: removeError } = await supabase.rpc('remove_skin_from_inventory', {
+                    p_telegram_id: telegramId,
+                    p_unique_id: uniqueId
+                });
+                
+                if (removeError) {
+                    console.error('Error removing skin:', removeError);
+                    alert('Error removing skin from your inventory');
+                    
+                    // If this fails, we should rollback the coin addition, but that's more complex
+                    // For simplicity, we'll just show an error
+                    return false;
+                }
+                
+                if (!removeData) {
+                    console.error('Failed to remove skin, no error returned');
+                    alert('Failed to remove skin from your inventory');
+                    return false;
+                }
+                
+                // Update balance display
+                await getUserBalance();
+                
+                // Add to activity log
+                addActivity('sale', {
+                    skinName: skinName,
+                    skinTier: skinTier,
+                    price: nftPrice
+                });
+                
+                // Refresh inventory
+                await getUserInventory();
+                
+                // Show success message
+                alert(`Successfully sold ${skinName} for ${nftPrice} UCoins`);
+                
+                return true;
+            } catch (err) {
+                console.error('Error in sellNFT:', err);
+                alert('An error occurred while selling your NFT');
+                return false;
+            }
+        }
+
+        // Sell button functionality
+        document.getElementById('roulette-sell').addEventListener('click', async function() {
+            if (!currentResultSkin || !currentResultSkin.unique_id) {
+                showCustomDialog('Cannot sell this item right now. Please try again later.');
+                return;
+            }
+            
+            try {
+                const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
+                if (success) {
+                    rouletteOverlay.classList.remove('active');
+                }
+            } catch (err) {
+                console.error('Error in sell button click handler:', err);
+                showCustomDialog('An error occurred while selling. Please try again.');
+            }
+        });
+
+        // Load opening count from localStorage
+        function loadCaseOpeningData() {
+            if (telegramId) {
+                const savedData = localStorage.getItem(`caseOpeningData_${telegramId}`);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    caseOpeningsCount = parsedData.count || 0;
+                    guaranteedTier3NextOpening = parsedData.guaranteed || false;
+                    console.log(`Loaded case opening data: Count=${caseOpeningsCount}, Guaranteed=${guaranteedTier3NextOpening}`);
+                }
+            }
+        }
+        
+        // Save opening count to localStorage
+        function saveCaseOpeningData() {
+            if (telegramId) {
+                const dataToSave = {
+                    count: caseOpeningsCount,
+                    guaranteed: guaranteedTier3NextOpening
+                };
+                localStorage.setItem(`caseOpeningData_${telegramId}`, JSON.stringify(dataToSave));
+                console.log(`Saved case opening data: Count=${caseOpeningsCount}, Guaranteed=${guaranteedTier3NextOpening}`);
+            }
+        }
+
+        // Function to get user inventory from database
+        async function getUserInventory() {
+            try {
+                console.log('[Inventory] getUserInventory called');
+                
+                if (!telegramId) {
+                    console.error('[Inventory] No Telegram ID available, attempting to get from initDataUnsafe');
+                    if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                        telegramId = tg.initDataUnsafe.user.id;
+                        console.log('[Inventory] Successfully retrieved telegram ID during inventory fetch:', telegramId);
+                    } else {
+                        console.error('[Inventory] Critical: Could not retrieve telegram ID from initDataUnsafe for inventory.');
+                        showEmptyInventory("Unable to identify user for inventory.");
+                        return;
+                    }
+                }
+                
+                console.log('[Inventory] Using telegram ID for fetch:', telegramId);
+                
+                const userCollection = document.getElementById('user-collection');
+                if (!userCollection) {
+                    console.error('[Inventory] user-collection element not found in DOM');
+                    return;
+                }
+                
+                console.log('[Inventory] Clearing existing inventory display');
+                userCollection.innerHTML = ''; // Clear before loading
+                
+                // Show loading indicator
+                const loadingMessage = document.createElement('div');
+                loadingMessage.className = 'loading-message'; // You can style this class
+                loadingMessage.style.width = '100%';
+                loadingMessage.style.textAlign = 'center';
+                loadingMessage.style.padding = '30px';
+                loadingMessage.style.color = 'rgba(255,255,255,0.7)';
+                loadingMessage.innerHTML = `
+                    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Loading your collection...</p>
+                `;
+                userCollection.appendChild(loadingMessage);
+                
+                console.log('[Inventory] Fetching inventory from Supabase for telegram_id:', telegramId);
+                const { data: inventoryData, error: inventoryError } = await supabase.rpc('get_user_inventory', {
+                    p_telegram_id: telegramId
+                });
+                
+                // Clear loading indicator
+                if (userCollection.contains(loadingMessage)) {
+                    userCollection.removeChild(loadingMessage);
+                }
+                
+                if (inventoryError) {
+                    console.error('[Inventory] Error getting user inventory:', JSON.stringify(inventoryError));
+                    showInventoryError(`Database error: ${inventoryError.message}`);
+                    return;
+                }
+                
+                console.log('[Inventory] Raw inventory data received:', JSON.stringify(inventoryData));
+                
+                if (!inventoryData || inventoryData.length === 0) {
+                    console.log('[Inventory] Inventory is empty according to data, showing empty message.');
+                    showEmptyInventory();
+                    return;
+                }
+                
+                console.log(`[Inventory] Creating cards for ${inventoryData.length} inventory items.`);
+                
+                inventoryData.forEach((item, index) => {
+                    try {
+                        console.log(`[Inventory] Processing item ${index + 1}:`, JSON.stringify(item));
+                        if (!item || typeof item.skin_name === 'undefined') {
+                            console.warn(`[Inventory] Skipping invalid item at index ${index}:`, item);
+                            return; // Skip this item
+                        }
+
+                        const card = document.createElement('div');
+                        card.className = 'nft-card';
+                        card.dataset.uniqueId = item.unique_id;
+                        
+                        let rarityClass = 'common';
+                        let tier = parseInt(item.skin_tier, 10);
+                        switch(tier) {
+                            case 1: rarityClass = 'common'; break;
+                            case 2: rarityClass = 'rare'; break;
+                            case 3: rarityClass = 'epic'; break;
+                            case 4: rarityClass = 'legendary'; break;
+                            case 5: rarityClass = 'mythic'; break;
+                            case 6: rarityClass = 'divine'; break;
+                        }
+                        
+                        const rarityBadge = document.createElement('span');
+                        rarityBadge.className = `rarity-badge rarity-${rarityClass}`;
+                        rarityBadge.textContent = rarityClass.toUpperCase();
+                        card.appendChild(rarityBadge);
+                        
+                        const img = document.createElement('img');
+                        img.src = item.skin_image || 'placeholder.png'; // Fallback image
+                        img.alt = item.skin_name;
+                        img.className = 'nft-image';
+                        img.onerror = function() {
+                            this.src = "https://via.placeholder.com/150?text=NFT"; // More specific placeholder
+                            console.error(`[Inventory] Failed to load image for ${item.skin_name}: ${item.skin_image}`);
+                        };
+                        card.appendChild(img);
+                        
+                        const info = document.createElement('div');
+                        info.className = 'nft-info';
+                        
+                        const title = document.createElement('div');
+                        title.className = `nft-title tier-${tier}`;
+                        title.textContent = item.skin_name;
+                        info.appendChild(title);
+                        
+                        const date = document.createElement('div');
+                        date.style.fontSize = '0.7rem';
+                        date.style.color = 'rgba(255,255,255,0.5)';
+                        date.textContent = `Acquired: ${new Date(item.acquired_date).toLocaleDateString()}`;
+                        info.appendChild(date);
+                        
+                        const sellPrice = skinPrices[tier] || 0;
+                        const sellBtn = document.createElement('button');
+                        sellBtn.className = 'inventory-sell-btn';
+                        sellBtn.innerHTML = `<i class="fas fa-coins"></i> Sell for <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; margin: 0 3px;"> ${sellPrice}`;
+                        sellBtn.onclick = async () => {
+                            await sellNFT(item.skin_name, tier, item.unique_id);
+                        };
+                        info.appendChild(sellBtn);
+                        card.appendChild(info);
+                        userCollection.appendChild(card);
+                    } catch (cardErr) {
+                        console.error(`[Inventory] Error creating card for item at index ${index}:`, cardErr, "Item data:", JSON.stringify(item));
+                    }
+                });
+                
+                console.log('[Inventory] User inventory loaded successfully:', inventoryData.length, 'items rendered.');
+            } catch (err) {
+                console.error('[Inventory] General error in getUserInventory:', err);
+                showInventoryError("An unexpected error occurred while loading your inventory.");
+            }
+        }
+        
+        // Helper function to show empty inventory state
+        function showEmptyInventory(message = "Your collection is empty. Open some cases to get Labubu skins!") {
+            const userCollection = document.getElementById('user-collection');
+            if (!userCollection) {
+                console.error('user-collection element not found in DOM');
+                return;
+            }
+            
+            userCollection.innerHTML = '';
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-collection-message';
+            emptyMessage.style.width = '100%';
+            emptyMessage.style.textAlign = 'center';
+            emptyMessage.style.padding = '30px';
+            emptyMessage.style.color = 'rgba(255,255,255,0.7)';
+            
+            emptyMessage.innerHTML = `
+                <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>${message}</p>
+            `;
+            
+            userCollection.appendChild(emptyMessage);
+        }
+        
+        // Helper function to show inventory error state
+        function showInventoryError(message = "Error loading your collection. Please try again later.") {
+            const userCollection = document.getElementById('user-collection');
+            if (!userCollection) {
+                console.error('user-collection element not found in DOM');
+                return;
+            }
+            
+            userCollection.innerHTML = '';
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.style.width = '100%';
+            errorMessage.style.textAlign = 'center';
+            errorMessage.style.padding = '30px';
+            errorMessage.style.color = 'rgba(255,0,0,0.7)';
+            errorMessage.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <p>${message}</p>
+            `;
+            userCollection.appendChild(errorMessage);
+        }
+
+        // Function to get user stats from database
+        async function getUserStats() {
+            try {
+                console.log('Getting user stats');
+                
+                if (!telegramId) {
+                    console.error('No telegram ID available for getting user stats');
+                    return null;
+                }
+                
+                // Calls the revised get_user_stats, which reads from the user_stats table
+                const { data, error } = await supabase.rpc('get_user_stats', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (error) {
+                    console.error('Error getting user stats:', error);
+                    return null;
+                }
+                
+                console.log('User stats retrieved (raw data from RPC):', data);
+                
+                // The get_user_stats function is defined to RETURN TABLE, so data should be an array of objects.
+                // If it returns a single object or an empty array if no stats, adjust accordingly.
+                let userStatsData = null;
+                if (data && data.length > 0) {
+                    userStatsData = data[0]; // Expecting a single row for the user
+                } else if (data && !Array.isArray(data)) {
+                    userStatsData = data; // If RPC returns a single object directly
+                }
+
+                if (!userStatsData) {
+                    console.warn('No stats data returned for user or data is in unexpected format.');
+                    userStatsData = { nft_count: 0, cases_opened: 0, legendary_count: 0 }; // Default if no data
+                }
+
+                // Update UI with the stats
+                const profileNftsCount = document.getElementById('profile-nfts-count');
+                if (profileNftsCount) {
+                    profileNftsCount.textContent = userStatsData.nft_count || 0;
+                }
+                
+                const profileCasesOpened = document.getElementById('profile-cases-opened');
+                if (profileCasesOpened) {
+                    profileCasesOpened.textContent = userStatsData.cases_opened || 0;
+                }
+                
+                const profileLegendaryCount = document.getElementById('profile-legendary-count');
+                if (profileLegendaryCount) {
+                    profileLegendaryCount.textContent = userStatsData.legendary_count || 0;
+                }
+                
+                return userStatsData;
+            } catch (err) {
+                console.error('Error in getUserStats:', err);
+                return null;
+            }
+        }
+
+        // Initialize the app when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded, initializing app...');
+            // Don't do anything here, the app will be initialized through the initApp() function
+        });
+
+        // Function to show a custom dialog (simple alert for now)
+        function showCustomDialog(title, message) {
+            if (typeof message === 'undefined') {
+                message = title; // If only one argument, use it as message
+                title = 'Notification'; // Default title
+            }
+            console.log(`[CustomDialog] Title: ${title}, Message: ${message}`);
+            alert(`${title}\n\n${message}`);
+        }
+
+        // Define the possible skins for the Labubu case (globally accessible within the script)
+        const labubuSkins = [
+            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", tier: 1 },
+            { name: "Candy Labubu", image: "CandyLabubu.png", tier: 2 },
+            { name: "Zombie Labubu", image: "ZombieLabubu.png", tier: 2 },
+            { name: "Alien Labubu", image: "AlienLabubu.png", tier: 3 },
+            { name: "Circus Labubu", image: "CircusLabubu.png", tier: 3 },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", tier: 4 },
+            { name: "Grass Labubu", image: "GrassLabubu.png", tier: 4 },
+            { name: "Grinch Labubu", image: "GrinchLabubu.png", tier: 5 },
+            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", tier: 6 }
+        ];
+
+        // Global variable to store the skin won from the roulette
+        let currentResultSkin = null;
+
+        // Function to handle opening the Labubu case
+        async function openLabubuCase() {
+            console.log('[CaseOpen] Attempting to open Labubu Case...');
+            const caseId = 'labubu';
+            const casePrice = 100; // UCoins
+
+            if (!telegramId) {
+                showCustomDialog("Error", "User not identified. Please restart the app.");
+                return;
+            }
+
+            // 1. Check balance
+            if (userBalance < casePrice) {
+                console.log('[CaseOpen] Insufficient balance.');
+                const dialog = document.getElementById('not-enough-balance-dialog');
+                if (dialog) dialog.classList.add('active');
+                return;
+            }
+
+            console.log('[CaseOpen] Sufficient balance, proceeding to deduct cost.');
+
+            // 2. Deduct case price
+            const balanceUpdated = await updateUserBalance(-casePrice, `Opened ${caseId} case`, 'case_open_cost');
+            if (!balanceUpdated) {
+                showCustomDialog("Error", "Failed to process payment for the case. Please try again.");
+                return;
+            }
+
+            console.log('[CaseOpen] Cost deducted. Simulating skin win...');
+
+            // 3. Simulate Skin "Win" (simple random selection for now)
+            const wonSkinIndex = Math.floor(Math.random() * labubuSkins.length);
+            const wonSkin = labubuSkins[wonSkinIndex];
+            console.log('[CaseOpen] Won skin:', wonSkin.name, 'Tier:', wonSkin.tier);
+
+            // Store the won skin globally for the sell button in roulette
+            currentResultSkin = { ...wonSkin, unique_id: null }; // unique_id will be set after adding to inventory
+
+
+            // 4. Add awarded skin to inventory
+            console.log('[CaseOpen] Adding skin to inventory via RPC: add_skin_to_inventory');
+            const { data: addSkinData, error: addSkinError } = await supabase.rpc('add_skin_to_inventory', {
+                p_telegram_id: telegramId,
+                p_skin_name: wonSkin.name,
+                p_skin_image: wonSkin.image,
+                p_skin_tier: wonSkin.tier
+            });
+
+            if (addSkinError || !addSkinData || !addSkinData.success) {
+                console.error('[CaseOpen] Error adding skin to inventory:', addSkinError, 'Data:', addSkinData);
+                showCustomDialog("Error", `Failed to add ${wonSkin.name} to your inventory. ${addSkinError ? addSkinError.message : (addSkinData ? addSkinData.message : 'Unknown error')}`);
+                // Attempt to refund if adding skin fails
+                await updateUserBalance(casePrice, `Refund for failed case open (${caseId})`, 'case_open_refund');
+                return;
+            }
+            
+            console.log('[CaseOpen] Skin added successfully to inventory. Returned data:', addSkinData);
+            if (addSkinData.unique_id) {
+                currentResultSkin.unique_id = addSkinData.unique_id; // Update with the actual unique_id
+                console.log('[CaseOpen] currentResultSkin updated with unique_id:', currentResultSkin.unique_id);
+            }
+
+
+            // 5. Update UI (Balance and Stats)
+            await getUserBalance(); // Refresh balance in UI
+            await getUserStats(); // Refresh stats (cases_opened, nft_count)
+            // Inventory will be shown via roulette, and refreshed if user navigates to inventory tab.
+
+            addActivity('case_open', { caseName: 'Labubu Collection', skinName: wonSkin.name });
+
+            // 6. Show Roulette Animation
+            console.log('[CaseOpen] Starting roulette animation for:', wonSkin.name);
+            startRoulette(wonSkin);
+
+
+            // Close the case detail view after opening
+            const labubuCaseDetail = document.getElementById('labubu-case-detail');
+            if (labubuCaseDetail && labubuCaseDetail.classList.contains('active')) {
+                labubuCaseDetail.classList.remove('active');
+                document.querySelector('.main').style.display = 'block';
+                document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
+            }
+        }
+
+        // Function to start the roulette animation
+        function startRoulette(wonSkin) {
+            const rouletteOverlay = document.getElementById('roulette-overlay');
+            const rouletteTrack = document.getElementById('roulette-track');
+            const rouletteContainer = document.querySelector('.roulette-container'); 
+            const resultImage = document.getElementById('result-image');
+            const resultName = document.getElementById('result-name');
+            const rouletteResult = document.getElementById('roulette-result');
+            const sellPriceEl = document.getElementById('sell-price');
+
+
+            if (!rouletteOverlay || !rouletteTrack || !rouletteContainer || !resultImage || !resultName || !rouletteResult || !sellPriceEl) {
+                console.error('[Roulette] One or more roulette DOM elements not found.');
+                showCustomDialog("Success!", `You got ${wonSkin.name}! Check your inventory.`); // Fallback
+                return;
+            }
+            
+            console.log('[Roulette] DOM elements found. Preparing track for skin:', wonSkin.name);
+
+            rouletteTrack.innerHTML = ''; // Clear previous items
+            rouletteResult.classList.remove('active');
+            resultImage.src = '';
+            resultName.textContent = '';
+
+            const itemsCount = 50; // Number of items in the roulette strip
+            const items = [];
+
+            // Populate roulette track
+            for (let i = 0; i < itemsCount; i++) {
+                const randomSkinIndex = Math.floor(Math.random() * labubuSkins.length);
+                const skin = labubuSkins[randomSkinIndex];
+                items.push(skin);
+                const itemEl = document.createElement('div');
+                itemEl.className = 'roulette-item';
+                // Corrected template literal for itemEl.innerHTML
+                itemEl.innerHTML = `
+                    <img src="${skin.image}" alt="${skin.name}">
+                    <div class="roulette-item-name">${skin.name}</div>
+                `;
+                rouletteTrack.appendChild(itemEl);
+            }
+
+            // Place the winning item at a predictable position
+            const winningItemIndex = itemsCount - 7; // Adjust as needed for visual centering
+            items[winningItemIndex] = wonSkin; 
+            
+            // Re-render the specific winning item in the track
+            const trackChildren = rouletteTrack.children;
+            if (trackChildren[winningItemIndex]) {
+                 trackChildren[winningItemIndex].innerHTML = `
+                    <img src="${wonSkin.image}" alt="${wonSkin.name}">
+                    <div class="roulette-item-name">${wonSkin.name}</div>
+                `;
+            } else {
+                console.error("[Roulette] Winning item index out of bounds for track children.");
+            }
+
+
+            console.log('[Roulette] Track populated. Target skin:', wonSkin.name, 'at index:', winningItemIndex);
+
+            rouletteOverlay.classList.add('active');
+
+            // Calculate position to stop
+            const itemStyle = window.getComputedStyle(rouletteTrack.children[0]);
+            const itemWidth = parseFloat(itemStyle.getPropertyValue('flex-basis')) || 120;
+            const itemMargin = (parseFloat(itemStyle.marginLeft) || 0) + (parseFloat(itemStyle.marginRight) || 0) || 10;
+            const itemFullWidth = itemWidth + itemMargin;
+            
+            const offsetToCenterWinner = (rouletteContainer.offsetWidth / 2) - (itemFullWidth / 2);
+            const targetPosition = -(winningItemIndex * itemFullWidth - offsetToCenterWinner);
+            
+            console.log('[Roulette] Item full width:', itemFullWidth, 'Target position:', targetPosition);
+
+
+            rouletteTrack.style.transition = 'none'; 
+            rouletteTrack.style.transform = 'translateX(0px)'; 
+
+            setTimeout(() => { 
+                rouletteTrack.style.transition = 'transform 7s cubic-bezier(0.1, 0.7, 0.3, 1)'; 
+                rouletteTrack.style.transform = `translateX(${targetPosition}px)`;
+            }, 50);
+
+
+            // After animation finishes
+            setTimeout(() => {
+                console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
+                resultImage.src = wonSkin.image;
+                resultImage.alt = wonSkin.name;
+                resultName.textContent = wonSkin.name;
+                
+                const price = skinPrices[wonSkin.tier] || 0;
+                sellPriceEl.textContent = price; // Update sell price on roulette
+
+                rouletteResult.classList.add('active');
+                
+                showConfetti();
+
+            }, 7500); 
+        }
+        
+        // Function to show confetti
+        function showConfetti() {
+            const dialogContent = document.querySelector('#roulette-result .roulette-buttons'); 
+            if (!dialogContent) {
+                 console.warn('[Confetti] #roulette-result .roulette-buttons not found for confetti.');
+                 return;
+            }
+
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'dialog-confetti'; 
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                confetti.style.animation = `confettiFall ${Math.random() * 2 + 3}s linear ${Math.random() * 1}s forwards`;
+                const size = Math.random() * 8 + 5;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                confetti.style.top = '-' + (size * 2) + 'px'; 
+
+                dialogContent.appendChild(confetti);
+                
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+
+        // Initialize daily reward system
+        function initDailyRewards() {
+            if (!telegramId) {
+                console.error('No Telegram ID available for daily rewards');
+                return;
+            }
+            console.log("Initializing daily rewards system...");
+            // REWARD_AMOUNT and countdownInterval are global, no redeclaration needed.
+            checkRewardAvailability();
+        }
+        
+        // Check reward availability from database
+        async function checkRewardAvailability() {
+            try {
+                // Call the database function to check availability
+                const { data, error } = await supabase.rpc('check_reward_availability', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (error) {
+                    console.error('Error checking reward availability:', error);
+                    // Fallback to local storage if database call fails
+                    const rewardData = loadRewardData();
+                    updateRewardUI(rewardData);
+                    return;
+                }
+                
+                console.log('Reward availability data:', data);
+                
+                // Convert database response to a format compatible with our UI
+                const rewardData = {
+                    lastClaimed: data.last_claimed ? new Date(data.last_claimed).getTime() : 0,
+                    nextAvailable: new Date(data.next_available).getTime()
+                };
+                
+                // Update the UI with the retrieved data
+                updateRewardUI(rewardData);
+                
+                // Also update localStorage as a backup
+                saveRewardData(rewardData);
+            } catch (err) {
+                console.error('Error in checkRewardAvailability:', err);
+                // Fallback to localStorage if there's an error
+                const rewardData = loadRewardData();
+                updateRewardUI(rewardData);
+            }
+        }
+        
+        // Load reward data from localStorage (backup)
+        function loadRewardData() {
+            const savedData = localStorage.getItem(`dailyReward_${telegramId}`);
+            if (!savedData) {
+                // First time user - reward is ready immediately
+                return {
+                    lastClaimed: 0,
+                    nextAvailable: 0
+                };
+            }
+            
+            return JSON.parse(savedData);
+        }
+        
+        // Save reward data to localStorage (backup)
+        function saveRewardData(data) {
+            localStorage.setItem(`dailyReward_${telegramId}`, JSON.stringify(data));
+        }
+        
+        // Update the UI based on reward availability
+        function updateRewardUI(rewardData) {
+            const now = Date.now();
+            const isRewardAvailable = now >= rewardData.nextAvailable;
+            
+            if (isRewardAvailable) {
+                // Reward is available
+                dailyRewardReady.style.display = 'flex';
+                dailyRewardTimer.style.display = 'none';
+                dailyRewardBtn.classList.remove('disabled');
+                dailyRewardBtn.disabled = false;
+            } else {
+                // Reward is on cooldown
+                dailyRewardReady.style.display = 'none';
+                dailyRewardTimer.style.display = 'flex';
+                dailyRewardBtn.classList.add('disabled');
+                dailyRewardBtn.disabled = true;
+                
+                // Start countdown
+                startCountdown(rewardData.nextAvailable);
+            }
+        }
+        
+        // Start countdown timer
+        function startCountdown(targetTime) {
+            // Clear any existing interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // Update immediately
+            updateCountdown(targetTime);
+            
+            // Set interval for updates
+            countdownInterval = setInterval(() => {
+                const timeLeft = updateCountdown(targetTime);
+                
+                // If countdown reached zero, refresh the UI
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    checkRewardAvailability(); // Check from database instead of local
+                }
+            }, 1000);
+        }
+        
+        // Update countdown display and return time left
+        function updateCountdown(targetTime) {
+            const now = Date.now();
+            const timeLeft = Math.max(0, targetTime - now);
+            
+            if (timeLeft > 0) {
+                // Format time remaining
+                const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+                
+                rewardCountdown.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                rewardCountdown.textContent = '00:00:00';
+            }
+            
+            return timeLeft;
+        }
+        
+        // Claim daily reward
+        async function claimDailyReward() {
+            try {
+                console.log("Attempting to claim daily reward for telegramId:", telegramId);
+                // Call the database function to claim reward
+                const { data, error } = await supabase.rpc('claim_reward', {
+                    p_telegram_id: telegramId,
+                    p_amount: REWARD_AMOUNT // Uses the single global REWARD_AMOUNT
+                });
+                
+                if (error) {
+                    console.error('Error claiming reward:', error);
+                    showCustomDialog('Failed to claim your reward. Please try again.');
+                    return;
+                }
+                
+                if (!data.success) {
+                    console.log('Reward not available:', data.message);
+                    showCustomDialog(data.message); // Show the message from the server (e.g., "Reward already claimed")
+                    // Ensure UI reflects the cooldown state if claim was denied due to cooldown
+                    checkRewardAvailability(); // Re-check to update UI based on server state
+                    return;
+                }
+                
+                console.log('Reward claimed successfully:', data);
+                
+                // The 'claim_reward' SQL function returns a JSONB object that includes 'balance'
+                if (typeof data.balance !== 'undefined') {
+                    userBalance = parseFloat(data.balance); 
+                } else {
+                    // Fallback if balance is not directly in response, though SQL should provide it.
+                    await getUserBalance(); // This will also update display
+                }
+                updateBalanceDisplay(); // Ensure display is updated with the new balance
+                
+                const rewardData = {
+                    lastClaimed: new Date().getTime(), // Use current time for lastClaimed
+                    nextAvailable: new Date(data.next_available).getTime()
+                };
+                updateRewardUI(rewardData);
+                saveRewardData(rewardData); // Save to localStorage
+                
+                // Show success dialog
+                const dailyRewardDialogEl = document.getElementById('daily-reward-dialog');
+                if (dailyRewardDialogEl) dailyRewardDialogEl.classList.add('active');
+                
+                // Add to activity log using the unified addActivity function
+                addActivity('daily_reward', { amount: REWARD_AMOUNT });
+                
+            } catch (err) {
+                console.error('Error in claimDailyReward:', err);
+                showCustomDialog('An error occurred. Please try again.');
+            }
+        }
+
+        // Unified Activity Log System (MAX_ACTIVITIES and MAX_STORED_ACTIVITIES are global)
         function addActivity(type, data) {
             console.log('[Activity] Adding activity:', type, data);
             if (!telegramId) {
