@@ -2411,36 +2411,38 @@
                 
                 console.log('Attempting to register user with ID:', telegramId);
                 
-                // Call the custom function we created in Supabase
-                const { data, error } = await supabase.rpc('add_user_with_balance', {
+                // Call the revised add_user_with_balance function
+                const { data: userData, error: userError } = await supabase.rpc('add_user_with_balance', {
                     p_telegram_id: telegramId,
                     p_username: userName || '',
                     p_first_name: userFirstName || '',
                     p_last_name: userLastName || ''
                 });
                 
-                if (error) {
-                    console.error('Error registering user:', error);
-                    tg.showAlert('Error connecting to database. Please try again later.');
+                if (userError) {
+                    console.error('Error registering user:', userError);
+                    tg.showAlert('Error connecting to database (user registration). Please try again later.');
                     return;
                 }
                 
-                console.log('User registered successfully:', data);
+                console.log('User registered (or updated) successfully, user ID:', userData);
                 
-                // Get user balance
+                // Get user balance using the revised get_balance function
                 const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
                     p_telegram_id: telegramId
                 });
                 
                 if (balanceError) {
                     console.error('Error getting balance:', balanceError);
-                    return;
+                    // Don't stop the app, but log it. Default to 0.
+                    userBalance = 0;
+                } else {
+                    userBalance = parseFloat(balanceData) || 0; // Ensure balance is a number
                 }
                 
-                userBalance = balanceData || 0;
                 updateBalanceDisplay();
-                
-                console.log('User registered and balance retrieved:', userBalance);
+                console.log('User balance retrieved:', userBalance);
+
             } catch (err) {
                 console.error('Error in registerUserAndGetBalance:', err);
                 tg.showAlert('Error connecting to the service. Please try again later.');
@@ -2458,9 +2460,10 @@
                 
                 console.log('Updating balance:', { telegramId, amount, description, type });
                 
+                // Uses the revised update_balance which interacts with the 'balances' table
                 const { data, error } = await supabase.rpc('update_balance', {
                     p_telegram_id: telegramId,
-                    p_amount: amount,
+                    p_amount_change: parseFloat(amount), // Ensure amount is numeric
                     p_description: description,
                     p_transaction_type: type
                 });
@@ -2471,7 +2474,7 @@
                     return false;
                 }
                 
-                userBalance = data || 0;
+                userBalance = parseFloat(data) || 0;
                 updateBalanceDisplay();
                 console.log('Balance updated successfully:', userBalance);
                 return true;
@@ -3158,76 +3161,54 @@
                     return 0;
                 }
                 
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('balance')
-                    .eq('telegram_id', telegramId)
-                    .single();
+                // Uses the revised get_balance function
+                const { data, error } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
                 
                 if (error) {
                     console.error('Error getting user balance:', error);
                     return 0;
                 }
                 
-                // Update UI with balance
-                const userBalance = document.getElementById('user-balance');
-                if (userBalance) {
-                    userBalance.textContent = data.balance || 0;
-                }
+                const newBalance = parseFloat(data) || 0;
+                userBalance = newBalance; // Update global variable
+                updateBalanceDisplay(); // Update all UI elements
                 
-                // Also update the profile balance if we're on the profile tab
-                const profileBalance = document.getElementById('profile-balance');
-                if (profileBalance) {
-                    profileBalance.textContent = data.balance || 0;
-                }
-                
-                console.log('Current balance:', data.balance);
-                return data.balance || 0;
+                console.log('Current balance from getUserBalance:', newBalance);
+                return newBalance;
             } catch (err) {
                 console.error('Error in getUserBalance:', err);
                 return 0;
             }
         }
         
-        // Function to update a user stat
+        // Function to update a user stat (this function seems to target 'users' table directly, needs revision if stats are only in user_stats)
+        // For now, the SQL function get_user_stats reads from user_stats table directly.
+        // The add_skin_to_inventory and remove_skin_from_inventory SQL functions now update user_stats.
+        // So, this JS function might not be strictly needed if all stat updates happen server-side via RPC.
+        // However, if direct client-side stat updates are intended, this would need to call an RPC that modifies user_stats.
         async function updateUserStat(statName, increment) {
             try {
-                console.log(`Updating user stat: ${statName} by ${increment}`);
+                console.log(`Updating user stat: ${statName} by ${increment} (Note: review if this JS function is still needed or if SQL handles it)`);
                 
                 if (!telegramId) {
                     console.error('No telegram ID available for updating user stat');
                     return false;
                 }
-                
-                // Get current stat value
-                const { data: userData, error: userError } = await supabase
-                    .from('users')
-                    .select(statName)
-                    .eq('telegram_id', telegramId)
-                    .single();
-                
-                if (userError) {
-                    console.error(`Error getting user ${statName}:`, userError);
-                    return false;
-                }
-                
-                // Calculate new value
-                const currentValue = userData[statName] || 0;
-                const newValue = currentValue + increment;
-                
-                // Update the stat
-                const { error: updateError } = await supabase
-                    .from('users')
-                    .update({ [statName]: newValue })
-                    .eq('telegram_id', telegramId);
-                
-                if (updateError) {
-                    console.error(`Error updating user ${statName}:`, updateError);
-                    return false;
-                }
-                
-                console.log(`Updated ${statName} from ${currentValue} to ${newValue}`);
-                return true;
+
+                // Example: if you had a specific RPC call to update a stat:
+                // const { error } = await supabase.rpc('increment_user_stat', {
+                // p_telegram_id: telegramId,
+                // p_stat_name: statName,
+                // p_increment_value: increment
+                // });
+                // if (error) { ... }
+                // For now, we assume SQL functions for adding/removing skins handle stat updates.
+                // We will rely on getUserStats() to refresh the profile display.
+                console.warn('updateUserStat in JS is not calling an RPC. Stat updates are expected via SQL functions like add_skin_to_inventory.');
+                await getUserStats(); // Refresh stats after an action that might change them
+                return true; 
             } catch (err) {
                 console.error(`Error in updateUserStat (${statName}):`, err);
                 return false;
@@ -3579,6 +3560,7 @@
                     return null;
                 }
                 
+                // Calls the revised get_user_stats, which reads from the user_stats table
                 const { data, error } = await supabase.rpc('get_user_stats', {
                     p_telegram_id: telegramId
                 });
@@ -3588,25 +3570,39 @@
                     return null;
                 }
                 
-                console.log('User stats retrieved:', data);
+                console.log('User stats retrieved (raw data from RPC):', data);
                 
+                // The get_user_stats function is defined to RETURN TABLE, so data should be an array of objects.
+                // If it returns a single object or an empty array if no stats, adjust accordingly.
+                let userStatsData = null;
+                if (data && data.length > 0) {
+                    userStatsData = data[0]; // Expecting a single row for the user
+                } else if (data && !Array.isArray(data)) {
+                    userStatsData = data; // If RPC returns a single object directly
+                }
+
+                if (!userStatsData) {
+                    console.warn('No stats data returned for user or data is in unexpected format.');
+                    userStatsData = { nft_count: 0, cases_opened: 0, legendary_count: 0 }; // Default if no data
+                }
+
                 // Update UI with the stats
                 const profileNftsCount = document.getElementById('profile-nfts-count');
                 if (profileNftsCount) {
-                    profileNftsCount.textContent = data[0].nft_count || 0;
+                    profileNftsCount.textContent = userStatsData.nft_count || 0;
                 }
                 
                 const profileCasesOpened = document.getElementById('profile-cases-opened');
                 if (profileCasesOpened) {
-                    profileCasesOpened.textContent = data[0].cases_opened || 0;
+                    profileCasesOpened.textContent = userStatsData.cases_opened || 0;
                 }
                 
                 const profileLegendaryCount = document.getElementById('profile-legendary-count');
                 if (profileLegendaryCount) {
-                    profileLegendaryCount.textContent = data[0].legendary_count || 0;
+                    profileLegendaryCount.textContent = userStatsData.legendary_count || 0;
                 }
                 
-                return data[0];
+                return userStatsData;
             } catch (err) {
                 console.error('Error in getUserStats:', err);
                 return null;
