@@ -2556,9 +2556,9 @@
                     telegramId = tg.initDataUnsafe.user.id;
                     console.log('Successfully retrieved telegram ID:', telegramId);
                 } else {
-                    console.error('Could not retrieve telegram ID from initDataUnsafe');
-                    alert('Error: Could not identify user. Please restart the app.');
-                    return;
+                    console.warn('[Desktop Test Mode] Could not retrieve real telegram ID from initDataUnsafe. Proceeding with limited functionality for testing.');
+                    // alert('Error: Could not identify user. Please restart the app.'); // Keep this commented out for desktop testing
+                    // return; // Allow app to continue for desktop testing of wallet connection
                 }
                 
                 // Debug: Log Telegram user data
