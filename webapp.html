@@ -1689,6 +1689,19 @@
             box-shadow: 0 0 15px rgba(var(--primary), 0.5);
         }
 
+        .ucoin-connect-prompt {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .ucoin-connect-prompt p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+        }
+
+        /* Using existing .btn class for styling the new connect button */
+
     </style>
 </head>
 <body>
@@ -2187,6 +2200,12 @@
         <div class="buy-ucoins-modal-content">
             <button class="buy-ucoins-modal-close-btn" id="buy-ucoins-modal-close-btn">&times;</button>
             <div class="buy-ucoins-modal-title">Buy UCoins</div>
+
+            <div class="ucoin-connect-prompt" id="ucoin-connect-prompt" style="display: none;">
+                <p>Please connect your TON wallet to buy UCoins.</p>
+                <button class="btn" id="ucoin-modal-connect-wallet-btn" style="width: auto; padding: 10px 20px;">Connect Wallet</button>
+            </div>
+
             <ul class="ucoin-packages-list" id="ucoin-packages-list">
                 <!-- Packages will be dynamically inserted here by JS or can be hardcoded -->
                  <li class="ucoin-package-item">
@@ -2328,6 +2347,15 @@
                         if (tonWalletAddressDisplay) {
                             tonWalletAddressDisplay.style.display = 'block';
                         }
+
+                        // If buy ucoins modal is open and connect prompt was shown, revert to packages
+                        const buyUcoinsModalIsActive = document.getElementById('buy-ucoins-modal').classList.contains('active');
+                        const connectPromptIsVisible = document.getElementById('ucoin-connect-prompt').style.display === 'block';
+                        if (buyUcoinsModalIsActive && connectPromptIsVisible) {
+                            document.getElementById('ucoin-connect-prompt').style.display = 'none';
+                            document.getElementById('ucoin-packages-list').style.display = 'block'; // Or original display type
+                        }
+
                     } else {
                         // Wallet is disconnected
                         console.log('[TON Connect] Wallet disconnected.');
@@ -2796,17 +2824,27 @@
                     const ucoins = this.dataset.ucoins;
                     const tonAmount = this.dataset.ton;
                     console.log(`Attempting to buy ${ucoins} UCoins for ${tonAmount} TON.`);
-                    // Here, you would integrate with the TON Connect SDK to initiate a transaction
-                    // For now, it just logs to console.
+                    
                     if (tonConnectUI && tonConnectUI.connected) {
                          // Placeholder: actual transaction logic will go here
                         alert(`Transaction for ${ucoins} UCoins not yet implemented. Wallet is connected.`);
                     } else {
-                        alert('Please connect your TON wallet first to buy UCoins.');
-                        if(tonConnectUI) tonConnectUI.openModal(); // Prompt to connect
+                        // Show connect prompt within the modal
+                        document.getElementById('ucoin-packages-list').style.display = 'none';
+                        document.getElementById('ucoin-connect-prompt').style.display = 'block';
+                        // Removed alert: alert('Please connect your TON wallet first to buy UCoins.');
+                        // if(tonConnectUI) tonConnectUI.openModal(); // This will be handled by the new button
                     }
                 });
             });
+
+            // Event listener for the new Connect Wallet button inside the UCoins modal
+            const ucoinModalConnectBtn = document.getElementById('ucoin-modal-connect-wallet-btn');
+            if (ucoinModalConnectBtn && tonConnectUI) {
+                ucoinModalConnectBtn.addEventListener('click', () => {
+                    tonConnectUI.openModal();
+                });
+            }
 
         }
 
