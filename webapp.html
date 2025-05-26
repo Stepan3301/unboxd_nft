@@ -2025,33 +2025,54 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Check if Supabase is loaded
-        if (typeof window.supabase === 'undefined') {
-            console.error('Supabase client not loaded! Loading from CDN again...');
-            // Try to load it again
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js';
-            script.onload = function() {
-                console.log('Supabase client loaded asynchronously');
-                initApp();
-            };
-            script.onerror = () => {
-                console.error('Failed to load Supabase client!');
-                alert('Failed to connect to the database. Please reload the app.');
-            };
-            document.head.appendChild(script);
-        } else {
-            console.log('Supabase client loaded successfully');
-            initApp();
+        // Global variables
+        let supabase;
+        let telegramId;
+        let userBalance = 0;
+        let userFirstName = '';
+        let userLastName = '';
+        let userName = '';
+        let userPhotoUrl = '';
+        
+        // Skin prices based on tiers
+        const skinPrices = {
+            1: 20,   // Common
+            2: 50,   // Rare
+            3: 120,  // Epic
+            4: 300,  // Legendary
+            5: 750,  // Mythic
+            6: 10000 // Divine
+        };
+        
+        // Check if Supabase is loaded and initialize app
+        function initializeApp() {
+            if (typeof window.supabase === 'undefined') {
+                console.error('Supabase client not loaded! Loading from CDN again...');
+                // Try to load it again
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js';
+                script.onload = function() {
+                    console.log('Supabase client loaded asynchronously');
+                    initSupabaseAndApp();
+                };
+                script.onerror = () => {
+                    console.error('Failed to load Supabase client!');
+                    alert('Failed to connect to the database. Please reload the app.');
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('Supabase client loaded successfully');
+                initSupabaseAndApp();
+            }
         }
         
-        // Function to initialize the app
-        function initApp() {
+        // Initialize Supabase client and setup app
+        function initSupabaseAndApp() {
             try {
                 // Initialize Supabase client
                 const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
                 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
-                window.supabase = window.supabase || {};
+                
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('Supabase client initialized successfully');
                 
@@ -2070,7 +2091,7 @@
                         alert('Could not connect to the database. Please check your connection and try again.');
                     });
             } catch (error) {
-                console.error('Error in initApp:', error);
+                console.error('Error initializing Supabase client:', error);
                 alert('Failed to initialize the app. Please reload.');
             }
         }
@@ -2096,6 +2117,10 @@
                     alert('Error: Could not identify user. Please restart the app.');
                     return;
                 }
+                
+                // Debug: Log Telegram user data
+                console.log('Telegram user data:', user);
+                console.log('Telegram ID:', telegramId);
                 
                 // Register user and get balance from Supabase
                 await registerUserAndGetBalance();
@@ -2130,6 +2155,9 @@
                 alert('Error setting up the app. Please try again later.');
             }
         }
+        
+        // Start app initialization
+        initializeApp();
         
         // Function to attach event listeners
         function attachEventListeners() {
@@ -2196,43 +2224,6 @@
                 });
             });
         }
-
-        // Initialize Supabase client
-        const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
-        let supabase;
-
-        try {
-            // Initialize Supabase client
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('Supabase client initialized successfully');
-        } catch (error) {
-            console.error('Error initializing Supabase client:', error);
-            alert('Failed to connect to the database. Please reload the app.');
-        }
-
-        // User data from Telegram
-        const user = tg.initDataUnsafe?.user || {};
-        let userFirstName = user.first_name || 'User';
-        let userLastName = user.last_name || '';
-        let userName = user.username ? `@${user.username}` : '';
-        let userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
-        let telegramId = user.id;
-        let userBalance = 0;
-
-        // Skin prices based on tiers
-        const skinPrices = {
-            1: 20,   // Common
-            2: 50,   // Rare
-            3: 120,  // Epic
-            4: 300,  // Legendary
-            5: 750,  // Mythic
-            6: 10000 // Divine
-        };
-
-        // Debug: Log Telegram user data
-        console.log('Telegram user data:', user);
-        console.log('Telegram ID:', telegramId);
 
         // Update profile wallet display to use ucoin img instead of "UCoin" text
         function updateProfileWalletDisplay() {
