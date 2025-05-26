@@ -3585,6 +3585,16 @@
             console.log('DOM fully loaded, initializing app...');
             // Don't do anything here, the app will be initialized through the initApp() function
         });
+
+        // Function to show a custom dialog (simple alert for now)
+        function showCustomDialog(title, message) {
+            if (typeof message === 'undefined') {
+                message = title; // If only one argument, use it as message
+                title = 'Notification'; // Default title
+            }
+            console.log(`[CustomDialog] Title: ${title}, Message: ${message}`);
+            alert(`${title}\n\n${message}`);
+        }
     </script>
 </body>
 </html>
