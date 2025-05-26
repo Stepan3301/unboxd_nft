@@ -7,7 +7,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Updated Supabase script with specific version -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js"></script>
     <style>
         :root {
             --primary: #6c5ce7;
@@ -2024,12 +2025,192 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Initialize Supabase client - FIXED INITIALIZATION
+        // Check if Supabase is loaded
+        if (typeof window.supabase === 'undefined') {
+            console.error('Supabase client not loaded! Loading from CDN again...');
+            // Try to load it again
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js';
+            script.onload = function() {
+                console.log('Supabase client loaded asynchronously');
+                initApp();
+            };
+            script.onerror = () => {
+                console.error('Failed to load Supabase client!');
+                alert('Failed to connect to the database. Please reload the app.');
+            };
+            document.head.appendChild(script);
+        } else {
+            console.log('Supabase client loaded successfully');
+            initApp();
+        }
+        
+        // Function to initialize the app
+        function initApp() {
+            try {
+                // Initialize Supabase client
+                const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
+                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
+                window.supabase = window.supabase || {};
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('Supabase client initialized successfully');
+                
+                // Test the connection
+                supabase.from('users').select('count(*)', { count: 'exact' }).limit(1)
+                    .then(response => {
+                        if (response.error) {
+                            throw response.error;
+                        }
+                        console.log('Database connection successful');
+                        // Continue with app initialization
+                        setupApp();
+                    })
+                    .catch(error => {
+                        console.error('Database connection test failed:', error);
+                        alert('Could not connect to the database. Please check your connection and try again.');
+                    });
+            } catch (error) {
+                console.error('Error in initApp:', error);
+                alert('Failed to initialize the app. Please reload.');
+            }
+        }
+        
+        // Function to set up the app after Supabase is initialized
+        async function setupApp() {
+            try {
+                console.log('Setting up app...');
+                
+                // Get user data from Telegram
+                const user = tg.initDataUnsafe?.user || {};
+                userFirstName = user.first_name || 'User';
+                userLastName = user.last_name || '';
+                userName = user.username ? `@${user.username}` : '';
+                userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+                
+                // Extract Telegram user ID
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                    telegramId = tg.initDataUnsafe.user.id;
+                    console.log('Successfully retrieved telegram ID:', telegramId);
+                } else {
+                    console.error('Could not retrieve telegram ID from initDataUnsafe');
+                    alert('Error: Could not identify user. Please restart the app.');
+                    return;
+                }
+                
+                // Register user and get balance from Supabase
+                await registerUserAndGetBalance();
+                console.log('User registered and balance retrieved:', userBalance);
+                
+                // Get user stats
+                const stats = await getUserStats();
+                console.log('User stats retrieved:', stats);
+                
+                // Get user inventory
+                await getUserInventory();
+                
+                // Update user data
+                await updateUserData();
+                
+                // Update activity log
+                updateActivityLog();
+                
+                // Set initial rarity nav visibility
+                updateRarityNavVisibility('cases-tab');
+                
+                // Make the first tab active
+                document.querySelector('.nav-btn[data-tab="cases-tab"]').classList.add('active');
+                document.getElementById('cases-tab').classList.add('active');
+                
+                console.log('App setup completed successfully');
+                
+                // Attach tab navigation event listeners
+                attachEventListeners();
+            } catch (error) {
+                console.error('Error in setupApp:', error);
+                alert('Error setting up the app. Please try again later.');
+            }
+        }
+        
+        // Function to attach event listeners
+        function attachEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    console.log('Nav button clicked:', btn.getAttribute('data-tab'));
+                    
+                    // Check if we're in case detail view first and close it
+                    if (document.querySelector('.bottom-nav').hasAttribute('data-case-detail-open')) {
+                        console.log('Closing case detail view');
+                        // Hide all case details
+                        document.querySelectorAll('.case-detail').forEach(detail => {
+                            detail.classList.remove('active');
+                        });
+                        
+                        // Reset bottom nav state
+                        document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
+                    }
+                    
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.nav-btn').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+                    
+                    // Get the tab ID
+                    const tabId = btn.getAttribute('data-tab');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Show the selected tab
+                    const targetTab = document.getElementById(tabId);
+                    if (targetTab) {
+                        console.log('Showing tab:', tabId);
+                        targetTab.classList.add('active');
+                    } else {
+                        console.error('Target tab not found:', tabId);
+                    }
+                    
+                    // Update rarity navigation visibility based on tab
+                    updateRarityNavVisibility(tabId);
+                    
+                    // Perform tab-specific actions
+                    if (tabId === 'inventory-tab') {
+                        console.log('Inventory tab selected, refreshing inventory');
+                        await getUserInventory();
+                    }
+                    
+                    if (tabId === 'profile-tab') {
+                        console.log('Profile tab selected, updating user data');
+                        await updateUserData();
+                    }
+                    
+                    if (tabId === 'cases-tab') {
+                        console.log('Home tab selected, updating activity log');
+                        updateActivityLog();
+                    }
+                });
+            });
+        }
+
+        // Initialize Supabase client
         const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
-        // Fix: proper initialization of Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
+        let supabase;
+
+        try {
+            // Initialize Supabase client
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase client initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Supabase client:', error);
+            alert('Failed to connect to the database. Please reload the app.');
+        }
+
         // User data from Telegram
         const user = tg.initDataUnsafe?.user || {};
         let userFirstName = user.first_name || 'User';
@@ -2839,69 +3020,6 @@
             }
         }
 
-        // Tab navigation functionality
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                console.log('Nav button clicked:', btn.getAttribute('data-tab'));
-                
-                // Check if we're in case detail view first and close it
-                if (document.querySelector('.bottom-nav').hasAttribute('data-case-detail-open')) {
-                    console.log('Closing case detail view');
-                    // Hide all case details
-                    document.querySelectorAll('.case-detail').forEach(detail => {
-                        detail.classList.remove('active');
-                    });
-                    
-                    // Reset bottom nav state
-                    document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
-                }
-                
-                // Remove active class from all buttons
-                document.querySelectorAll('.nav-btn').forEach(nav => {
-                    nav.classList.remove('active');
-                });
-                
-                // Add active class to clicked button
-                btn.classList.add('active');
-                
-                // Get the tab ID
-                const tabId = btn.getAttribute('data-tab');
-                
-                // Hide all tab content
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                // Show the selected tab
-                const targetTab = document.getElementById(tabId);
-                if (targetTab) {
-                    console.log('Showing tab:', tabId);
-                    targetTab.classList.add('active');
-                } else {
-                    console.error('Target tab not found:', tabId);
-                }
-                
-                // Update rarity navigation visibility based on tab
-                updateRarityNavVisibility(tabId);
-                
-                // Perform tab-specific actions
-                if (tabId === 'inventory-tab') {
-                    console.log('Inventory tab selected, refreshing inventory');
-                    await getUserInventory();
-                }
-                
-                if (tabId === 'profile-tab') {
-                    console.log('Profile tab selected, updating user data');
-                    await updateUserData();
-                }
-                
-                if (tabId === 'cases-tab') {
-                    console.log('Home tab selected, updating activity log');
-                    updateActivityLog();
-                }
-            });
-        });
-
         // Function to get user balance from database
         async function getUserBalance() {
             try {
@@ -3330,22 +3448,37 @@
                 
                 if (!telegramId) {
                     console.error('No telegram ID available for getting user stats');
-                    return;
+                    return null;
                 }
                 
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('nft_count, cases_opened, legendary_count')
-                    .eq('telegram_id', telegramId)
-                    .single();
+                const { data, error } = await supabase.rpc('get_user_stats', {
+                    p_telegram_id: telegramId
+                });
                 
                 if (error) {
                     console.error('Error getting user stats:', error);
-                    return;
+                    return null;
                 }
                 
                 console.log('User stats retrieved:', data);
-                return data;
+                
+                // Update UI with the stats
+                const profileNftsCount = document.getElementById('profile-nfts-count');
+                if (profileNftsCount) {
+                    profileNftsCount.textContent = data[0].nft_count || 0;
+                }
+                
+                const profileCasesOpened = document.getElementById('profile-cases-opened');
+                if (profileCasesOpened) {
+                    profileCasesOpened.textContent = data[0].cases_opened || 0;
+                }
+                
+                const profileLegendaryCount = document.getElementById('profile-legendary-count');
+                if (profileLegendaryCount) {
+                    profileLegendaryCount.textContent = data[0].legendary_count || 0;
+                }
+                
+                return data[0];
             } catch (err) {
                 console.error('Error in getUserStats:', err);
                 return null;
@@ -3353,52 +3486,9 @@
         }
 
         // Initialize the app when DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('App initialized');
-            
-            try {
-                // Debug info
-                console.log('Initializing app with Telegram data:', tg.initDataUnsafe);
-                
-                // Extract Telegram user ID
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-                    telegramId = tg.initDataUnsafe.user.id;
-                    console.log('Successfully retrieved telegram ID:', telegramId);
-                } else {
-                    console.error('Could not retrieve telegram ID from initDataUnsafe');
-                    alert('Error: Could not identify user. Please restart the app.');
-                    return;
-                }
-                
-                // Register user and get balance from Supabase
-                await registerUserAndGetBalance();
-                console.log('User registered and balance retrieved:', userBalance);
-                
-                // Get user stats
-                const stats = await getUserStats();
-                console.log('User stats retrieved:', stats);
-                
-                // Get user inventory
-                await getUserInventory();
-                
-                // Update user data
-                await updateUserData();
-                
-                // Update activity log
-                updateActivityLog();
-                
-                // Set initial rarity nav visibility
-                updateRarityNavVisibility('cases-tab');
-                
-                // Make the first tab active
-                document.querySelector('.nav-btn[data-tab="cases-tab"]').classList.add('active');
-                document.getElementById('cases-tab').classList.add('active');
-                
-                console.log('App initialization completed successfully');
-            } catch (err) {
-                console.error('Error during app initialization:', err);
-                alert('Error initializing the app. Please try again later.');
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded, initializing app...');
+            // Don't do anything here, the app will be initialized through the initApp() function
         });
     </script>
 </body>
