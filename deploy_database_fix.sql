@@ -222,28 +222,39 @@ BEGIN
 
     IF v_user_id IS NULL THEN
         RAISE NOTICE 'User with telegram_id % not found for update_balance', p_telegram_id;
-        RETURN 0.00;
+        RETURN 0.00; -- Or handle as an error, e.g., by creating the user or raising an exception
     END IF;
 
-    -- Note: Add transaction logging here if 'transactions' table is used
-    -- For now, just update the balance
+    -- Note: Add transaction logging here if a 'transactions' table is used
+    -- For now, just update the balance in the 'balances' table
     UPDATE public.balances
     SET amount = amount + p_amount_change, -- p_amount_change can be negative for debits
         updated_at = NOW()
     WHERE user_id = v_user_id
     RETURNING amount INTO v_new_balance;
     
+    -- This check is important: if the user_id was valid but no row was updated (e.g., no balance record),
+    -- v_new_balance would be NULL. We should ensure a balance record exists.
+    -- add_user_with_balance should have created it, but as a safeguard:
     IF v_new_balance IS NULL THEN
-       RAISE NOTICE 'Balance record not found or not updated for user_id % in update_balance', v_user_id;
-       RETURN COALESCE((SELECT amount FROM public.balances WHERE user_id = v_user_id), 0.00);
+       RAISE NOTICE 'Balance record not found or not updated for user_id % in update_balance. Attempting to fetch current or default.', v_user_id;
+       -- Attempt to return current balance if record exists, otherwise 0.
+       SELECT amount INTO v_new_balance FROM public.balances WHERE user_id = v_user_id;
+       RETURN COALESCE(v_new_balance, 0.00);
     END IF;
     
     RETURN v_new_balance;
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'Error in update_balance: %', SQLERRM;
-        -- Attempt to return current balance on error
-        RETURN COALESCE((SELECT b.amount FROM public.balances b JOIN public.users u ON u.id = b.user_id WHERE u.telegram_id = p_telegram_id), 0.00);
+        -- Attempt to return current balance on error if possible, otherwise default to 0
+        BEGIN
+            SELECT amount INTO v_new_balance FROM public.balances b JOIN public.users u ON u.id = b.user_id WHERE u.telegram_id = p_telegram_id;
+            RETURN COALESCE(v_new_balance, 0.00);
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN 0.00; -- Final fallback
+        END;
 END;
 $$;
 
