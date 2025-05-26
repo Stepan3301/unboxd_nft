@@ -75,14 +75,14 @@ CREATE TABLE IF NOT EXISTS public.reward_claims (
 
 DROP FUNCTION IF EXISTS add_user_with_balance(BIGINT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS get_balance(BIGINT);
-DROP FUNCTION IF EXISTS update_balance(BIGINT, INT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS update_balance(BIGINT, NUMERIC, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS get_user_inventory(BIGINT);
 DROP FUNCTION IF EXISTS add_skin_to_inventory(BIGINT, TEXT, TEXT, INT);
 DROP FUNCTION IF EXISTS remove_skin_from_inventory(BIGINT, UUID);
 DROP FUNCTION IF EXISTS get_user_stats(BIGINT);
 DROP FUNCTION IF EXISTS check_reward_availability(BIGINT);
 DROP FUNCTION IF EXISTS claim_reward(BIGINT, INT);
-DROP FUNCTION IF EXISTS add_coins_to_user(BIGINT, INT);
+DROP FUNCTION IF EXISTS add_coins_to_user(BIGINT, NUMERIC);
 
 -- =====================================================
 -- CREATE ESSENTIAL FUNCTIONS (Revised for new schema)

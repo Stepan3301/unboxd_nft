@@ -2075,30 +2075,35 @@
         
         // Check if Supabase is loaded and initialize app
         function initializeApp() {
-            console.log('Starting app initialization...');
+            console.log('[UnboxdNFT] Starting app initialization...');
             
-            // First, initialize Telegram WebApp
             if (!initializeTelegramWebApp()) {
+                console.error('[UnboxdNFT] Critical: Failed to initialize Telegram WebApp.');
                 alert('Failed to initialize Telegram WebApp. Please restart the app.');
                 return;
             }
+            console.log('[UnboxdNFT] Telegram WebApp component initialized.');
             
             if (typeof window.supabase === 'undefined') {
-                console.error('Supabase client not loaded! Loading from CDN again...');
-                // Try to load it again
+                console.warn('[UnboxdNFT] Supabase client not loaded on initial check. Attempting to load from CDN...');
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js';
                 script.onload = function() {
-                    console.log('Supabase client loaded asynchronously');
-                    setTimeout(() => initSupabaseAndApp(), 100); // Small delay to ensure script is fully loaded
+                    console.log('[UnboxdNFT] Supabase client script loaded asynchronously from CDN.');
+                    if (typeof window.supabase === 'undefined') {
+                        console.error('[UnboxdNFT] Critical: Supabase script loaded but window.supabase is still undefined!');
+                        alert('Failed to properly load the database library. Please reload the app.');
+                        return;
+                    }
+                    setTimeout(() => initSupabaseAndApp(), 100); 
                 };
                 script.onerror = () => {
-                    console.error('Failed to load Supabase client!');
-                    alert('Failed to connect to the database. Please reload the app.');
+                    console.error('[UnboxdNFT] Critical: Failed to load Supabase client script from CDN!');
+                    alert('Failed to connect to the database services. Please check your internet connection and reload the app.');
                 };
                 document.head.appendChild(script);
             } else {
-                console.log('Supabase client loaded successfully');
+                console.log('[UnboxdNFT] Supabase client already loaded.');
                 initSupabaseAndApp();
             }
         }
@@ -2106,38 +2111,57 @@
         // Initialize Supabase client and setup app
         function initSupabaseAndApp() {
             try {
-                console.log('Initializing Supabase client...');
+                console.log('[UnboxdNFT] Attempting to initialize Supabase client...');
                 
-                // Check if Supabase is available
                 if (typeof window.supabase === 'undefined') {
-                    throw new Error('Supabase client not available');
+                    console.error('[UnboxdNFT] Critical: window.supabase is undefined at the start of initSupabaseAndApp. This should not happen if loaded correctly.');
+                    throw new Error('Supabase client library not available.');
                 }
+                console.log('[UnboxdNFT] window.supabase object is available.');
                 
-                // Initialize Supabase client
                 const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
                 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
-                
+                console.log('[UnboxdNFT] Supabase URL and Key are set.');
+                console.log('[UnboxdNFT] URL:', SUPABASE_URL);
+
+                if (typeof window.supabase.createClient !== 'function') {
+                    console.error('[UnboxdNFT] Critical: window.supabase.createClient is not a function! The Supabase library might be corrupted or an incompatible version loaded.');
+                    alert('Database library error (createClient not found). Please reload.');
+                    return;
+                }
+                console.log('[UnboxdNFT] window.supabase.createClient IS a function. Proceeding to create client...');
+
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('Supabase client initialized successfully');
                 
-                // Test the connection with a more robust approach
+                if (!supabase) {
+                    console.error('[UnboxdNFT] Critical: Supabase client creation returned null or undefined.');
+                    throw new Error('Supabase client creation failed.');
+                }
+                console.log('[UnboxdNFT] Supabase client instance created successfully.');
+                console.log('[UnboxdNFT] Client methods available (sample): from -', typeof supabase.from, ', rpc -', typeof supabase.rpc);
+
+                
+                console.log('[UnboxdNFT] Proceeding to test database connection...');
                 testDatabaseConnection()
                     .then(success => {
                         if (success) {
-                            console.log('Database connection successful');
-                            // Continue with app initialization
+                            console.log('[UnboxdNFT] Database connection test successful. Proceeding to setupApp...');
                             setupApp();
                         } else {
-                            throw new Error('Database connection test failed');
+                            console.error('[UnboxdNFT] Database connection test returned false.');
+                            throw new Error('Database connection test failed explicitly.');
                         }
                     })
                     .catch(error => {
-                        console.error('Database connection test failed:', error);
-                        alert('Could not connect to the database. Please check your connection and try again.');
+                        console.error('[UnboxdNFT] Database connection test failed with error:', error);
+                        alert('Could not connect to the database. Please check your connection and try again. (Error Code: DBTEST_FAIL)');
                     });
             } catch (error) {
-                console.error('Error initializing Supabase client:', error);
-                alert('Failed to initialize the app. Please reload.');
+                console.error('[UnboxdNFT] Critical error during Supabase client initialization or pre-test phase:', error);
+                console.error('[UnboxdNFT] Error name:', error.name);
+                console.error('[UnboxdNFT] Error message:', error.message);
+                console.error('[UnboxdNFT] Error stack:', error.stack);
+                alert('Failed to initialize the app. Please reload. (Error Code: INIT_EXCEPTION)');
             }
         }
         
