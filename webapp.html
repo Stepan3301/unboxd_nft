@@ -2547,83 +2547,93 @@
         // Function to update user data in the profile tab
         async function updateUserData() {
             try {
-                console.log('Updating user data in profile tab');
+                console.log('[UnboxdNFT] Updating user data in profile tab for telegramId:', telegramId);
                 
                 if (!telegramId) {
-                    console.error('No telegram ID available for updating user data');
+                    console.error('[UnboxdNFT] No telegram ID available for updating user data');
                     return;
                 }
                 
-                // Set user avatar if available
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url) {
-                    const profileAvatar = document.getElementById('profile-avatar');
-                    if (profileAvatar) {
-                        profileAvatar.src = tg.initDataUnsafe.user.photo_url;
+                // Set user avatar and username from tg.initDataUnsafe (this part is likely fine)
+                const user = tg.initDataUnsafe?.user || {};
+                userFirstName = user.first_name || 'User';
+                userLastName = user.last_name || '';
+                userName = user.username ? `@${user.username}` : '';
+                userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+
+                const profileAvatar = document.getElementById('profile-avatar');
+                if (profileAvatar && userPhotoUrl) {
+                    profileAvatar.src = userPhotoUrl;
+                }
+                const headerAvatar = document.getElementById('user-avatar');
+                if (headerAvatar && userPhotoUrl) {
+                    // Assuming avatar is a div with background image
+                    headerAvatar.innerHTML = `<img src="${userPhotoUrl}" style="width:100%; height:100%; object-fit:cover;">`; 
+                } else if (headerAvatar) {
+                    headerAvatar.textContent = (userFirstName.charAt(0) || 'U').toUpperCase();
+                }
+
+                const profileUsername = document.getElementById('profile-username');
+                if (profileUsername) {
+                    profileUsername.textContent = userName || userFirstName;
+                }
+                
+                // Fetch balance using the RPC function
+                console.log('[UnboxdNFT] Calling get_balance RPC for profile...');
+                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+
+                if (balanceError) {
+                    console.error('[UnboxdNFT] Error getting balance for profile:', balanceError);
+                } else {
+                    console.log('[UnboxdNFT] Balance data for profile:', balanceData);
+                    const currentBalance = parseFloat(balanceData) || 0;
+                    userBalance = currentBalance; // Update global balance variable
+                    const profileBalanceEl = document.getElementById('profile-balance');
+                    if (profileBalanceEl) profileBalanceEl.textContent = currentBalance.toLocaleString();
+                    
+                    // Also update header balance
+                    const headerBalanceEl = document.getElementById('user-balance');
+                    if (headerBalanceEl) headerBalanceEl.textContent = currentBalance.toLocaleString();
+                }
+
+                // Fetch user stats using the RPC function
+                console.log('[UnboxdNFT] Calling get_user_stats RPC for profile...');
+                const { data: statsDataArray, error: statsError } = await supabase.rpc('get_user_stats', {
+                    p_telegram_id: telegramId
+                });
+
+                if (statsError) {
+                    console.error('[UnboxdNFT] Error getting user stats for profile:', statsError);
+                } else {
+                    console.log('[UnboxdNFT] Stats data array for profile:', statsDataArray);
+                    let userStats = null;
+                    if (statsDataArray && statsDataArray.length > 0) {
+                        userStats = statsDataArray[0];
+                    } else if (statsDataArray && !Array.isArray(statsDataArray)) { // Handle if RPC returns single object
+                        userStats = statsDataArray;
+                    } else {
+                         console.warn('[UnboxdNFT] No stats data returned or unexpected format for profile.');
+                         userStats = { nft_count: 0, cases_opened: 0, legendary_count: 0 }; // Default
                     }
                     
-                    // Also update the header avatar
-                    const userAvatar = document.getElementById('user-avatar');
-                    if (userAvatar) {
-                        userAvatar.style.backgroundImage = `url(${tg.initDataUnsafe.user.photo_url})`;
-                    }
+                    console.log('[UnboxdNFT] Processed userStats for profile:', userStats);
+
+                    const profileNftsCount = document.getElementById('profile-nfts-count');
+                    if (profileNftsCount) profileNftsCount.textContent = userStats.nft_count || 0;
+                    
+                    const profileCasesOpened = document.getElementById('profile-cases-opened');
+                    if (profileCasesOpened) profileCasesOpened.textContent = userStats.cases_opened || 0;
+                    
+                    const profileLegendaryCount = document.getElementById('profile-legendary-count');
+                    if (profileLegendaryCount) profileLegendaryCount.textContent = userStats.legendary_count || 0;
                 }
                 
-                // Set username if available
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) {
-                    const profileUsername = document.getElementById('profile-username');
-                    if (profileUsername) {
-                        profileUsername.textContent = tg.initDataUnsafe.user.username;
-                    }
-                } else if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) {
-                    const profileUsername = document.getElementById('profile-username');
-                    if (profileUsername) {
-                        profileUsername.textContent = tg.initDataUnsafe.user.first_name;
-                    }
-                }
-                
-                // Update user stats
-                const { data: userData, error: userError } = await supabase
-                    .from('users')
-                    .select('balance, nft_count, cases_opened, legendary_count')
-                    .eq('telegram_id', telegramId)
-                    .single();
-                
-                if (userError) {
-                    console.error('Error getting user data:', userError);
-                    return;
-                }
-                
-                console.log('User data retrieved:', userData);
-                
-                // Update displayed stats
-                const profileNftsCount = document.getElementById('profile-nfts-count');
-                if (profileNftsCount) {
-                    profileNftsCount.textContent = userData.nft_count || 0;
-                }
-                
-                const profileCasesOpened = document.getElementById('profile-cases-opened');
-                if (profileCasesOpened) {
-                    profileCasesOpened.textContent = userData.cases_opened || 0;
-                }
-                
-                const profileLegendaryCount = document.getElementById('profile-legendary-count');
-                if (profileLegendaryCount) {
-                    profileLegendaryCount.textContent = userData.legendary_count || 0;
-                }
-                
-                const profileBalance = document.getElementById('profile-balance');
-                if (profileBalance) {
-                    profileBalance.textContent = userData.balance || 0;
-                }
-                
-                // Also update the header balance
-                const userBalance = document.getElementById('user-balance');
-                if (userBalance) {
-                    userBalance.textContent = userData.balance || 0;
-                }
-                
+                console.log('[UnboxdNFT] updateUserData completed.');
             } catch (err) {
-                console.error('Error in updateUserData:', err);
+                console.error('[UnboxdNFT] Error in updateUserData:', err);
+                 alert('Error updating user profile. Please try again later.');
             }
         }
         
