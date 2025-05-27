@@ -2166,6 +2166,47 @@
         </div>
     </div>
 
+    <!-- Dark Aura Case Detail -->
+    <div class="case-detail" id="darkaura-case-detail">
+        <div class="case-detail-header">
+            <div class="case-detail-back" id="darkaura-case-back">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+            <div class="case-detail-title">Dark Aura Collection</div>
+        </div>
+        
+        <div class="featured-card">
+            <div class="featured-image">
+                <img src="DarkAuraCase.png" alt="Dark Aura Case">
+            </div>
+            <div class="featured-info">
+                <p class="featured-desc">Enter the realm of dark mystique with this exclusive case featuring mysterious NFTs shrouded in dark energy. Which dark spirit will you summon?</p>
+                
+                <div class="featured-action" style="justify-content: center; margin-top: 20px;">
+                    <button class="featured-btn open-case-btn" data-case="darkaura">
+                        Open Case for <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin: 0 5px;"> 3000
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title" style="margin-top: 30px; padding-left: 20px;">
+            <i class="fas fa-list"></i> Possible Drops
+        </h2>
+        
+        <div class="skins-grid" style="padding: 0 20px 20px;">
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="ScaredCatObelisk.svg" alt="Scared Cat Obelisk">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-6">Scared Cat Obelisk</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />15000</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Roulette Overlay -->
     <div class="roulette-overlay" id="roulette-overlay">
         <div class="roulette-header">
@@ -2768,6 +2809,37 @@
                 });
             }
 
+            // Dark Aura Case view buttons
+            document.querySelectorAll('.featured-btn[data-case="darkaura"], .open-btn[data-case="darkaura"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const caseId = button.dataset.case;
+                    console.log('View Case button clicked for:', caseId);
+                    if (caseId === 'darkaura') {
+                        const darkauraCaseDetail = document.getElementById('darkaura-case-detail');
+                        if (darkauraCaseDetail) {
+                            darkauraCaseDetail.classList.add('active');
+                            document.querySelector('.main').style.display = 'none'; // Hide main content
+                            document.querySelector('.bottom-nav').setAttribute('data-case-detail-open', 'true');
+                        } else {
+                            console.error('Dark Aura case detail element not found');
+                        }
+                    }
+                });
+            });
+
+            // Dark Aura Case detail back button
+            const darkauraCaseBack = document.getElementById('darkaura-case-back');
+            if (darkauraCaseBack) {
+                darkauraCaseBack.addEventListener('click', () => {
+                    const darkauraCaseDetail = document.getElementById('darkaura-case-detail');
+                    if (darkauraCaseDetail) {
+                        darkauraCaseDetail.classList.remove('active');
+                        document.querySelector('.main').style.display = 'block'; // Show main content
+                        document.querySelector('.bottom-nav').removeAttribute('data-case-detail-open');
+                    }
+                });
+            }
+
             // Daily reward button
             const dailyRewardBtnEl = document.getElementById('daily-reward-btn');
             if (dailyRewardBtnEl) {
@@ -2819,6 +2891,14 @@
                 openLabubuCaseButton.addEventListener('click', openLabubuCase);
             } else {
                 console.warn('Open Labubu Case button inside detail view not found for event listener.');
+            }
+
+            // Dark Aura Case Open Button (inside the case detail view)
+            const openDarkAuraCaseButton = document.querySelector('.case-detail#darkaura-case-detail .open-case-btn');
+            if (openDarkAuraCaseButton) {
+                openDarkAuraCaseButton.addEventListener('click', openDarkAuraCase);
+            } else {
+                console.warn('Open Dark Aura Case button inside detail view not found for event listener.');
             }
 
             // TON Connect Wallet Button
@@ -4030,6 +4110,11 @@
             { name: "Volcanic Labubu", image: "VolcanicLabubu.png", tier: 6 }
         ];
 
+        // Available skins for Dark Aura case
+        const darkAuraSkins = [
+            { name: "Scared Cat Obelisk", image: "ScaredCatObelisk.svg", tier: 6 }
+        ];
+
         // Global variable to store the skin won from the roulette
         let currentResultSkin = null;
 
@@ -4106,6 +4191,79 @@
             // 6. Show Roulette Animation
             console.log('[CaseOpen] Starting roulette animation for:', wonSkin.name);
             startRoulette(wonSkin);
+        }
+
+        // Function to handle opening the Dark Aura case
+        async function openDarkAuraCase() {
+            console.log('[CaseOpen] Attempting to open Dark Aura Case...');
+            const caseId = 'darkaura';
+            const casePrice = 3000; // UCoins
+
+            if (!telegramId) {
+                showCustomDialog("Error", "User not identified. Please restart the app.");
+                return;
+            }
+
+            // 1. Check balance
+            if (userBalance < casePrice) {
+                console.log('[CaseOpen] Insufficient balance.');
+                const dialog = document.getElementById('not-enough-balance-dialog');
+                if (dialog) dialog.classList.add('active');
+                return;
+            }
+
+            console.log('[CaseOpen] Sufficient balance, proceeding to deduct cost.');
+
+            // 2. Deduct case price
+            const balanceUpdated = await updateUserBalance(-casePrice, `Opened ${caseId} case`, 'case_open_cost');
+            if (!balanceUpdated) {
+                showCustomDialog("Error", "Failed to process payment for the case. Please try again.");
+                return;
+            }
+
+            console.log('[CaseOpen] Cost deducted. Simulating skin win...');
+
+            // 3. Simulate Skin "Win" (simple random selection for now)
+            const wonSkinIndex = Math.floor(Math.random() * darkAuraSkins.length);
+            const wonSkin = darkAuraSkins[wonSkinIndex];
+            console.log('[CaseOpen] Won skin:', wonSkin.name, 'Tier:', wonSkin.tier);
+
+            // Store the won skin globally for the sell button in roulette
+            currentResultSkin = { ...wonSkin, unique_id: null }; // unique_id will be set after adding to inventory
+
+            // 4. Add awarded skin to inventory
+            console.log('[CaseOpen] Adding skin to inventory via RPC: add_skin_to_inventory');
+            const { data: addSkinData, error: addSkinError } = await supabase.rpc('add_skin_to_inventory', {
+                p_telegram_id: telegramId,
+                p_skin_name: wonSkin.name,
+                p_skin_image: wonSkin.image,
+                p_skin_tier: wonSkin.tier
+            });
+
+            if (addSkinError || !addSkinData || !addSkinData.success) {
+                console.error('[CaseOpen] Error adding skin to inventory:', addSkinError, 'Data:', addSkinData);
+                showCustomDialog("Error", `Failed to add ${wonSkin.name} to your inventory. ${addSkinError ? addSkinError.message : (addSkinData ? addSkinData.message : 'Unknown error')}`);
+                // Attempt to refund if adding skin fails
+                await updateUserBalance(casePrice, `Refund for failed case open (${caseId})`, 'case_open_refund');
+                return;
+            }
+            
+            console.log('[CaseOpen] Skin added successfully to inventory. Returned data:', addSkinData);
+            if (addSkinData.unique_id) {
+                currentResultSkin.unique_id = addSkinData.unique_id; // Update with the actual unique_id
+                console.log('[CaseOpen] currentResultSkin updated with unique_id:', currentResultSkin.unique_id);
+            }
+
+            // 5. Update UI (Balance and Stats)
+            await getUserBalance(); // Refresh balance in UI
+            await getUserStats(); // Refresh stats (cases_opened, nft_count)
+            // Inventory will be shown via roulette, and refreshed if user navigates to inventory tab.
+
+            addActivity('case_open', { caseName: 'Dark Aura Collection', skinName: wonSkin.name });
+
+            // 6. Show Roulette Animation
+            console.log('[CaseOpen] Starting roulette animation for:', wonSkin.name);
+            startDarkAuraRoulette(wonSkin);
         }
 
         // Function to start the roulette animation
@@ -4190,6 +4348,111 @@
                 rouletteTrack.style.transform = `translateX(${targetPosition}px)`;
             }, 50);
 
+
+            // After animation finishes
+            setTimeout(() => {
+                console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
+                resultImage.src = wonSkin.image;
+                resultImage.alt = wonSkin.name;
+                
+                // Apply tier class to result name
+                resultName.className = 'roulette-result-name'; // Reset classes
+                resultName.classList.add(`tier-${wonSkin.tier}`);
+                resultName.textContent = wonSkin.name;
+                
+                const price = skinPrices[wonSkin.tier] || 0;
+                sellPriceEl.textContent = price; // Update sell price on roulette
+
+                rouletteResult.classList.add('active');
+                
+                showConfetti();
+
+            }, 7500); 
+        }
+
+        // Function to start the Dark Aura roulette animation
+        function startDarkAuraRoulette(wonSkin) {
+            const rouletteOverlay = document.getElementById('roulette-overlay');
+            const rouletteTrack = document.getElementById('roulette-track');
+            const rouletteContainer = document.querySelector('.roulette-container'); 
+            const resultImage = document.getElementById('result-image');
+            const resultName = document.getElementById('result-name');
+            const rouletteResult = document.getElementById('roulette-result');
+            const sellPriceEl = document.getElementById('sell-price');
+
+            if (!rouletteOverlay || !rouletteTrack || !rouletteContainer || !resultImage || !resultName || !rouletteResult || !sellPriceEl) {
+                console.error('[Roulette] One or more roulette DOM elements not found.');
+                showCustomDialog("Success!", `You got ${wonSkin.name}! Check your inventory.`); // Fallback
+                return;
+            }
+            
+            console.log('[Roulette] DOM elements found. Preparing track for Dark Aura skin:', wonSkin.name);
+
+            // Update roulette header for Dark Aura
+            const rouletteHeader = document.querySelector('.roulette-header h2');
+            if (rouletteHeader) {
+                rouletteHeader.textContent = 'Opening Dark Aura Case';
+            }
+
+            rouletteTrack.innerHTML = ''; // Clear previous items
+            rouletteResult.classList.remove('active');
+            resultImage.src = '';
+            resultName.textContent = '';
+
+            const itemsCount = 50; // Number of items in the roulette strip
+            const items = [];
+
+            // Populate roulette track with Dark Aura skins
+            for (let i = 0; i < itemsCount; i++) {
+                const randomSkinIndex = Math.floor(Math.random() * darkAuraSkins.length);
+                const skin = darkAuraSkins[randomSkinIndex];
+                items.push(skin);
+                const itemEl = document.createElement('div');
+                itemEl.className = 'roulette-item';
+                itemEl.innerHTML = `
+                    <img src="${skin.image}" alt="${skin.name}">
+                    <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
+                `;
+                rouletteTrack.appendChild(itemEl);
+            }
+
+            // Place the winning item at a predictable position
+            const winningItemIndex = itemsCount - 7; // Adjust as needed for visual centering
+            items[winningItemIndex] = wonSkin; 
+            
+            // Re-render the specific winning item in the track
+            const trackChildren = rouletteTrack.children;
+            if (trackChildren[winningItemIndex]) {
+                 trackChildren[winningItemIndex].innerHTML = `
+                    <img src="${wonSkin.image}" alt="${wonSkin.name}">
+                    <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
+                `;
+            } else {
+                console.error("[Roulette] Winning item index out of bounds for track children.");
+            }
+
+            console.log('[Roulette] Track populated. Target skin:', wonSkin.name, 'at index:', winningItemIndex);
+
+            rouletteOverlay.classList.add('active');
+
+            // Calculate position to stop
+            const itemStyle = window.getComputedStyle(rouletteTrack.children[0]);
+            const itemWidth = parseFloat(itemStyle.getPropertyValue('flex-basis')) || 120;
+            const itemMargin = (parseFloat(itemStyle.marginLeft) || 0) + (parseFloat(itemStyle.marginRight) || 0) || 10;
+            const itemFullWidth = itemWidth + itemMargin;
+            
+            const offsetToCenterWinner = (rouletteContainer.offsetWidth / 2) - (itemFullWidth / 2);
+            const targetPosition = -(winningItemIndex * itemFullWidth - offsetToCenterWinner);
+            
+            console.log('[Roulette] Item full width:', itemFullWidth, 'Target position:', targetPosition);
+
+            rouletteTrack.style.transition = 'none'; 
+            rouletteTrack.style.transform = 'translateX(0px)'; 
+
+            setTimeout(() => { 
+                rouletteTrack.style.transition = 'transform 7s cubic-bezier(0.1, 0.7, 0.3, 1)'; 
+                rouletteTrack.style.transform = `translateX(${targetPosition}px)`;
+            }, 50);
 
             // After animation finishes
             setTimeout(() => {

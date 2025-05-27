@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" width="512" height="512" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;">
+<defs>
+<clipPath id="__lottie_element_2868"><rect width="512" height="512" x="0" y="0"></rect></clipPath>
+<clipPath id="__lottie_element_2870"><path d="M0,0 L512,0 L512,512 L0,512z"></path></clipPath>
+<linearGradient id="__lottie_element_2918" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-0.39100000262260437" y1="-37.63399887084961" x2="-0.39100000262260437" y2="32.68000030517578">
+<stop offset="21%" stop-color="rgb(255,0,0)"></stop>
+<stop offset="56%" stop-color="rgb(222,3,24)"></stop>
+<stop offset="94%" stop-color="rgb(189,5,48)"></stop>
+</linearGradient>
+<radialGradient id="__lottie_element_3030" spreadMethod="pad" gradientUnits="userSpaceOnUse" cx="0.4320000112056732" cy="4.1519999504089355" r="142.60940825963215" fx="0.4320000112056732" fy="4.1519999504089355">
+<stop offset="0%" stop-color="rgb(255,128,128)"></stop>
+<stop offset="72%" stop-color="rgb(255,119,96)"></stop>
+<stop offset="100%" stop-color="rgb(255,110,65)"></stop>
+</radialGradient>
+</defs>
+
+<!-- Main character body -->
+<g transform="matrix(1,0,0,1,256,256)" opacity="1">
+<path fill="url(#__lottie_element_2918)" d="M115.16570281982422,-9.654045104980469 C112.668701171875,-14.97104549407959 109.72257232666016,-20.888309478759766 106.67057037353516,-25.268308639526367 C128.517578125,-89.98831176757812 114.71080780029297,-115.66374969482422 109.46780395507812,-115.66374969482422 C104.08280944824219,-115.66374969482422 40.98232650756836,-75.40731048583984 28.566328048706055,-65.37130737304688 C19.05457305908203,-66.36930847167969 9.951000213623047,-66.072998046875 0.16099999845027924,-66.072998046875 C-9.446000099182129,-66.072998046875 -19.526758193969727,-65.26337432861328 -28.86975860595703,-64.307373046875 C-41.42176055908203,-74.4523696899414 -88.92792510986328,-117.03980255126953 -94.30392456054688,-117.03980255126953 C-99.53192138671875,-117.03980255126953 -128.63375854492188,-89.05237579345703 -107.0977554321289,-24.721372604370117 C-109.33042907714844,-19.738920211791992 -112.7300033569336,-15.642999649047852 -115.33699798583984,-10.090999603271484 C-134.15499877929688,29.98699951171875 -130.67999267578125,116.49600219726562 0.16099999845027924,116.49600219726562 C128.82200622558594,116.49600219726562 133.98370361328125,30.423954010009766 115.16570281982422,-9.654045104980469z"/>
+</g>
+
+<!-- Scared expression eyes -->
+<g transform="matrix(0.8,0,0,0.8,180,200)" opacity="1">
+<ellipse cx="0" cy="0" rx="25" ry="35" fill="rgb(0,0,0)"/>
+</g>
+<g transform="matrix(0.8,0,0,0.8,332,200)" opacity="1">
+<ellipse cx="0" cy="0" rx="25" ry="35" fill="rgb(0,0,0)"/>
+</g>
+
+<!-- Mouth -->
+<g transform="matrix(1,0,0,1,256,280)" opacity="1">
+<ellipse cx="0" cy="0" rx="15" ry="8" fill="rgb(0,0,0)"/>
+</g>
+
+<!-- Aura effects -->
+<g transform="matrix(1,0,0,1,256,256)" opacity="0.7">
+<circle cx="0" cy="0" r="180" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="3" opacity="0.5"/>
+<circle cx="0" cy="0" r="200" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="2" opacity="0.3"/>
+<circle cx="0" cy="0" r="220" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="1" opacity="0.2"/>
+</g>
+
+<!-- Obelisk structure -->
+<g transform="matrix(0.5,0,0,1.2,256,400)" opacity="0.8">
+<rect x="-40" y="-100" width="80" height="200" fill="rgb(60,60,60)" stroke="rgb(40,40,40)" stroke-width="2"/>
+<polygon points="-50,-100 0,-120 50,-100" fill="rgb(80,80,80)"/>
+</g>
+</svg> 
