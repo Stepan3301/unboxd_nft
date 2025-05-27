@@ -2340,8 +2340,8 @@
                         const manifestUrl = 'https://Stepan3301.github.io/unboxd_nft/tonconnect-manifest.json';
 
                         tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
-                            manifestUrl: manifestUrl,
-                            buttonRootId: 'ton-connect-wallet-button-hidden-placeholder' 
+                            manifestUrl: manifestUrl
+                            // buttonRootId: 'ton-connect-wallet-button-hidden-placeholder' // Removed as we manage the button manually
                         });
                         console.log('[TON Connect] TonConnectUI instance created.');
 
