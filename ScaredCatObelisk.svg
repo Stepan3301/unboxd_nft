@@ -1,47 +1,88 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" width="512" height="512" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;">
-<defs>
-<clipPath id="__lottie_element_2868"><rect width="512" height="512" x="0" y="0"></rect></clipPath>
-<clipPath id="__lottie_element_2870"><path d="M0,0 L512,0 L512,512 L0,512z"></path></clipPath>
-<linearGradient id="__lottie_element_2918" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-0.39100000262260437" y1="-37.63399887084961" x2="-0.39100000262260437" y2="32.68000030517578">
-<stop offset="21%" stop-color="rgb(255,0,0)"></stop>
-<stop offset="56%" stop-color="rgb(222,3,24)"></stop>
-<stop offset="94%" stop-color="rgb(189,5,48)"></stop>
-</linearGradient>
-<radialGradient id="__lottie_element_3030" spreadMethod="pad" gradientUnits="userSpaceOnUse" cx="0.4320000112056732" cy="4.1519999504089355" r="142.60940825963215" fx="0.4320000112056732" fy="4.1519999504089355">
-<stop offset="0%" stop-color="rgb(255,128,128)"></stop>
-<stop offset="72%" stop-color="rgb(255,119,96)"></stop>
-<stop offset="100%" stop-color="rgb(255,110,65)"></stop>
-</radialGradient>
-</defs>
-
-<!-- Main character body -->
-<g transform="matrix(1,0,0,1,256,256)" opacity="1">
-<path fill="url(#__lottie_element_2918)" d="M115.16570281982422,-9.654045104980469 C112.668701171875,-14.97104549407959 109.72257232666016,-20.888309478759766 106.67057037353516,-25.268308639526367 C128.517578125,-89.98831176757812 114.71080780029297,-115.66374969482422 109.46780395507812,-115.66374969482422 C104.08280944824219,-115.66374969482422 40.98232650756836,-75.40731048583984 28.566328048706055,-65.37130737304688 C19.05457305908203,-66.36930847167969 9.951000213623047,-66.072998046875 0.16099999845027924,-66.072998046875 C-9.446000099182129,-66.072998046875 -19.526758193969727,-65.26337432861328 -28.86975860595703,-64.307373046875 C-41.42176055908203,-74.4523696899414 -88.92792510986328,-117.03980255126953 -94.30392456054688,-117.03980255126953 C-99.53192138671875,-117.03980255126953 -128.63375854492188,-89.05237579345703 -107.0977554321289,-24.721372604370117 C-109.33042907714844,-19.738920211791992 -112.7300033569336,-15.642999649047852 -115.33699798583984,-10.090999603271484 C-134.15499877929688,29.98699951171875 -130.67999267578125,116.49600219726562 0.16099999845027924,116.49600219726562 C128.82200622558594,116.49600219726562 133.98370361328125,30.423954010009766 115.16570281982422,-9.654045104980469z"/>
-</g>
-
-<!-- Scared expression eyes -->
-<g transform="matrix(0.8,0,0,0.8,180,200)" opacity="1">
-<ellipse cx="0" cy="0" rx="25" ry="35" fill="rgb(0,0,0)"/>
-</g>
-<g transform="matrix(0.8,0,0,0.8,332,200)" opacity="1">
-<ellipse cx="0" cy="0" rx="25" ry="35" fill="rgb(0,0,0)"/>
-</g>
-
-<!-- Mouth -->
-<g transform="matrix(1,0,0,1,256,280)" opacity="1">
-<ellipse cx="0" cy="0" rx="15" ry="8" fill="rgb(0,0,0)"/>
-</g>
-
-<!-- Aura effects -->
-<g transform="matrix(1,0,0,1,256,256)" opacity="0.7">
-<circle cx="0" cy="0" r="180" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="3" opacity="0.5"/>
-<circle cx="0" cy="0" r="200" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="2" opacity="0.3"/>
-<circle cx="0" cy="0" r="220" fill="none" stroke="url(#__lottie_element_3030)" stroke-width="1" opacity="0.2"/>
-</g>
-
-<!-- Obelisk structure -->
-<g transform="matrix(0.5,0,0,1.2,256,400)" opacity="0.8">
-<rect x="-40" y="-100" width="80" height="200" fill="rgb(60,60,60)" stroke="rgb(40,40,40)" stroke-width="2"/>
-<polygon points="-50,-100 0,-120 50,-100" fill="rgb(80,80,80)"/>
-</g>
+  <defs>
+    <radialGradient id="darkAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#330011" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#660022" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#110005" stop-opacity="0.9"/>
+    </radialGradient>
+    
+    <linearGradient id="obeliskGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a0015"/>
+      <stop offset="50%" stop-color="#2a0008"/>
+      <stop offset="100%" stop-color="#1a0004"/>
+    </linearGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Dark aura background -->
+  <circle cx="256" cy="256" r="250" fill="url(#darkAura)" opacity="0.8"/>
+  
+  <!-- Main obelisk body -->
+  <g transform="translate(256,256)">
+    <!-- Central obelisk shape -->
+    <path fill="url(#obeliskGradient)" stroke="#ff0033" stroke-width="2" 
+          d="M0,-180 L-40,-160 L-60,-60 L-80,60 L-40,160 L40,160 L80,60 L60,-60 L40,-160 Z"/>
+    
+    <!-- Cat features -->
+    <!-- Eyes with glowing effect -->
+    <circle cx="-25" cy="-80" r="12" fill="#ff0000" filter="url(#glow)" opacity="0.9"/>
+    <circle cx="25" cy="-80" r="12" fill="#ff0000" filter="url(#glow)" opacity="0.9"/>
+    
+    <!-- Eye pupils -->
+    <circle cx="-25" cy="-80" r="4" fill="#000000"/>
+    <circle cx="25" cy="-80" r="4" fill="#000000"/>
+    
+    <!-- Nose -->
+    <polygon points="0,-55 -8,-45 8,-45" fill="#cc0022"/>
+    
+    <!-- Mouth -->
+    <path d="M0,-45 Q-15,-30 -25,-20 Q0,-35 25,-20 Q15,-30 0,-45" 
+          fill="none" stroke="#ff0033" stroke-width="3"/>
+    
+    <!-- Whiskers -->
+    <line x1="-60" y1="-60" x2="-35" y2="-55" stroke="#ff0033" stroke-width="2"/>
+    <line x1="-60" y1="-40" x2="-35" y2="-45" stroke="#ff0033" stroke-width="2"/>
+    <line x1="35" y1="-55" x2="60" y2="-60" stroke="#ff0033" stroke-width="2"/>
+    <line x1="35" y1="-45" x2="60" y2="-40" stroke="#ff0033" stroke-width="2"/>
+    
+    <!-- Ears -->
+    <polygon points="-35,-160 -55,-120 -15,-130" fill="url(#obeliskGradient)" stroke="#ff0033"/>
+    <polygon points="35,-160 55,-120 15,-130" fill="url(#obeliskGradient)" stroke="#ff0033"/>
+    
+    <!-- Dark mystical symbols -->
+    <g fill="#ff3333" opacity="0.8" font-family="serif" font-weight="bold" text-anchor="middle">
+      <text x="0" y="0" font-size="24">◊</text>
+      <text x="-40" y="40" font-size="18">✦</text>
+      <text x="40" y="40" font-size="18">✦</text>
+      <text x="0" y="80" font-size="20">◆</text>
+    </g>
+    
+    <!-- Mystical aura lines -->
+    <g stroke="#ff0033" stroke-width="1" opacity="0.6" fill="none">
+      <circle cx="0" cy="0" r="120"/>
+      <circle cx="0" cy="0" r="140"/>
+      <circle cx="0" cy="0" r="160"/>
+    </g>
+    
+    <!-- Paws/base -->
+    <ellipse cx="-30" cy="140" rx="20" ry="15" fill="url(#obeliskGradient)"/>
+    <ellipse cx="30" cy="140" rx="20" ry="15" fill="url(#obeliskGradient)"/>
+  </g>
+  
+  <!-- Floating mystical particles -->
+  <g fill="#ff0033" opacity="0.7">
+    <circle cx="100" cy="150" r="3"/>
+    <circle cx="400" cy="200" r="2"/>
+    <circle cx="150" cy="350" r="2.5"/>
+    <circle cx="350" cy="100" r="2"/>
+    <circle cx="450" cy="350" r="3"/>
+    <circle cx="50" cy="400" r="2"/>
+  </g>
 </svg> 
