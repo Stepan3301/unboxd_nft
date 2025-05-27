@@ -10,14 +10,19 @@
     <!-- Updated Supabase script with specific version -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js" defer></script>
     <!-- TON Connect UI SDK -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@2.0.2/dist/tonconnect-ui.min.js" defer></script>
     <script defer>
         // Test script immediately after TON Connect SDK
-        console.log('[TON Connect SDK Test] Checking for TonConnectUI immediately after its presumed load by defer...');
-        if (typeof window.TonConnectUI !== 'undefined') {
-            console.log('[TON Connect SDK Test] SUCCESS: window.TonConnectUI is DEFINED at this point.');
+        console.log('[TON Connect SDK Test] Checking for TON_CONNECT_UI.TonConnectUI immediately after its presumed load by defer...');
+        if (typeof window.TON_CONNECT_UI !== 'undefined' && typeof window.TON_CONNECT_UI.TonConnectUI === 'function') {
+            console.log('[TON Connect SDK Test] SUCCESS: window.TON_CONNECT_UI.TonConnectUI is DEFINED at this point.');
         } else {
-            console.error('[TON Connect SDK Test] FAILURE: window.TonConnectUI is UNDEFINED at this point.');
+            if (typeof window.TON_CONNECT_UI === 'undefined') {
+                console.error('[TON Connect SDK Test] FAILURE: window.TON_CONNECT_UI itself is UNDEFINED.');
+            } else {
+                console.error('[TON Connect SDK Test] FAILURE: window.TON_CONNECT_UI is defined, but TON_CONNECT_UI.TonConnectUI is NOT a function.');
+            }
+            console.error('[TON Connect SDK Test] Full window.TON_CONNECT_UI object:', window.TON_CONNECT_UI);
         }
     </script>
     <style>
