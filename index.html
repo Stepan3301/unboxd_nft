@@ -2280,8 +2280,20 @@
                     tg.expand();
                     console.log('Telegram WebApp initialized successfully');
                     
-                    // Initialize TON Connect UI after Telegram WebApp is ready
-                    initializeTonConnect();
+                    // Check for TonConnectUI and initialize with a possible delay
+                    if (typeof TonConnectUI !== 'undefined') {
+                        initializeTonConnect();
+                    } else {
+                        console.warn('[TON Connect] TonConnectUI not immediately available, will try again after a short delay.');
+                        setTimeout(() => {
+                            if (typeof TonConnectUI !== 'undefined') {
+                                initializeTonConnect();
+                            } else {
+                                console.error('[TON Connect] CRITICAL: TonConnectUI is still not available after delay. SDK might not have loaded.');
+                                alert('TON Wallet services could not be loaded. Please check your connection and try reloading.');
+                            }
+                        }, 1000); // Wait 1 second
+                    }
                     
                     return true;
                 } else {
@@ -2302,7 +2314,20 @@
                     console.log('Using mock Telegram WebApp for testing');
                     
                     // Initialize TON Connect UI after mock Telegram WebApp is ready
-                    initializeTonConnect();
+                    // Check for TonConnectUI and initialize with a possible delay (also for mock)
+                    if (typeof TonConnectUI !== 'undefined') {
+                        initializeTonConnect();
+                    } else {
+                        console.warn('[TON Connect] TonConnectUI not immediately available for mock, will try again after a short delay.');
+                        setTimeout(() => {
+                            if (typeof TonConnectUI !== 'undefined') {
+                                initializeTonConnect();
+                            } else {
+                                console.error('[TON Connect] CRITICAL: TonConnectUI is still not available after delay for mock. SDK might not have loaded.');
+                                // alert('TON Wallet services could not be loaded (mock). Please check your connection and try reloading.');
+                            }
+                        }, 1000); // Wait 1 second
+                    }
                     
                     return true;
                 }
