@@ -11,6 +11,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js" defer></script>
     <!-- TON Connect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js" defer></script>
+    <script defer>
+        // Test script immediately after TON Connect SDK
+        console.log('[TON Connect SDK Test] Checking for TonConnectUI immediately after its presumed load by defer...');
+        if (typeof window.TonConnectUI !== 'undefined') {
+            console.log('[TON Connect SDK Test] SUCCESS: window.TonConnectUI is DEFINED at this point.');
+        } else {
+            console.error('[TON Connect SDK Test] FAILURE: window.TonConnectUI is UNDEFINED at this point.');
+        }
+    </script>
     <style>
         :root {
             --primary: #6c5ce7;
@@ -2319,13 +2328,13 @@
             let attempts = 0;
 
             function checkTonSdkReady() {
-                if (typeof window.TonConnectUI !== 'undefined') {
-                    console.log('[TON Connect] TonConnectUI SDK is ready.');
+                if (typeof window.TON_CONNECT_UI !== 'undefined' && typeof window.TON_CONNECT_UI.TonConnectUI === 'function') {
+                    console.log('[TON Connect] TON_CONNECT_UI.TonConnectUI SDK is ready.');
                     try {
                         console.log('[TON Connect] Initializing TonConnectUI...');
                         const manifestUrl = 'https://Stepan3301.github.io/unboxd_nft/tonconnect-manifest.json';
 
-                        tonConnectUI = new window.TonConnectUI({
+                        tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
                             manifestUrl: manifestUrl,
                             buttonRootId: 'ton-connect-wallet-button-hidden-placeholder' 
                         });
@@ -2377,10 +2386,10 @@
                 } else {
                     attempts++;
                     if (attempts < MAX_POLL_ATTEMPTS) {
-                        console.warn(`[TON Connect] TonConnectUI SDK not ready, attempt ${attempts}/${MAX_POLL_ATTEMPTS}. Retrying in ${POLL_INTERVAL_MS}ms...`);
+                        console.warn(`[TON Connect] TON_CONNECT_UI.TonConnectUI SDK not ready, attempt ${attempts}/${MAX_POLL_ATTEMPTS}. Retrying in ${POLL_INTERVAL_MS}ms...`);
                         setTimeout(checkTonSdkReady, POLL_INTERVAL_MS);
                     } else {
-                        console.error('[TON Connect] CRITICAL: TonConnectUI SDK did not become available after multiple attempts. SDK might not have loaded properly.');
+                        console.error('[TON Connect] CRITICAL: TON_CONNECT_UI.TonConnectUI SDK did not become available after multiple attempts. SDK might not have loaded properly.');
                         alert('TON Wallet services could not be loaded. Please ensure your internet connection is stable and try reloading the app.');
                     }
                 }
