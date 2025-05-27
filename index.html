@@ -2280,20 +2280,8 @@
                     tg.expand();
                     console.log('Telegram WebApp initialized successfully');
                     
-                    // Check for TonConnectUI and initialize with a possible delay
-                    if (typeof TonConnectUI !== 'undefined') {
-                        initializeTonConnect();
-                    } else {
-                        console.warn('[TON Connect] TonConnectUI not immediately available, will try again after a short delay.');
-                        setTimeout(() => {
-                            if (typeof TonConnectUI !== 'undefined') {
-                                initializeTonConnect();
-                            } else {
-                                console.error('[TON Connect] CRITICAL: TonConnectUI is still not available after delay. SDK might not have loaded.');
-                                alert('TON Wallet services could not be loaded. Please check your connection and try reloading.');
-                            }
-                        }, 1000); // Wait 1 second
-                    }
+                    // Directly call initializeTonConnect, it will handle waiting for the SDK.
+                    initializeTonConnect();
                     
                     return true;
                 } else {
@@ -2313,21 +2301,8 @@
                     };
                     console.log('Using mock Telegram WebApp for testing');
                     
-                    // Initialize TON Connect UI after mock Telegram WebApp is ready
-                    // Check for TonConnectUI and initialize with a possible delay (also for mock)
-                    if (typeof TonConnectUI !== 'undefined') {
-                        initializeTonConnect();
-                    } else {
-                        console.warn('[TON Connect] TonConnectUI not immediately available for mock, will try again after a short delay.');
-                        setTimeout(() => {
-                            if (typeof TonConnectUI !== 'undefined') {
-                                initializeTonConnect();
-                            } else {
-                                console.error('[TON Connect] CRITICAL: TonConnectUI is still not available after delay for mock. SDK might not have loaded.');
-                                // alert('TON Wallet services could not be loaded (mock). Please check your connection and try reloading.');
-                            }
-                        }, 1000); // Wait 1 second
-                    }
+                    // Directly call initializeTonConnect for mock as well.
+                    initializeTonConnect();
                     
                     return true;
                 }
@@ -2339,67 +2314,78 @@
         
         // Initialize TON Connect UI
         function initializeTonConnect() {
-            try {
-                console.log('[TON Connect] Initializing TonConnectUI...');
-                // You need to host this manifest.json file publicly and replace the placeholder.
-                // It should contain your dApp's metadata e.g., name, url, icon.
-                // See: https://docs.ton.org/develop/dapps/ton-connect/sdk#app-manifest
-                const manifestUrl = 'https://Stepan3301.github.io/unboxd_nft/tonconnect-manifest.json'; // <<< UPDATED TO ASSUMED GITHUB PAGES URL
+            const MAX_POLL_ATTEMPTS = 20; // e.g., 20 attempts * 250ms = 5 seconds
+            const POLL_INTERVAL_MS = 250;
+            let attempts = 0;
 
-                tonConnectUI = new TonConnectUI({
-                    manifestUrl: manifestUrl,
-                    buttonRootId: 'ton-connect-wallet-button-hidden-placeholder' // We manage the button ourselves
-                });
-                console.log('[TON Connect] TonConnectUI instance created.');
+            function checkTonSdkReady() {
+                if (typeof window.TonConnectUI !== 'undefined') {
+                    console.log('[TON Connect] TonConnectUI SDK is ready.');
+                    try {
+                        console.log('[TON Connect] Initializing TonConnectUI...');
+                        const manifestUrl = 'https://Stepan3301.github.io/unboxd_nft/tonconnect-manifest.json';
 
-                // Subscribe to wallet connection status changes
-                tonConnectUI.onStatusChange(walletAndAccount => {
-                    const tonConnectWalletButton = document.getElementById('ton-connect-wallet-button');
-                    const tonWalletAddressDisplay = document.getElementById('ton-wallet-address-display');
-                    const connectedTonAddressSpan = document.getElementById('connected-ton-address');
+                        tonConnectUI = new window.TonConnectUI({
+                            manifestUrl: manifestUrl,
+                            buttonRootId: 'ton-connect-wallet-button-hidden-placeholder' 
+                        });
+                        console.log('[TON Connect] TonConnectUI instance created.');
 
-                    if (walletAndAccount) {
-                        // Wallet is connected
-                        const address = walletAndAccount.account.address;
-                        const userFriendlyAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
-                        console.log('[TON Connect] Wallet connected:', userFriendlyAddress, walletAndAccount);
-                        if (tonConnectWalletButton) {
-                            tonConnectWalletButton.textContent = 'Disconnect TON Wallet';
-                        }
-                        if (connectedTonAddressSpan) {
-                            connectedTonAddressSpan.textContent = userFriendlyAddress;
-                        }
-                        if (tonWalletAddressDisplay) {
-                            tonWalletAddressDisplay.style.display = 'block';
-                        }
+                        tonConnectUI.onStatusChange(walletAndAccount => {
+                            const tonConnectWalletButton = document.getElementById('ton-connect-wallet-button');
+                            const tonWalletAddressDisplay = document.getElementById('ton-wallet-address-display');
+                            const connectedTonAddressSpan = document.getElementById('connected-ton-address');
 
-                        // If buy ucoins modal is open and connect prompt was shown, revert to packages
-                        const buyUcoinsModalIsActive = document.getElementById('buy-ucoins-modal').classList.contains('active');
-                        const connectPromptIsVisible = document.getElementById('ucoin-connect-prompt').style.display === 'block';
-                        if (buyUcoinsModalIsActive && connectPromptIsVisible) {
-                            document.getElementById('ucoin-connect-prompt').style.display = 'none';
-                            document.getElementById('ucoin-packages-list').style.display = 'block'; // Or original display type
-                        }
+                            if (walletAndAccount) {
+                                const address = walletAndAccount.account.address;
+                                const userFriendlyAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+                                console.log('[TON Connect] Wallet connected:', userFriendlyAddress, walletAndAccount);
+                                if (tonConnectWalletButton) {
+                                    tonConnectWalletButton.textContent = 'Disconnect TON Wallet';
+                                }
+                                if (connectedTonAddressSpan) {
+                                    connectedTonAddressSpan.textContent = userFriendlyAddress;
+                                }
+                                if (tonWalletAddressDisplay) {
+                                    tonWalletAddressDisplay.style.display = 'block';
+                                }
+                                const buyUcoinsModalIsActive = document.getElementById('buy-ucoins-modal').classList.contains('active');
+                                const connectPromptIsVisible = document.getElementById('ucoin-connect-prompt').style.display === 'block';
+                                if (buyUcoinsModalIsActive && connectPromptIsVisible) {
+                                    document.getElementById('ucoin-connect-prompt').style.display = 'none';
+                                    document.getElementById('ucoin-packages-list').style.display = 'block';
+                                }
+                            } else {
+                                console.log('[TON Connect] Wallet disconnected.');
+                                if (tonConnectWalletButton) {
+                                    tonConnectWalletButton.textContent = 'Connect TON Wallet';
+                                }
+                                if (tonWalletAddressDisplay) {
+                                    tonWalletAddressDisplay.style.display = 'none';
+                                }
+                                if (connectedTonAddressSpan) {
+                                    connectedTonAddressSpan.textContent = '';
+                                }
+                            }
+                        });
+                        console.log('[TON Connect] onStatusChange listener attached.');
 
-                    } else {
-                        // Wallet is disconnected
-                        console.log('[TON Connect] Wallet disconnected.');
-                        if (tonConnectWalletButton) {
-                            tonConnectWalletButton.textContent = 'Connect TON Wallet';
-                        }
-                        if (tonWalletAddressDisplay) {
-                            tonWalletAddressDisplay.style.display = 'none';
-                        }
-                        if (connectedTonAddressSpan) {
-                            connectedTonAddressSpan.textContent = '';
-                        }
+                    } catch (error) {
+                        console.error('[TON Connect] Error initializing TonConnectUI instance:', error);
+                        alert('Failed to initialize TON Wallet services. Please try reloading.');
                     }
-                });
-
-            } catch (error) {
-                console.error('[TON Connect] Error initializing TonConnectUI:', error);
-                // Show an error to the user if needed
+                } else {
+                    attempts++;
+                    if (attempts < MAX_POLL_ATTEMPTS) {
+                        console.warn(`[TON Connect] TonConnectUI SDK not ready, attempt ${attempts}/${MAX_POLL_ATTEMPTS}. Retrying in ${POLL_INTERVAL_MS}ms...`);
+                        setTimeout(checkTonSdkReady, POLL_INTERVAL_MS);
+                    } else {
+                        console.error('[TON Connect] CRITICAL: TonConnectUI SDK did not become available after multiple attempts. SDK might not have loaded properly.');
+                        alert('TON Wallet services could not be loaded. Please ensure your internet connection is stable and try reloading the app.');
+                    }
+                }
             }
+            checkTonSdkReady(); // Start the polling
         }
         
         // Check if Supabase is loaded and initialize app
