@@ -2928,8 +2928,8 @@
                 });
             }
 
-            // Dark Aura Case view buttons
-            document.querySelectorAll('.featured-btn[data-case="darkaura"], .open-btn[data-case="darkaura"]').forEach(button => {
+            // Dark Aura Case view buttons (only for buttons that should open the case detail view)
+            document.querySelectorAll('.featured-btn[data-case="darkaura"]:not(.open-case-btn), .open-btn[data-case="darkaura"]:not(.open-case-btn)').forEach(button => {
                 button.addEventListener('click', () => {
                     const caseId = button.dataset.case;
                     console.log('View Case button clicked for:', caseId);
@@ -4400,6 +4400,71 @@
 
         // Global variable to store the skin won from the roulette
         let currentResultSkin = null;
+
+        // === CASE OPENING FUNCTIONS ===
+        
+        // Open Labubu Case function
+        async function openLabubuCase() {
+            console.log('Opening Labubu case...');
+            const CASE_PRICE = 100;
+            
+            // Check if user has enough balance
+            if (userBalance < CASE_PRICE) {
+                const notEnoughDialog = document.getElementById('not-enough-balance-dialog');
+                if (notEnoughDialog) {
+                    notEnoughDialog.classList.add('active');
+                }
+                return;
+            }
+            
+            try {
+                // Deduct balance first
+                await updateUserBalance(-CASE_PRICE, 'Opened Labubu Case', 'case_opening');
+                
+                // Start the roulette animation
+                startRouletteAnimation('labubu');
+                
+            } catch (error) {
+                console.error('Error opening Labubu case:', error);
+                alert('Failed to open case. Please try again.');
+            }
+        }
+        
+        // Open Dark Aura Case function  
+        async function openDarkAuraCase() {
+            console.log('Opening Dark Aura case...');
+            const CASE_PRICE = 3000;
+            
+            // Check if user has enough balance
+            if (userBalance < CASE_PRICE) {
+                const notEnoughDialog = document.getElementById('not-enough-balance-dialog');
+                if (notEnoughDialog) {
+                    notEnoughDialog.classList.add('active');
+                }
+                return;
+            }
+            
+            try {
+                // Deduct balance first
+                await updateUserBalance(-CASE_PRICE, 'Opened Dark Aura Case', 'case_opening');
+                
+                // Start the enhanced Dark Aura roulette animation
+                await startEnhancedDarkAuraRouletteAnimation();
+                
+            } catch (error) {
+                console.error('Error opening Dark Aura case:', error);
+                alert('Failed to open case. Please try again.');
+            }
+        }
+        
+        // Generic roulette animation function for other cases
+        function startRouletteAnimation(caseType) {
+            console.log('Starting roulette animation for:', caseType);
+            // Implementation for basic roulette (can be enhanced later)
+            alert('Basic roulette animation - to be implemented');
+        }
+
+        // === DAILY REWARDS SYSTEM ===
     </script>
 </body>
 </html>
