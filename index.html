@@ -4215,11 +4215,11 @@
             console.log('DOM fully loaded, initializing app...');
             // Don't do anything here, the app will be initialized through the initApp() function
             
-            // Initialize static Lottie players
+            // Initialize static Lottie players for possible drops
             initializeStaticLottieAnimations();
         });
 
-        // Function to initialize static Lottie animations
+        // Function to initialize static Lottie animations for possible drops
         function initializeStaticLottieAnimations() {
             // Wait a bit for Lottie players to load
             setTimeout(() => {
@@ -4395,114 +4395,132 @@
 
             console.log('[CaseOpen] Cost deducted. Simulating Dark Aura skin win...');
 
-            // 3. Simulate Skin "Win" (this is the ACTUAL winner)
+            // 3. Simulate Skin "Win" (simple random selection)
             const wonSkinIndex = Math.floor(Math.random() * darkAuraSkins.length);
-            const wonSkin = darkAuraSkins[wonSkinIndex]; // Get the full skin object
-            console.log('[CaseOpen] Pre-determined wonSkin for Dark Aura:', wonSkin.name, 'Tier:', wonSkin.tier, 'Image:', wonSkin.image);
+            const wonSkin = darkAuraSkins[wonSkinIndex];
+            console.log('[CaseOpen] Won Dark Aura skin:', wonSkin.name, 'Tier:', wonSkin.tier);
 
-            // Store the pre-determined won skin globally. unique_id will be updated after DB insert.
-            currentResultSkin = { ...wonSkin, unique_id: null }; 
+            // Store the won skin globally for the sell button in roulette
+            currentResultSkin = { ...wonSkin, unique_id: null }; // unique_id will be set after adding to inventory
 
-            // 4. Add this pre-determined awarded skin to inventory
-            try {
-                console.log('[CaseOpen] Adding pre-determined Dark Aura skin to inventory:', wonSkin.name);
-                const { data: addSkinData, error: addSkinError } = await supabase.rpc('add_skin_to_inventory', {
-                    p_telegram_id: telegramId,
-                    p_skin_name: wonSkin.name,
-                    p_skin_image: wonSkin.image, // Ensure this is the correct image path/URL
-                    p_skin_tier: wonSkin.tier
-                });
+            // 4. Add awarded skin to inventory
+            console.log('[CaseOpen] Adding Dark Aura skin to inventory via RPC: add_skin_to_inventory');
+            const { data: addSkinData, error: addSkinError } = await supabase.rpc('add_skin_to_inventory', {
+                p_telegram_id: telegramId,
+                p_skin_name: wonSkin.name,
+                p_skin_image: wonSkin.image,
+                p_skin_tier: wonSkin.tier
+            });
 
-                if (addSkinError || !addSkinData || !addSkinData.success) {
-                    console.error('[CaseOpen] Error adding pre-determined Dark Aura skin to inventory:', addSkinError, 'Data:', addSkinData);
-                    showCustomDialog("Error", `Failed to add ${wonSkin.name} to your inventory. ${addSkinError ? addSkinError.message : (addSkinData ? addSkinData.message : 'Unknown error')}`);
-                    await updateUserBalance(casePrice, `Refund for failed Dark Aura case open (${caseId} - inventory error)`, 'case_open_refund');
-                    return;
-                }
-                
-                console.log('[CaseOpen] Pre-determined Dark Aura skin added successfully. Returned data:', addSkinData);
-                if (addSkinData.unique_id) {
-                    currentResultSkin.unique_id = addSkinData.unique_id;
-                    console.log('[CaseOpen] currentResultSkin (Dark Aura) updated with unique_id:', currentResultSkin.unique_id);
-                }
-            } catch (error) {
-                console.error('[CaseOpen] Exception during Dark Aura pre-determined skin inventory addition:', error);
-                showCustomDialog("Error", `An error occurred while processing your Dark Aura win: ${error.message}`);
-                await updateUserBalance(casePrice, `Refund for failed Dark Aura case open (${caseId} - exception)`, 'case_open_refund');
+            if (addSkinError || !addSkinData || !addSkinData.success) {
+                console.error('[CaseOpen] Error adding Dark Aura skin to inventory:', addSkinError, 'Data:', addSkinData);
+                showCustomDialog("Error", `Failed to add ${wonSkin.name} to your inventory. ${addSkinError ? addSkinError.message : (addSkinData ? addSkinData.message : 'Unknown error')}`);
+                // Attempt to refund if adding skin fails
+                await updateUserBalance(casePrice, `Refund for failed Dark Aura case open (${caseId})`, 'case_open_refund');
                 return;
+            }
+            
+            console.log('[CaseOpen] Dark Aura skin added successfully to inventory. Returned data:', addSkinData);
+            if (addSkinData.unique_id) {
+                currentResultSkin.unique_id = addSkinData.unique_id; // Update with the actual unique_id
+                console.log('[CaseOpen] currentResultSkin updated with unique_id:', currentResultSkin.unique_id);
             }
 
             // 5. Update UI (Balance and Stats)
-            await getUserBalance(); 
-            await getUserStats(); 
+            await getUserBalance(); // Refresh balance in UI
+            await getUserStats(); // Refresh stats (cases_opened, nft_count)
+            // Inventory will be shown via roulette, and refreshed if user navigates to inventory tab.
+
             addActivity('case_open', { caseName: 'Dark Aura Collection', skinName: wonSkin.name });
 
-            // 6. Show Roulette Animation, ensuring it visually lands on the pre-determined wonSkin
-            console.log('[CaseOpen] Starting Dark Aura roulette animation, ensuring it shows pre-determined winner:', wonSkin.name);
-            startDarkAuraRoulette(wonSkin); // Pass the pre-determined winner to the roulette
+            // 6. Show Roulette Animation
+            console.log('[CaseOpen] Starting roulette animation for Dark Aura skin:', wonSkin.name);
+            startRoulette(wonSkin);
         }
 
-        // Function to start the Dark Aura roulette animation
-        function startDarkAuraRoulette(wonSkin) { // wonSkin is the pre-determined winner
+        // Function to start the roulette animation (works for both Labubu and Dark Aura cases)
+        function startRoulette(wonSkin) {
             const rouletteOverlay = document.getElementById('roulette-overlay');
             const rouletteTrack = document.getElementById('roulette-track');
             const rouletteContainer = document.querySelector('.roulette-container'); 
-            const resultImage = document.getElementById('result-image'); // This is the <img> tag
+            const resultImage = document.getElementById('result-image');
             const resultName = document.getElementById('result-name');
             const rouletteResult = document.getElementById('roulette-result');
             const sellPriceEl = document.getElementById('sell-price');
-            const resultImageContainer = document.querySelector('.roulette-result-image'); // The div containing the image/lottie
 
-            if (!rouletteOverlay || !rouletteTrack || !rouletteContainer || !resultImageContainer || !resultName || !rouletteResult || !sellPriceEl) {
-                console.error('[Roulette] One or more Dark Aura roulette DOM elements not found.');
-                showCustomDialog("Congratulations!", `You got: ${wonSkin.name}! Check your inventory.`); 
+            if (!rouletteOverlay || !rouletteTrack || !rouletteContainer || !resultImage || !resultName || !rouletteResult || !sellPriceEl) {
+                console.error('[Roulette] One or more roulette DOM elements not found.');
+                showCustomDialog("Success!", `You got ${wonSkin.name}! Check your inventory.`); // Fallback
                 return;
             }
             
-            console.log('[Roulette-DarkAura] Preparing track. Pre-determined winner:', wonSkin.name, 'Type:', wonSkin.type, 'Image:', wonSkin.image);
+            console.log('[Roulette] DOM elements found. Preparing track for skin:', wonSkin.name);
 
+            // Set header based on case type
             const rouletteHeader = document.querySelector('.roulette-header h2');
-            if (rouletteHeader) rouletteHeader.textContent = 'Opening Dark Aura Case';
-
-            rouletteTrack.innerHTML = ''; 
-            rouletteResult.classList.remove('active');
-            
-            // Clear previous result display (image and Lottie player)
-            resultImage.style.display = 'none'; 
-            resultImage.src = '';
-            let existingLottiePlayerInResult = resultImageContainer.querySelector('lottie-player');
-            if (existingLottiePlayerInResult) existingLottiePlayerInResult.remove();
-            resultName.textContent = '';
-
-            const itemsCount = 50; 
-            const itemsForVisualRoulette = []; // Array to hold skin objects for the visual track
-
-            // Populate most of the visual roulette track with random Dark Aura skins
-            for (let i = 0; i < itemsCount; i++) {
-                const randomSkinIndex = Math.floor(Math.random() * darkAuraSkins.length);
-                itemsForVisualRoulette.push(darkAuraSkins[randomSkinIndex]);
+            if (rouletteHeader) {
+                // Determine case type based on wonSkin properties or arrays
+                const isDarkAura = darkAuraSkins.some(skin => skin.name === wonSkin.name);
+                rouletteHeader.textContent = isDarkAura ? 'Opening Dark Aura Case' : 'Opening Labubu Case';
             }
 
-            // Explicitly place the pre-determined wonSkin at the visual stopping point
-            const visualWinningIndex = itemsCount - 7; 
-            itemsForVisualRoulette[visualWinningIndex] = wonSkin; 
-            console.log(`[Roulette-DarkAura] Pre-determined winner '${wonSkin.name}' placed at visual stop index ${visualWinningIndex}.`);
+            rouletteTrack.innerHTML = ''; // Clear previous items
+            rouletteResult.classList.remove('active');
+            resultImage.src = '';
+            resultName.textContent = '';
 
-            // Generate HTML for the roulette track using itemsForVisualRoulette
-            itemsForVisualRoulette.forEach(skin => {
+            const itemsCount = 50; // Number of items in the roulette strip
+            const items = [];
+
+            // Determine which skin array to use based on the wonSkin
+            const isDarkAura = darkAuraSkins.some(skin => skin.name === wonSkin.name);
+            const skinArray = isDarkAura ? darkAuraSkins : labubuSkins;
+
+            // Populate roulette track
+            for (let i = 0; i < itemsCount; i++) {
+                const randomSkinIndex = Math.floor(Math.random() * skinArray.length);
+                const skin = skinArray[randomSkinIndex];
+                items.push(skin);
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
+                
                 if (skin.type === 'lottie') {
+                    // For Lottie animations (Dark Aura)
                     itemEl.innerHTML = `
                         <lottie-player src="${skin.image}" background="transparent" speed="1" style="width: 100px; height: 100px" class="roulette-static-lottie"></lottie-player>
-                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>`;
-                } else { // Should not happen for Dark Aura, but good fallback
-                    itemEl.innerHTML = ` 
-                        <img src="${skin.image}" alt="${skin.name}" style="max-width: 90%; max-height: 90px; object-fit: contain;">
-                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>`;
+                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
+                    `;
+                } else {
+                    // For regular images (Labubu)
+                    itemEl.innerHTML = `
+                        <img src="${skin.image}" alt="${skin.name}">
+                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
+                    `;
                 }
                 rouletteTrack.appendChild(itemEl);
-            });
+            }
+
+            // Place the winning item at a predictable position
+            const winningItemIndex = itemsCount - 7; // Adjust as needed for visual centering
+            items[winningItemIndex] = wonSkin; 
+            
+            // Re-render the specific winning item in the track
+            const trackChildren = rouletteTrack.children;
+            if (trackChildren[winningItemIndex]) {
+                if (wonSkin.type === 'lottie') {
+                    trackChildren[winningItemIndex].innerHTML = `
+                        <lottie-player src="${wonSkin.image}" background="transparent" speed="1" style="width: 100px; height: 100px" class="roulette-static-lottie"></lottie-player>
+                        <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
+                    `;
+                } else {
+                    trackChildren[winningItemIndex].innerHTML = `
+                        <img src="${wonSkin.image}" alt="${wonSkin.name}">
+                        <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
+                    `;
+                }
+            } else {
+                console.error("[Roulette] Winning item index out of bounds for track children.");
+            }
 
             // Initialize static Lottie players in the track
             setTimeout(() => {
@@ -4513,16 +4531,20 @@
                 });
             }, 100);
 
+            console.log('[Roulette] Track populated. Target skin:', wonSkin.name, 'at index:', winningItemIndex);
+
             rouletteOverlay.classList.add('active');
 
+            // Calculate position to stop
             const itemStyle = window.getComputedStyle(rouletteTrack.children[0]);
             const itemWidth = parseFloat(itemStyle.getPropertyValue('flex-basis')) || 120;
             const itemMargin = (parseFloat(itemStyle.marginLeft) || 0) + (parseFloat(itemStyle.marginRight) || 0) || 10;
             const itemFullWidth = itemWidth + itemMargin;
-            const offsetToCenterWinner = (rouletteContainer.offsetWidth / 2) - (itemFullWidth / 2);
-            const targetPosition = -(visualWinningIndex * itemFullWidth - offsetToCenterWinner);
             
-            console.log('[Roulette-DarkAura] Target visual position for roulette:', targetPosition);
+            const offsetToCenterWinner = (rouletteContainer.offsetWidth / 2) - (itemFullWidth / 2);
+            const targetPosition = -(winningItemIndex * itemFullWidth - offsetToCenterWinner);
+            
+            console.log('[Roulette] Item full width:', itemFullWidth, 'Target position:', targetPosition);
 
             rouletteTrack.style.transition = 'none'; 
             rouletteTrack.style.transform = 'translateX(0px)'; 
@@ -4532,48 +4554,54 @@
                 rouletteTrack.style.transform = `translateX(${targetPosition}px)`;
             }, 50);
 
-            // After animation finishes, display the pre-determined wonSkin in the result pop-up
+            // After animation finishes
             setTimeout(() => {
-                console.log('[Roulette-DarkAura] Animation finished. Displaying pre-determined result:', wonSkin.name);
-                // currentResultSkin was already set in openDarkAuraCase and its unique_id updated.
-
-                // Display the wonSkin (which is the pre-determined one)
+                console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
+                
+                // Handle different result types - show ANIMATED version in result
                 if (wonSkin.type === 'lottie') {
-                    resultImage.style.display = 'none'; // Hide the placeholder img
-                    let lottiePlayerForResult = resultImageContainer.querySelector('lottie-player');
-                    if (!lottiePlayerForResult) {
-                        lottiePlayerForResult = document.createElement('lottie-player');
-                        lottiePlayerForResult.style.width = '150px'; // Match visual style of Labubu result
-                        lottiePlayerForResult.style.height = '150px';
-                        lottiePlayerForResult.setAttribute('background', 'transparent');
-                        lottiePlayerForResult.setAttribute('speed', '1');
-                        lottiePlayerForResult.setAttribute('loop', '');
-                        lottiePlayerForResult.setAttribute('autoplay', '');
-                        resultImageContainer.appendChild(lottiePlayerForResult); // Append to the container
+                    // For Lottie animations, replace the img with animated lottie-player
+                    const resultContainer = resultImage.parentElement;
+                    resultImage.style.display = 'none';
+                    
+                    // Check if lottie player already exists, if not create one
+                    let lottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (!lottiePlayer) {
+                        lottiePlayer = document.createElement('lottie-player');
+                        lottiePlayer.style.width = '200px';
+                        lottiePlayer.style.height = '200px';
+                        lottiePlayer.setAttribute('background', 'transparent');
+                        lottiePlayer.setAttribute('speed', '1');
+                        lottiePlayer.setAttribute('loop', '');
+                        lottiePlayer.setAttribute('autoplay', '');
+                        resultContainer.insertBefore(lottiePlayer, resultImage);
                     }
-                    lottiePlayerForResult.style.display = 'block';
-                    lottiePlayerForResult.load(wonSkin.image); // Use load() to play animation
-                } else { // Fallback for non-Lottie if any skin in darkAuraSkins is not lottie type
-                    let lottiePlayerForResult = resultImageContainer.querySelector('lottie-player');
-                    if (lottiePlayerForResult) lottiePlayerForResult.style.display = 'none';
+                    lottiePlayer.setAttribute('src', wonSkin.image);
+                } else {
+                    // For regular images
+                    const resultContainer = resultImage.parentElement;
+                    const existingLottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (existingLottiePlayer) {
+                        existingLottiePlayer.style.display = 'none';
+                    }
                     resultImage.style.display = 'block';
                     resultImage.src = wonSkin.image;
                     resultImage.alt = wonSkin.name;
-                    resultImage.style.maxWidth = '90%'; // Ensure image fits
-                    resultImage.style.maxHeight = '90%';
-                    resultImage.style.objectFit = 'contain';
                 }
                 
-                resultName.className = 'roulette-result-name'; 
+                // Apply tier class to result name
+                resultName.className = 'roulette-result-name'; // Reset classes
                 resultName.classList.add(`tier-${wonSkin.tier}`);
                 resultName.textContent = wonSkin.name;
                 
                 const price = skinPrices[wonSkin.tier] || 0;
-                sellPriceEl.textContent = price; 
+                sellPriceEl.textContent = price; // Update sell price on roulette
 
                 rouletteResult.classList.add('active');
+                
                 showConfetti();
-            }, 7500); 
+
+            }, 7500);
         }
         
         // Function to show confetti
