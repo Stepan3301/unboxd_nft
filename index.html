@@ -2199,11 +2199,122 @@
         <div class="skins-grid" style="padding: 0 20px 20px;">
             <div class="skin-card">
                 <div class="skin-image">
-                    <img src="ScaredCatObelisk.svg" alt="Scared Cat Obelisk">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-deskcalendar-280571.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-1">Haunted Desk Calendar</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />20</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-madpumpkin-7551.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-2">Mad Pumpkin Spirit</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />50</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-electricskull-8221.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-3">Electric Skull</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />120</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-voodoodoll-7970.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-4">Cursed Voodoo Doll</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-signetring-14328.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-5">Mystical Signet Ring</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />750</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-minioscar-1983.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-6">Mini Oscar Phantom</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />10000</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-gingercookie-20477.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-4">Bewitched Ginger Cookie</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
+                </div>
+            </div>
+            <div class="skin-card">
+                <div class="skin-image">
+                    <lottie-player
+                        src="LottieAnimations/cleaned-scaredcat-18595.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 100px; height: 100px"
+                        class="static-lottie">
+                    </lottie-player>
                 </div>
                 <div class="skin-info">
                     <div class="skin-name tier-6">Scared Cat Obelisk</div>
-                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />15000</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />10000</div>
                 </div>
             </div>
         </div>
@@ -4103,7 +4214,41 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM fully loaded, initializing app...');
             // Don't do anything here, the app will be initialized through the initApp() function
+            
+            // Initialize static Lottie players
+            initializeStaticLottieAnimations();
         });
+
+        // Function to initialize static Lottie animations
+        function initializeStaticLottieAnimations() {
+            // Wait a bit for Lottie players to load
+            setTimeout(() => {
+                const staticLottiePlayers = document.querySelectorAll('.static-lottie');
+                console.log(`[StaticLottie] Found ${staticLottiePlayers.length} static Lottie players`);
+                
+                staticLottiePlayers.forEach((player, index) => {
+                    // Set up load event listener
+                    player.addEventListener("load", () => {
+                        console.log(`[StaticLottie] Player ${index} loaded, pausing and seeking to frame 0`);
+                        player.pause();
+                        player.seek(0);
+                    });
+
+                    // Set up click event listener to start animation
+                    player.addEventListener("click", () => {
+                        console.log(`[StaticLottie] Player ${index} clicked, starting animation`);
+                        player.play();
+                    });
+                    
+                    // If already loaded, apply static state immediately
+                    if (player.getLottie && player.getLottie()) {
+                        console.log(`[StaticLottie] Player ${index} already loaded, applying static state`);
+                        player.pause();
+                        player.seek(0);
+                    }
+                });
+            }, 1000); // Wait 1 second for players to initialize
+        }
 
         // Function to show a custom dialog (simple alert for now)
         function showCustomDialog(title, message) {
@@ -4378,9 +4523,9 @@
             setTimeout(() => {
                 console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
                 
-                // Handle different result types
+                // Handle different result types - show ANIMATED version in result
                 if (wonSkin.type === 'lottie') {
-                    // For Lottie animations, replace the img with lottie-player
+                    // For Lottie animations, replace the img with animated lottie-player
                     const resultContainer = resultImage.parentElement;
                     resultImage.style.display = 'none';
                     
@@ -4464,16 +4609,16 @@
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
                 
-                // Check if it's a Lottie animation or regular image
+                // For roulette, always show static representation (first frame)
                 if (skin.type === 'lottie') {
+                    // Create a static lottie player that pauses at first frame
                     itemEl.innerHTML = `
                         <lottie-player
                             src="${skin.image}"
                             background="transparent"
                             speed="1"
                             style="width: 100px; height: 100px"
-                            loop
-                            autoplay>
+                            class="roulette-static-lottie">
                         </lottie-player>
                         <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
                     `;
@@ -4501,8 +4646,7 @@
                             background="transparent"
                             speed="1"
                             style="width: 100px; height: 100px"
-                            loop
-                            autoplay>
+                            class="roulette-static-lottie">
                         </lottie-player>
                         <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
                     `;
@@ -4517,6 +4661,22 @@
             }
 
             console.log('[Roulette] Track populated. Target skin:', wonSkin.name, 'at index:', winningItemIndex);
+
+            // Make all roulette Lottie players static (paused at first frame)
+            setTimeout(() => {
+                const rouletteLottiePlayers = rouletteTrack.querySelectorAll('.roulette-static-lottie');
+                rouletteLottiePlayers.forEach((player) => {
+                    player.addEventListener("load", () => {
+                        player.pause();
+                        player.seek(0);
+                    });
+                    // If already loaded, apply static state immediately
+                    if (player.getLottie && player.getLottie()) {
+                        player.pause();
+                        player.seek(0);
+                    }
+                });
+            }, 100);
 
             rouletteOverlay.classList.add('active');
 
@@ -4543,9 +4703,9 @@
             setTimeout(() => {
                 console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
                 
-                // Handle different result types
+                // Handle different result types - show ANIMATED version in result
                 if (wonSkin.type === 'lottie') {
-                    // For Lottie animations, replace the img with lottie-player
+                    // For Lottie animations, replace the img with animated lottie-player
                     const resultContainer = resultImage.parentElement;
                     resultImage.style.display = 'none';
                     
