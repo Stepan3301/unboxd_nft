@@ -3090,6 +3090,66 @@
                 });
             }
 
+            // Dark Aura Lottie animations click handlers
+            setupDarkAuraLottieClickHandlers();
+
+        }
+        
+        // Setup click handlers for Dark Aura Lottie animations
+        function setupDarkAuraLottieClickHandlers() {
+            // Find all static Lottie players in the Dark Aura case
+            const darkAuraLotties = document.querySelectorAll('#darkaura-case-detail .static-lottie');
+            
+            darkAuraLotties.forEach(lottiePlayer => {
+                lottiePlayer.addEventListener('click', () => {
+                    console.log('Dark Aura Lottie clicked:', lottiePlayer.src);
+                    
+                    // Toggle between static and animated state
+                    if (lottiePlayer.classList.contains('static-lottie')) {
+                        // Start animation
+                        lottiePlayer.classList.remove('static-lottie');
+                        lottiePlayer.classList.add('animated-lottie');
+                        lottiePlayer.setAttribute('loop', 'true');
+                        lottiePlayer.setAttribute('autoplay', 'true');
+                        lottiePlayer.play();
+                        
+                        // Add visual feedback
+                        lottiePlayer.style.transform = 'scale(1.1)';
+                        lottiePlayer.style.transition = 'transform 0.3s ease';
+                        
+                        console.log('Started Lottie animation for:', lottiePlayer.src);
+                    } else {
+                        // Stop animation and return to static
+                        lottiePlayer.classList.remove('animated-lottie');
+                        lottiePlayer.classList.add('static-lottie');
+                        lottiePlayer.removeAttribute('loop');
+                        lottiePlayer.removeAttribute('autoplay');
+                        lottiePlayer.stop();
+                        
+                        // Remove visual feedback
+                        lottiePlayer.style.transform = 'scale(1)';
+                        
+                        console.log('Stopped Lottie animation for:', lottiePlayer.src);
+                    }
+                });
+                
+                // Add hover effects
+                lottiePlayer.addEventListener('mouseenter', () => {
+                    lottiePlayer.style.cursor = 'pointer';
+                    if (lottiePlayer.classList.contains('static-lottie')) {
+                        lottiePlayer.style.opacity = '0.8';
+                        lottiePlayer.style.transition = 'opacity 0.2s ease';
+                    }
+                });
+                
+                lottiePlayer.addEventListener('mouseleave', () => {
+                    if (lottiePlayer.classList.contains('static-lottie')) {
+                        lottiePlayer.style.opacity = '1';
+                    }
+                });
+            });
+            
+            console.log(`Setup click handlers for ${darkAuraLotties.length} Dark Aura Lottie animations`);
         }
 
         // Update profile wallet display to use ucoin img instead of "UCoin" text
@@ -4457,11 +4517,185 @@
             }
         }
         
+        // Enhanced Dark Aura roulette animation with Lottie support
+        async function startEnhancedDarkAuraRouletteAnimation() {
+            console.log('Starting enhanced Dark Aura roulette animation...');
+            
+            // Dark Aura case items with their properties
+            const darkAuraItems = [
+                { name: 'Haunted Desk Calendar', tier: 1, price: 20, lottie: 'LottieAnimations/cleaned-deskcalendar-280571.json', probability: 40 },
+                { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, lottie: 'LottieAnimations/cleaned-madpumpkin-7551.json', probability: 25 },
+                { name: 'Electric Skull', tier: 3, price: 120, lottie: 'LottieAnimations/cleaned-electricskull-8221.json', probability: 15 },
+                { name: 'Cursed Voodoo Doll', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-voodoodoll-7970.json', probability: 10 },
+                { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-gingercookie-20477.json', probability: 7 },
+                { name: 'Mystical Signet Ring', tier: 5, price: 750, lottie: 'LottieAnimations/cleaned-signetring-14328.json', probability: 2 },
+                { name: 'Mini Oscar Phantom', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-minioscar-1983.json', probability: 0.8 },
+                { name: 'Scared Cat Obelisk', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-scaredcat-18595.json', probability: 0.2 }
+            ];
+            
+            // Select a random item based on probability
+            const wonItem = selectRandomItemByProbability(darkAuraItems);
+            console.log('Dark Aura case won item:', wonItem);
+            
+            // Show roulette overlay
+            const rouletteOverlay = document.getElementById('roulette-overlay');
+            if (rouletteOverlay) {
+                // Update header for Dark Aura
+                const header = rouletteOverlay.querySelector('.roulette-header h2');
+                if (header) header.textContent = 'Opening Dark Aura Case';
+                
+                rouletteOverlay.classList.add('active');
+                
+                // Simulate roulette animation delay
+                setTimeout(async () => {
+                    await showRouletteResult(wonItem, true); // true for Lottie support
+                }, 3000);
+            }
+        }
+        
         // Generic roulette animation function for other cases
         function startRouletteAnimation(caseType) {
             console.log('Starting roulette animation for:', caseType);
-            // Implementation for basic roulette (can be enhanced later)
-            alert('Basic roulette animation - to be implemented');
+            
+            if (caseType === 'labubu') {
+                // Labubu case items (placeholder - can be enhanced later)
+                const labubuItems = [
+                    { name: 'Skeleton Labubu', tier: 1, price: 20, image: 'SkeletonLabubu.png' },
+                    { name: 'Candy Labubu', tier: 2, price: 50, image: 'CandyLabubu.png' },
+                    { name: 'Zombie Labubu', tier: 2, price: 50, image: 'ZombieLabubu.png' },
+                    // Add more items as needed
+                ];
+                
+                const wonItem = labubuItems[Math.floor(Math.random() * labubuItems.length)];
+                
+                // Show roulette overlay
+                const rouletteOverlay = document.getElementById('roulette-overlay');
+                if (rouletteOverlay) {
+                    const header = rouletteOverlay.querySelector('.roulette-header h2');
+                    if (header) header.textContent = 'Opening Labubu Case';
+                    
+                    rouletteOverlay.classList.add('active');
+                    
+                    setTimeout(async () => {
+                        await showRouletteResult(wonItem, false); // false for image support
+                    }, 3000);
+                }
+            } else {
+                alert(`Roulette animation for ${caseType} - to be implemented`);
+            }
+        }
+        
+        // Helper function to select item by probability
+        function selectRandomItemByProbability(items) {
+            const totalProbability = items.reduce((sum, item) => sum + item.probability, 0);
+            let random = Math.random() * totalProbability;
+            
+            for (let item of items) {
+                random -= item.probability;
+                if (random <= 0) {
+                    return item;
+                }
+            }
+            
+            // Fallback to first item
+            return items[0];
+        }
+        
+        // Show roulette result with Lottie or image support
+        async function showRouletteResult(wonItem, isLottie = false) {
+            const resultSection = document.getElementById('roulette-result');
+            const resultImage = document.getElementById('result-image');
+            const resultName = document.getElementById('result-name');
+            const sellPrice = document.getElementById('sell-price');
+            
+            if (resultSection && resultImage && resultName && sellPrice) {
+                // Update result display
+                if (isLottie && wonItem.lottie) {
+                    // For Dark Aura Lottie items, create a lottie-player
+                    resultImage.style.display = 'none';
+                    let lottieContainer = resultSection.querySelector('.roulette-result-lottie');
+                    if (!lottieContainer) {
+                        lottieContainer = document.createElement('div');
+                        lottieContainer.className = 'roulette-result-lottie';
+                        lottieContainer.innerHTML = `
+                            <lottie-player
+                                src="${wonItem.lottie}"
+                                background="transparent"
+                                speed="1"
+                                style="width: 150px; height: 150px"
+                                loop
+                                autoplay>
+                            </lottie-player>
+                        `;
+                        resultImage.parentNode.appendChild(lottieContainer);
+                    } else {
+                        const lottiePlayer = lottieContainer.querySelector('lottie-player');
+                        if (lottiePlayer) {
+                            lottiePlayer.src = wonItem.lottie;
+                        }
+                        lottieContainer.style.display = 'block';
+                    }
+                } else {
+                    // For Labubu regular images
+                    resultImage.src = wonItem.image || '';
+                    resultImage.style.display = 'block';
+                    const lottieContainer = resultSection.querySelector('.roulette-result-lottie');
+                    if (lottieContainer) lottieContainer.style.display = 'none';
+                }
+                
+                resultName.textContent = wonItem.name;
+                resultName.className = `skin-name tier-${wonItem.tier}`;
+                sellPrice.textContent = wonItem.price;
+                
+                // Store won item globally for selling functionality
+                currentResultSkin = wonItem;
+                
+                // Add to user inventory
+                try {
+                    await addItemToInventory(wonItem);
+                    console.log('Item added to inventory:', wonItem.name);
+                } catch (error) {
+                    console.error('Error adding item to inventory:', error);
+                }
+                
+                // Show result
+                resultSection.style.display = 'block';
+            }
+        }
+        
+        // Add item to user inventory
+        async function addItemToInventory(item) {
+            if (!telegramId) {
+                console.error('No Telegram ID available for inventory update');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('user_inventory')
+                    .insert([{
+                        telegram_id: telegramId,
+                        item_name: item.name,
+                        item_tier: item.tier,
+                        item_price: item.price,
+                        item_type: item.lottie ? 'lottie' : 'image',
+                        item_source: item.lottie || item.image,
+                        unique_id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                    }]);
+                    
+                if (error) {
+                    console.error('Error adding item to inventory:', error);
+                    throw error;
+                }
+                
+                console.log('Item successfully added to inventory');
+                // Refresh inventory display if user is on inventory tab
+                await getUserInventory();
+                
+            } catch (err) {
+                console.error('Failed to add item to inventory:', err);
+                throw err;
+            }
         }
 
         // === DAILY REWARDS SYSTEM ===
