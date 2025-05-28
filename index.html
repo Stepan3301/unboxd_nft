@@ -4539,17 +4539,127 @@
             
             // Show roulette overlay
             const rouletteOverlay = document.getElementById('roulette-overlay');
-            if (rouletteOverlay) {
+            const rouletteTrack = document.getElementById('roulette-track');
+            const resultSection = document.getElementById('roulette-result');
+            
+            if (rouletteOverlay && rouletteTrack) {
                 // Update header for Dark Aura
                 const header = rouletteOverlay.querySelector('.roulette-header h2');
                 if (header) header.textContent = 'Opening Dark Aura Case';
                 
+                // Hide result section initially
+                if (resultSection) {
+                    resultSection.style.display = 'none';
+                    resultSection.classList.remove('active');
+                }
+                
+                // Create roulette track with Dark Aura items
+                createRouletteTrack(darkAuraItems, wonItem);
+                
+                // Show roulette overlay
                 rouletteOverlay.classList.add('active');
                 
-                // Simulate roulette animation delay
+                // Start roulette animation after a short delay
+                setTimeout(() => {
+                    animateRouletteTrack(wonItem);
+                }, 500);
+                
+                // Show result after animation completes
                 setTimeout(async () => {
                     await showRouletteResult(wonItem, true); // true for Lottie support
-                }, 3000);
+                }, 5000);
+            } else {
+                console.error('Roulette overlay or track not found');
+                // Fallback: show result immediately
+                setTimeout(async () => {
+                    await showRouletteResult(wonItem, true);
+                }, 1000);
+            }
+        }
+        
+        // Create roulette track with items
+        function createRouletteTrack(items, wonItem) {
+            const rouletteTrack = document.getElementById('roulette-track');
+            if (!rouletteTrack) return;
+            
+            // Clear existing track
+            rouletteTrack.innerHTML = '';
+            rouletteTrack.style.transform = 'translateX(0)';
+            
+            // Create a sequence of items for the roulette
+            const trackItems = [];
+            
+            // Add random items before the winning item
+            for (let i = 0; i < 15; i++) {
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                trackItems.push(randomItem);
+            }
+            
+            // Add the winning item
+            trackItems.push(wonItem);
+            
+            // Add more random items after
+            for (let i = 0; i < 10; i++) {
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                trackItems.push(randomItem);
+            }
+            
+            // Create roulette items
+            trackItems.forEach((item, index) => {
+                const rouletteItem = document.createElement('div');
+                rouletteItem.className = 'roulette-item';
+                
+                // Add tier-based styling
+                rouletteItem.style.borderColor = getTierColor(item.tier);
+                
+                rouletteItem.innerHTML = `
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                        <lottie-player
+                            src="${item.lottie}"
+                            background="transparent"
+                            speed="1"
+                            style="width: 80px; height: 80px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                    </div>
+                    <div class="roulette-item-name tier-${item.tier}">${item.name}</div>
+                `;
+                
+                rouletteTrack.appendChild(rouletteItem);
+            });
+        }
+        
+        // Animate the roulette track
+        function animateRouletteTrack(wonItem) {
+            const rouletteTrack = document.getElementById('roulette-track');
+            if (!rouletteTrack) return;
+            
+            // Calculate position to land on the winning item (index 15)
+            const itemWidth = 130; // 120px width + 10px margin
+            const winningIndex = 15;
+            const containerWidth = window.innerWidth;
+            const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+            
+            // Add some extra spins for drama
+            const extraSpins = itemWidth * 25; // 2 full rounds
+            const finalPosition = targetPosition - extraSpins;
+            
+            // Apply animation
+            rouletteTrack.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+            rouletteTrack.style.transform = `translateX(${finalPosition}px)`;
+        }
+        
+        // Get tier color for styling
+        function getTierColor(tier) {
+            switch(tier) {
+                case 1: return 'rgba(149, 165, 166, 0.7)'; // Grey
+                case 2: return 'rgba(52, 152, 219, 0.7)'; // Blue  
+                case 3: return 'rgba(155, 89, 182, 0.7)'; // Purple
+                case 4: return 'rgba(231, 76, 60, 0.7)'; // Red
+                case 5: return 'rgba(241, 196, 15, 0.7)'; // Gold
+                case 6: return 'rgba(255, 255, 255, 0.8)'; // Rainbow/Divine
+                default: return 'rgba(108, 92, 231, 0.3)';
             }
         }
         
@@ -4658,8 +4768,19 @@
                     console.error('Error adding item to inventory:', error);
                 }
                 
-                // Show result
+                // Show result with proper animation
                 resultSection.style.display = 'block';
+                // Add a small delay to ensure the element is rendered before applying the active class
+                setTimeout(() => {
+                    resultSection.classList.add('active');
+                }, 100);
+            } else {
+                console.error('Roulette result elements not found:', {
+                    resultSection: !!resultSection,
+                    resultImage: !!resultImage,
+                    resultName: !!resultName,
+                    sellPrice: !!sellPrice
+                });
             }
         }
         
@@ -4671,30 +4792,36 @@
             }
             
             try {
-                const { data, error } = await supabase
-                    .from('user_inventory')
-                    .insert([{
-                        telegram_id: telegramId,
-                        item_name: item.name,
-                        item_tier: item.tier,
-                        item_price: item.price,
-                        item_type: item.lottie ? 'lottie' : 'image',
-                        item_source: item.lottie || item.image,
-                        unique_id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                    }]);
+                // Use the existing add_skin_to_inventory RPC function instead of direct table insertion
+                const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                    p_telegram_id: telegramId,
+                    p_skin_name: item.name,
+                    p_skin_tier: item.tier,
+                    p_skin_image: item.lottie || item.image || '',
+                    p_skin_price: item.price
+                });
                     
                 if (error) {
                     console.error('Error adding item to inventory:', error);
                     throw error;
                 }
                 
-                console.log('Item successfully added to inventory');
+                console.log('Item successfully added to inventory using RPC function');
+                
+                // Add to activity log
+                addActivity('case_open', {
+                    caseName: 'Dark Aura Case',
+                    skinName: item.name,
+                    skinTier: item.tier
+                });
+                
                 // Refresh inventory display if user is on inventory tab
                 await getUserInventory();
                 
             } catch (err) {
                 console.error('Failed to add item to inventory:', err);
-                throw err;
+                // Don't throw the error to prevent roulette from breaking
+                console.warn('Continuing despite inventory error to show roulette result');
             }
         }
 
