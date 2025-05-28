@@ -4676,7 +4676,7 @@
             
             console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
             
-            // Create roulette items with static placeholders instead of animated Lottie players
+            // Create roulette items with simple visual representations (no animations)
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4684,15 +4684,15 @@
                 // Add tier-based styling
                 rouletteItem.style.borderColor = getTierColor(item.tier);
                 
-                // Use a simple static representation instead of Lottie during spin
+                // Use simple static representation with tier colors and names
                 rouletteItem.innerHTML = `
-                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid ${getTierColor(item.tier)};">
-                        <div style="text-align: center; color: white; font-size: 0.8rem; padding: 5px;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">${getTierName(item.tier)}</div>
-                            <div style="font-size: 0.7rem; opacity: 0.8;">Tier ${item.tier}</div>
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, ${getTierColor(item.tier)}, ${getTierColorSecondary(item.tier)}); border-radius: 10px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 8px; font-size: 0.6rem; font-weight: bold;">T${item.tier}</div>
+                        <div style="text-align: center; color: white; font-size: 0.7rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
+                            ${getTierName(item.tier)}
                         </div>
                     </div>
-                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.6rem; margin-top: 3px;">${item.name}</div>
+                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1;">${item.name}</div>
                 `;
                 
                 rouletteTrack.appendChild(rouletteItem);
@@ -4703,6 +4703,19 @@
             });
             
             console.log(`Successfully created ${trackItems.length} roulette items`);
+        }
+        
+        // Get secondary tier color for gradients
+        function getTierColorSecondary(tier) {
+            switch(tier) {
+                case 1: return 'rgba(120, 130, 140, 0.7)'; // Grey secondary
+                case 2: return 'rgba(30, 120, 180, 0.7)'; // Blue secondary  
+                case 3: return 'rgba(120, 60, 150, 0.7)'; // Purple secondary
+                case 4: return 'rgba(200, 50, 40, 0.7)'; // Red secondary
+                case 5: return 'rgba(200, 150, 10, 0.7)'; // Gold secondary
+                case 6: return 'rgba(200, 200, 200, 0.8)'; // White secondary
+                default: return 'rgba(80, 70, 180, 0.3)';
+            }
         }
         
         // Get tier name for display
@@ -4801,12 +4814,26 @@
         
         // Show roulette result with Lottie or image support
         async function showRouletteResult(wonItem, isLottie = false) {
+            console.log('=== SHOWING ROULETTE RESULT ===');
+            console.log('Won item:', wonItem);
+            
             const resultSection = document.getElementById('roulette-result');
             const resultImage = document.getElementById('result-image');
             const resultName = document.getElementById('result-name');
             const sellPrice = document.getElementById('sell-price');
             
             if (resultSection && resultImage && resultName && sellPrice) {
+                // Store won item globally for selling functionality FIRST
+                currentResultSkin = {
+                    name: wonItem.name,
+                    tier: wonItem.tier,
+                    price: wonItem.price,
+                    lottie: wonItem.lottie,
+                    unique_id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Temporary ID
+                };
+                
+                console.log('Set currentResultSkin with temporary ID:', currentResultSkin);
+                
                 // Update result display
                 if (isLottie && wonItem.lottie) {
                     // For Dark Aura Lottie items, create a lottie-player
@@ -4845,30 +4872,14 @@
                 resultName.className = `skin-name tier-${wonItem.tier}`;
                 sellPrice.textContent = wonItem.price;
                 
-                // Store won item globally for selling functionality
-                // Make sure it has a unique_id (will be set by addItemToInventory)
-                currentResultSkin = {
-                    name: wonItem.name,
-                    tier: wonItem.tier,
-                    price: wonItem.price,
-                    lottie: wonItem.lottie,
-                    unique_id: null // Will be set by addItemToInventory
-                };
-                
-                console.log('Set currentResultSkin:', currentResultSkin);
-                
-                // Add to user inventory
+                // Add to user inventory - this will update the unique_id if successful
                 try {
                     await addItemToInventory(wonItem);
-                    console.log('Item added to inventory:', wonItem.name);
-                    console.log('Updated currentResultSkin after inventory add:', currentResultSkin);
+                    console.log('Item added to inventory successfully');
+                    console.log('Final currentResultSkin:', currentResultSkin);
                 } catch (error) {
                     console.error('Error adding item to inventory:', error);
-                    // Even if inventory add fails, ensure we have a sellable item
-                    if (!currentResultSkin.unique_id) {
-                        currentResultSkin.unique_id = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                        console.log('Set fallback unique_id for selling:', currentResultSkin.unique_id);
-                    }
+                    console.log('Using temporary unique_id for selling due to inventory error');
                 }
                 
                 // Show result with proper animation
@@ -4876,6 +4887,7 @@
                 // Add a small delay to ensure the element is rendered before applying the active class
                 setTimeout(() => {
                     resultSection.classList.add('active');
+                    console.log('Result section shown and activated');
                 }, 100);
             } else {
                 console.error('Roulette result elements not found:', {
@@ -4895,13 +4907,13 @@
             }
             
             try {
-                // Use the existing add_skin_to_inventory RPC function instead of direct table insertion
+                // Use the existing add_skin_to_inventory RPC function with correct parameters including price
                 const { data, error } = await supabase.rpc('add_skin_to_inventory', {
                     p_telegram_id: telegramId,
                     p_skin_name: item.name,
-                    p_skin_tier: item.tier,
                     p_skin_image: item.lottie || item.image || '',
-                    p_skin_price: item.price
+                    p_skin_tier: item.tier,
+                    p_skin_price: item.price // Adding back the price parameter
                 });
                     
                 if (error) {
@@ -4917,6 +4929,12 @@
                     if (currentResultSkin && currentResultSkin.name === item.name) {
                         currentResultSkin.unique_id = data.unique_id;
                         console.log('Updated currentResultSkin with unique_id:', data.unique_id);
+                    }
+                } else if (data && typeof data === 'string') {
+                    // Handle case where RPC returns a simple string (like a UUID)
+                    if (currentResultSkin && currentResultSkin.name === item.name) {
+                        currentResultSkin.unique_id = data;
+                        console.log('Updated currentResultSkin with unique_id from string:', data);
                     }
                 } else {
                     console.warn('No unique_id returned from add_skin_to_inventory RPC');
@@ -4946,6 +4964,90 @@
         }
 
         // === DAILY REWARDS SYSTEM ===
+
+        // === ROULETTE BUTTON EVENT LISTENERS ===
+        document.addEventListener('DOMContentLoaded', function() {
+            // Roulette "Awesome!" button
+            const rouletteCloseBtn = document.getElementById('roulette-close');
+            if (rouletteCloseBtn) {
+                rouletteCloseBtn.addEventListener('click', () => {
+                    console.log('Roulette close button clicked');
+                    const rouletteOverlay = document.getElementById('roulette-overlay');
+                    if (rouletteOverlay) {
+                        rouletteOverlay.style.display = 'none';
+                        rouletteOverlay.classList.remove('active');
+                    }
+                    
+                    // Clear current result
+                    currentResultSkin = null;
+                    console.log('Cleared currentResultSkin after closing roulette');
+                });
+            }
+            
+            // Roulette "Sell for..." button
+            const rouletteSellBtn = document.getElementById('roulette-sell');
+            if (rouletteSellBtn) {
+                rouletteSellBtn.addEventListener('click', async () => {
+                    console.log('=== ROULETTE SELL BUTTON CLICKED ===');
+                    console.log('Current result skin:', currentResultSkin);
+                    
+                    if (!currentResultSkin) {
+                        console.error('No item to sell');
+                        showToast('No item to sell!', 'error');
+                        return;
+                    }
+                    
+                    if (!currentResultSkin.unique_id) {
+                        console.error('No unique_id found for selling');
+                        showToast('Cannot sell this item - no ID found!', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        console.log(`Attempting to sell "${currentResultSkin.name}" with unique_id: ${currentResultSkin.unique_id}`);
+                        
+                        // Use the remove_skin_from_inventory RPC function
+                        const { data, error } = await supabase.rpc('remove_skin_from_inventory', {
+                            p_telegram_id: telegramId,
+                            p_unique_id: currentResultSkin.unique_id
+                        });
+                        
+                        if (error) {
+                            console.error('Error selling item:', error);
+                            showToast('Failed to sell item!', 'error');
+                            return;
+                        }
+                        
+                        console.log('Item sold successfully:', data);
+                        
+                        // Add coins to user balance
+                        const coinValue = parseInt(currentResultSkin.price) || 0;
+                        await updateUserCoins(coinValue);
+                        
+                        showToast(`Sold for ${coinValue} UCoins!`, 'success');
+                        
+                        // Close the roulette result
+                        const rouletteOverlay = document.getElementById('roulette-overlay');
+                        if (rouletteOverlay) {
+                            rouletteOverlay.style.display = 'none';
+                            rouletteOverlay.classList.remove('active');
+                        }
+                        
+                        // Clear current result
+                        currentResultSkin = null;
+                        console.log('Cleared currentResultSkin after successful sale');
+                        
+                        // Refresh inventory and user data
+                        await getUserInventory();
+                        
+                    } catch (err) {
+                        console.error('Failed to sell item:', err);
+                        showToast('Failed to sell item!', 'error');
+                    }
+                });
+            }
+        });
+
     </script>
 </body>
 </html>
