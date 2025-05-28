@@ -259,6 +259,7 @@
         }
         
         /* Daily Reward */
+        
         .daily-reward-container {
             margin-bottom: 25px;
         }
@@ -4586,17 +4587,46 @@
                     const lottiePlayer = document.createElement('lottie-player');
                     lottiePlayer.style.width = '200px';
                     lottiePlayer.style.height = '200px';
+                    lottiePlayer.style.display = 'block';
+                    lottiePlayer.style.position = 'relative';
+                    lottiePlayer.style.zIndex = '10';
                     lottiePlayer.setAttribute('background', 'transparent');
                     lottiePlayer.setAttribute('speed', '1');
                     lottiePlayer.setAttribute('loop', '');
                     lottiePlayer.setAttribute('autoplay', '');
+                    
+                    // Add debugging event listeners
+                    lottiePlayer.addEventListener('load', () => {
+                        console.log('[Roulette] ✅ Lottie player loaded successfully for:', wonSkin.name);
+                    });
+                    
+                    lottiePlayer.addEventListener('error', (e) => {
+                        console.error('[Roulette] ❌ Lottie player error:', e, 'for file:', wonSkin.image);
+                    });
+                    
+                    lottiePlayer.addEventListener('ready', () => {
+                        console.log('[Roulette] ✅ Lottie player ready for:', wonSkin.name);
+                    });
                     
                     // Insert the fresh player
                     resultContainer.insertBefore(lottiePlayer, resultImage);
                     
                     // Use .load() method to ensure proper loading of the new animation
                     console.log('[Roulette] Loading fresh Lottie animation:', wonSkin.image, 'for skin:', wonSkin.name);
-                    lottiePlayer.load(wonSkin.image);
+                    console.log('[Roulette] Player element created and inserted. Checking visibility...');
+                    console.log('[Roulette] Player display:', lottiePlayer.style.display);
+                    console.log('[Roulette] Player dimensions:', lottiePlayer.style.width, 'x', lottiePlayer.style.height);
+                    
+                    try {
+                        lottiePlayer.load(wonSkin.image);
+                        console.log('[Roulette] lottiePlayer.load() called successfully');
+                    } catch (loadError) {
+                        console.error('[Roulette] Error calling lottiePlayer.load():', loadError);
+                        // Fallback: show warning message
+                        resultImage.style.display = 'block';
+                        resultImage.src = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#333"/><text x="100" y="100" text-anchor="middle" fill="white" font-size="16">Animation Error</text></svg>');
+                        resultImage.alt = wonSkin.name + ' (Animation Error)';
+                    }
                 } else {
                     // For regular images (Labubu case)
                     const resultContainer = resultImage.parentElement;
