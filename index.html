@@ -1072,7 +1072,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.9);
             z-index: 1000;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -1082,6 +1082,7 @@
         }
         
         .roulette-overlay.active {
+            display: flex;
             opacity: 1;
             pointer-events: auto;
         }
@@ -2999,12 +3000,16 @@
             const rouletteCloseBtn = document.getElementById('roulette-close');
             if (rouletteCloseBtn) {
                 rouletteCloseBtn.addEventListener('click', () => {
-                     console.log('Roulette close button clicked');
-                     const rouletteOverlayEl = document.getElementById('roulette-overlay');
-                     if (rouletteOverlayEl) {
-                         rouletteOverlayEl.classList.remove('active');
-                         console.log('Roulette overlay closed');
-                     }
+                    console.log('Roulette close button clicked');
+                    const rouletteOverlay = document.getElementById('roulette-overlay');
+                    if (rouletteOverlay) {
+                        rouletteOverlay.style.display = 'none';
+                        rouletteOverlay.classList.remove('active');
+                    }
+                    
+                    // Clear current result
+                    currentResultSkin = null;
+                    console.log('Cleared currentResultSkin after closing roulette');
                 });
             } else {
                 console.error('Roulette close button not found');
@@ -4590,6 +4595,10 @@
             if (rouletteOverlay && rouletteTrack) {
                 console.log('All DOM elements found, proceeding with roulette...');
                 
+                // Ensure overlay starts hidden
+                rouletteOverlay.style.display = 'none';
+                rouletteOverlay.classList.remove('active');
+                
                 // Update header for Dark Aura
                 const header = rouletteOverlay.querySelector('.roulette-header h2');
                 if (header) {
@@ -4608,21 +4617,24 @@
                 console.log('Creating roulette track...');
                 createRouletteTrack(darkAuraItems, wonItem);
                 
-                // Show roulette overlay
-                console.log('Showing roulette overlay...');
-                rouletteOverlay.classList.add('active');
-                console.log('Roulette overlay should now be visible');
+                // Show roulette overlay with a slight delay to ensure everything is ready
+                setTimeout(() => {
+                    console.log('Showing roulette overlay...');
+                    rouletteOverlay.style.display = 'flex';
+                    rouletteOverlay.classList.add('active');
+                    console.log('Roulette overlay should now be visible');
+                    
+                    // Force immediate visibility for debugging
+                    rouletteOverlay.style.opacity = '1';
+                    rouletteOverlay.style.pointerEvents = 'auto';
+                    console.log('Forced roulette visibility');
+                }, 100);
                 
-                // Force immediate visibility for debugging
-                rouletteOverlay.style.opacity = '1';
-                rouletteOverlay.style.pointerEvents = 'auto';
-                console.log('Forced roulette visibility');
-                
-                // Start roulette animation after a short delay
+                // Start roulette animation after overlay is shown
                 setTimeout(() => {
                     console.log('Starting roulette track animation...');
                     animateRouletteTrack(wonItem);
-                }, 500);
+                }, 600);
                 
                 // Show result after animation completes
                 setTimeout(async () => {
@@ -4676,7 +4688,7 @@
             
             console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
             
-            // Create roulette items with simple visual representations (no animations)
+            // Create roulette items with actual Lottie animations
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4684,15 +4696,20 @@
                 // Add tier-based styling
                 rouletteItem.style.borderColor = getTierColor(item.tier);
                 
-                // Use simple static representation with tier colors and names
+                // Create the roulette item with Lottie animation
                 rouletteItem.innerHTML = `
-                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, ${getTierColor(item.tier)}, ${getTierColorSecondary(item.tier)}); border-radius: 10px; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 8px; font-size: 0.6rem; font-weight: bold;">T${item.tier}</div>
-                        <div style="text-align: center; color: white; font-size: 0.7rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
-                            ${getTierName(item.tier)}
-                        </div>
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <lottie-player
+                            src="${item.lottie}"
+                            background="transparent"
+                            speed="0.5"
+                            style="width: 80px; height: 80px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <div style="position: absolute; top: 2px; right: 2px; background: ${getTierColor(item.tier)}; color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.5rem; font-weight: bold; opacity: 0.9;">T${item.tier}</div>
                     </div>
-                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1;">${item.name}</div>
+                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1; color: ${getTierColor(item.tier)}; font-weight: bold;">${item.name}</div>
                 `;
                 
                 rouletteTrack.appendChild(rouletteItem);
@@ -4702,7 +4719,7 @@
                 }
             });
             
-            console.log(`Successfully created ${trackItems.length} roulette items`);
+            console.log(`Successfully created ${trackItems.length} roulette items with Lottie animations`);
         }
         
         // Get secondary tier color for gradients
@@ -4754,13 +4771,13 @@
         // Get tier color for styling
         function getTierColor(tier) {
             switch(tier) {
-                case 1: return 'rgba(149, 165, 166, 0.7)'; // Grey
-                case 2: return 'rgba(52, 152, 219, 0.7)'; // Blue  
-                case 3: return 'rgba(155, 89, 182, 0.7)'; // Purple
-                case 4: return 'rgba(231, 76, 60, 0.7)'; // Red
-                case 5: return 'rgba(241, 196, 15, 0.7)'; // Gold
-                case 6: return 'rgba(255, 255, 255, 0.8)'; // Rainbow/Divine
-                default: return 'rgba(108, 92, 231, 0.3)';
+                case 1: return '#95a5a6'; // Grey
+                case 2: return '#3498db'; // Blue  
+                case 3: return '#9b59b6'; // Purple
+                case 4: return '#e74c3c'; // Red
+                case 5: return '#f1c40f'; // Gold
+                case 6: return '#ffffff'; // White/Divine
+                default: return '#6c5ce7';
             }
         }
         
