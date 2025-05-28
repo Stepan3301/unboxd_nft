@@ -1,0 +1,2920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UnboxdNFT</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --success: #00b894;
+            --light-text: #dfe6e9;
+            --tab-height: 60px;
+            --gradient-gold: linear-gradient(to right, #f1c40f, #e67e22);
+            --gradient-epic: linear-gradient(to right, #9b59b6, #8e44ad);
+            --gradient-rare: linear-gradient(to right, #3498db, #2980b9);
+            --gradient-common: linear-gradient(to right, #95a5a6, #7f8c8d);
+            --dark: #2d3436;
+            --light: #dfe6e9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+            background: rgba(20, 20, 35, 0.9);
+        }
+        
+        /* Header and Navigation */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .wallet {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .wallet img {
+            width: 18px;
+            height: 18px;
+            margin-right: 5px;
+        }
+        
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .nav {
+            display: none; /* Hide by default */
+            justify-content: space-around;
+            padding: 15px 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .nav.show {
+            display: flex; /* Show when .show class is added */
+        }
+        
+        .nav-item {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: white;
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid rgba(108, 92, 231, 0.5);
+        }
+        
+        /* Main Content */
+        .main {
+            padding: 20px;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+            padding-bottom: 70px;
+            overflow-y: auto;
+            height: calc(100vh - 120px);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Titles */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+        
+        .section-title i {
+            margin-right: 8px;
+            color: var(--accent);
+        }
+        
+        /* Featured Case */
+        .featured-case {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .featured-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .featured-image {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+        
+        .featured-image img {
+            width: 70%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(108, 92, 231, 0.7));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        .featured-info {
+            padding: 20px;
+            position: relative;
+        }
+        
+        .featured-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .featured-desc {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+        }
+        
+        .featured-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--secondary);
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .featured-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .featured-price {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+        
+        .featured-price img {
+            width: 18px;
+            height: 18px;
+            margin-right: 5px;
+        }
+        
+        .featured-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .featured-btn i {
+            margin-left: 8px;
+        }
+        
+        .featured-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+        
+        /* Cases Grid */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .case-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3);
+            border-color: rgba(108, 92, 231, 0.5);
+        }
+        
+        .case-image {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .case-image img {
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(108, 92, 231, 0.5));
+            transition: all 0.5s ease;
+        }
+        
+        .case-card:hover .case-image img {
+            transform: scale(1.1) rotate(-5deg);
+        }
+        
+        .case-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(108, 92, 231, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .case-card:hover .case-glow {
+            opacity: 1;
+        }
+        
+        .case-info {
+            padding: 15px;
+        }
+        
+        .case-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .case-rarity {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .rarity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .legendary .rarity-indicator {
+            background: linear-gradient(45deg, #f1c40f, #e67e22);
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+        }
+        
+        .epic .rarity-indicator {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.7);
+        }
+        
+        .rare .rarity-indicator {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+        }
+        
+        .common .rarity-indicator {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 0 10px rgba(149, 165, 166, 0.7);
+        }
+        
+        .rarity-text {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .case-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--secondary);
+        }
+        
+        .price i {
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .open-btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .open-btn i {
+            margin-left: 5px;
+        }
+        
+        .open-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+        }
+        
+        /* NFT Cards */
+        .nft-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nft-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        
+        .nft-info {
+            padding: 15px;
+        }
+        
+        .nft-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .nft-price {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .eth-icon {
+            height: 16px;
+            width: 16px;
+            margin-right: 5px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+        }
+        
+        /* Rarity Badges */
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 5;
+        }
+        
+        .rarity-legendary {
+            background: var(--gradient-gold);
+        }
+        
+        .rarity-epic {
+            background: var(--gradient-epic);
+        }
+        
+        .rarity-rare {
+            background: var(--gradient-rare);
+        }
+        
+        .rarity-common {
+            background: var(--gradient-common);
+        }
+        
+        .rarity-mythic {
+            background: linear-gradient(45deg, #f1c40f, #e74c3c);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+        }
+        
+        .rarity-divine {
+            background: linear-gradient(45deg, #ffffff, #6a11cb, #2575fc, #ffffff);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+            animation: rainbow-glow 3s infinite;
+        }
+        
+        @keyframes rainbow-glow {
+            0% { box-shadow: 0 0 15px rgba(106, 17, 203, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(37, 117, 252, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(106, 17, 203, 0.8); }
+        }
+        
+        /* Particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: particleFloat linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+        
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn i {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+        }
+        
+        .nav-btn.center {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -25px;
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
+            position: relative;
+            border: 3px solid rgba(0, 0, 0, 0.8);
+        }
+        
+        .nav-btn.center i {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .nav-btn.center span {
+            position: absolute;
+            bottom: -25px;
+            color: white;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            margin: 0 auto 15px;
+        }
+        
+        .profile-username {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-bio {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .profile-stat {
+            text-align: center;
+        }
+        
+        /* Inventory Section */
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .inventory-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        
+        .inventory-details {
+            flex: 1;
+        }
+        
+        .inventory-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        /* Info Section */
+        .info-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .info-section h3 {
+            font-size: 1rem;
+            margin: 15px 0 10px;
+            color: var(--primary);
+        }
+        
+        .info-section p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+        
+        .info-section ul {
+            margin-left: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .info-section li {
+            margin-bottom: 8px;
+        }
+        
+        .rarity-text {
+            font-weight: 600;
+        }
+        
+        /* Labubu Skins List */
+        .skins-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .skin-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .skin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3);
+            border-color: rgba(108, 92, 231, 0.5);
+        }
+        
+        .skin-image {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+        }
+        
+        .skin-image img {
+            max-height: 100%;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        .skin-info {
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .skin-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        /* Roulette Styles */
+        .roulette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .roulette-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .roulette-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+        
+        .roulette-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .roulette-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .roulette-track {
+            display: flex;
+            transition: transform 7s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+        
+        .roulette-item {
+            flex: 0 0 120px;
+            height: 150px;
+            background: rgba(20, 20, 35, 0.8);
+            margin: 0 5px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .roulette-item img {
+            max-width: 90%;
+            max-height: 90px;
+            object-fit: contain;
+        }
+        
+        .roulette-item-name {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        
+        .roulette-marker {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.8);
+        }
+        
+        .roulette-result {
+            margin-top: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+        
+        .roulette-result.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .roulette-result-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid rgba(108, 92, 231, 0.5);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
+        }
+        
+        .roulette-result-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .roulette-result-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .roulette-close {
+            margin-top: 20px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .roulette-close:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+        
+        .roulette-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .roulette-sell {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .roulette-sell i {
+            margin-right: 8px;
+        }
+        
+        .roulette-sell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 184, 148, 0.7);
+        }
+        
+        .skin-price {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        
+        .skin-price img {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+        }
+        
+        /* Case Detail View */
+        .case-detail {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            height: 100vh;
+            background: rgba(20, 20, 35, 0.9);
+        }
+        
+        .case-detail.active {
+            display: block;
+        }
+        
+        .case-detail-header {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .case-detail-back {
+            background: rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .case-detail-back:hover {
+            background: rgba(108, 92, 231, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .case-detail-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .case-detail .featured-card {
+            margin-top: 0;
+            border-radius: 0;
+        }
+        
+        /* Custom Dialog Styles */
+        .custom-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-dialog.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .dialog-content {
+            background: rgba(20, 20, 35, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.5);
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-dialog.active .dialog-content {
+            transform: scale(1);
+        }
+
+        .dialog-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dialog-message {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dialog-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        .dialog-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dialog-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+
+        .dialog-confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Not Enough Balance Dialog */
+        .not-enough-balance-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .not-enough-balance-dialog.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .not-enough-balance-content {
+            background: rgba(20, 20, 35, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .not-enough-balance-dialog.active .not-enough-balance-content {
+            transform: scale(1);
+        }
+
+        .not-enough-balance-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff4757;
+        }
+
+        .not-enough-balance-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ff4757;
+        }
+
+        .not-enough-balance-message {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .not-enough-balance-btn {
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .not-enough-balance-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+        }
+
+        /* Add tier-based text colors */
+        .tier-1 {
+            color: #95a5a6; /* Grey */
+        }
+
+        .tier-2 {
+            color: #3498db; /* Blue */
+        }
+
+        .tier-3 {
+            color: #9b59b6; /* Purple */
+        }
+
+        .tier-4 {
+            color: #e74c3c; /* Red */
+        }
+
+        .tier-5 {
+            color: #f1c40f; /* Golden */
+        }
+
+        .tier-6 {
+            background: linear-gradient(to right, #f5f7fa, #c3cfe2, #6a11cb, #2575fc, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+
+        /* Update to match the style with Awesome button */
+        .roulette-sell {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .roulette-sell i {
+            margin-right: 8px;
+        }
+
+        .roulette-sell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+        }
+
+        /* Add style for inventory sell button */
+        .inventory-sell-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inventory-sell-btn i {
+            margin-right: 5px;
+        }
+
+        .inventory-sell-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="particles" id="particles"></div>
+        
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-cube"></i> UnboxdNFT
+            </div>
+            <div class="user-info">
+                <div class="wallet">
+                    <img src="ucoin2.png" alt="UCoin" />
+                    <span id="user-balance">0</span>
+                </div>
+                <div class="avatar" id="user-avatar">
+                    <!-- No image by default, will be set when user data is loaded -->
+                </div>
+            </div>
+        </header>
+        
+        <nav class="nav" id="rarity-nav">
+            <div class="nav-item active" data-tab="all">All Cases</div>
+            <div class="nav-item" data-tab="legendary">Legendary</div>
+            <div class="nav-item" data-tab="epic">Epic</div>
+            <div class="nav-item" data-tab="rare">Rare</div>
+        </nav>
+        
+        <main class="main">
+            <!-- Cases Tab -->
+            <div class="tab-content active" id="cases-tab">
+                <div class="featured-case">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i> Featured Case
+                    </h2>
+                    <div class="featured-card">
+                        <div class="featured-image">
+                            <img src="LabubuCase.png" alt="Labubu Case">
+                        </div>
+                        <div class="featured-info">
+                            <h3 class="featured-name">Labubu Collection</h3>
+                            <p class="featured-desc">Exclusive collection of rare Labubu skins from the popular artist series. Collect all 9 unique skins!</p>
+                            
+                            <div class="featured-stats">
+                                <div class="stat">
+                                    <div class="stat-value">9</div>
+                                    <div class="stat-label">SKINS</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">3</div>
+                                    <div class="stat-label">RARE</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">2</div>
+                                    <div class="stat-label">EPIC</div>
+                                </div>
+                            </div>
+                            
+                            <div class="featured-action">
+                                <div class="featured-price">
+                                    <img src="ucoin2.png" alt="UCoin" /> 100
+                                </div>
+                                <button class="featured-btn" data-case="labubu">
+                                    View Case <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="section-title">
+                    <i class="fas fa-boxes"></i> Popular Cases
+                </h2>
+                
+                <!-- No dummy cases here, only showing the featured Labubu case -->
+                <div class="cases-grid">
+                    <div class="case-card">
+                        <div class="case-image">
+                            <div class="case-glow"></div>
+                            <img src="LabubuCase.png" alt="Labubu Case">
+                        </div>
+                        <div class="case-info">
+                            <h3 class="case-name">Labubu Collection</h3>
+                            <div class="case-rarity rare">
+                                <div class="rarity-indicator"></div>
+                                <div class="rarity-text">RARE</div>
+                            </div>
+                            <div class="case-price">
+                                <div class="price">
+                                    <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 100
+                                </div>
+                                <button class="open-btn" data-case="labubu">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Marketplace Tab -->
+            <div class="tab-content" id="marketplace-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-store"></i> Marketplace
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-legendary">Legendary</span>
+                        <img src="AlienLabubu.png" alt="Alien Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Alien Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 250
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-epic">Epic</span>
+                        <img src="SkeletonLabubu.png" alt="Skeleton Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Skeleton Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 180
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-rare">Rare</span>
+                        <img src="ZombieLabubu.png" alt="Zombie Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Zombie Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 95
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="nft-card">
+                        <span class="rarity-badge rarity-uncommon">Uncommon</span>
+                        <img src="GrassLabubu.png" alt="Grass Labubu" class="nft-image">
+                        <div class="nft-info">
+                            <div class="nft-title">Grass Labubu</div>
+                            <div class="nft-price">
+                                <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;"/> 35
+                            </div>
+                            <button class="btn">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Tab -->
+            <div class="tab-content" id="inventory-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-box-open"></i> Your Collection
+                </h2>
+                
+                <div id="user-collection" class="cases-grid">
+                    <!-- This will be populated dynamically when user opens cases -->
+                    <div class="empty-collection-message" style="width: 100%; text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profile-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> Profile
+                </h2>
+                
+                <div class="profile-section">
+                    <img alt="Profile" class="profile-avatar" id="profile-avatar">
+                    <h2 class="profile-username" id="profile-username">CryptoCollector</h2>
+                    <p class="profile-bio" id="profile-bio">NFT enthusiast and collector since 2021</p>
+                    
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="profile-nfts-count">0</div>
+                            <div class="stat-label">NFTs</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-cases-opened">0</div>
+                            <div class="stat-label">CASES OPENED</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="profile-legendary-count">0</div>
+                            <div class="stat-label">LEGENDARY</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wallet" style="width: fit-content; margin: 20px auto 0;">
+                        <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                        <span id="profile-balance">1.25 ETH</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 20px;">
+                    <i class="fas fa-crown"></i> Achievements
+                </h2>
+                
+                <div class="cases-grid">
+                    <div class="inventory-item" style="width: 100%;">
+                        <i class="fas fa-trophy" style="color: gold; font-size: 24px; margin-right: 15px;"></i>
+                        <div class="inventory-details">
+                            <div class="inventory-title">First Legendary</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Obtained your first legendary NFT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Tab -->
+            <div class="tab-content" id="info-tab">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i> About
+                </h2>
+                
+                <div class="info-section">
+                    <h2>About UnboxdNFT</h2>
+                    <p>UnboxdNFT is a platform that allows users to open digital cases containing NFTs of varying rarity. The platform uses blockchain technology to ensure transparency and authenticity of all transactions and NFT ownership.</p>
+                    
+                    <h3>How it Works</h3>
+                    <p>1. Purchase a case using ETH or UCoins<br>
+                    2. Open the case to reveal your NFT<br>
+                    3. Keep your NFT in your collection or sell it on the marketplace</p>
+                    
+                    <h3>Rarity Levels</h3>
+                    <ul>
+                        <li><span class="rarity-text" style="color: #f1c40f;">Legendary</span> - Extremely rare and valuable NFTs (1% chance)</li>
+                        <li><span class="rarity-text" style="color: #9b59b6;">Epic</span> - Very rare NFTs with special attributes (5% chance)</li>
+                        <li><span class="rarity-text" style="color: #3498db;">Rare</span> - Uncommon NFTs with unique features (15% chance)</li>
+                        <li><span class="rarity-text" style="color: #95a5a6;">Common</span> - Standard NFTs that are more widely available (79% chance)</li>
+                    </ul>
+                    
+                    <h3>Contact Support</h3>
+                    <p>Need help or have questions? Contact our support team through the Telegram bot. We're available 24/7 to assist with any issues or inquiries about the platform.</p>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <div class="nav-btn active" data-tab="cases-tab">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-btn" data-tab="marketplace-tab">
+                <i class="fas fa-search"></i>
+                <span>Explore</span>
+            </div>
+            <div class="nav-btn center">
+                <i class="fas fa-box-open"></i>
+                <span>Cases</span>
+            </div>
+            <div class="nav-btn" data-tab="inventory-tab">
+                <i class="fas fa-trophy"></i>
+                <span>Inventory</span>
+            </div>
+            <div class="nav-btn" data-tab="profile-tab">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Labubu Case Detail -->
+    <div class="case-detail" id="labubu-case-detail">
+        <div class="case-detail-header">
+            <div class="case-detail-back" id="labubu-case-back">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+            <div class="case-detail-title">Labubu Collection</div>
+        </div>
+        
+        <div class="featured-card">
+            <div class="featured-image">
+                <img src="LabubuCase.png" alt="Labubu Case">
+            </div>
+            <div class="featured-info">
+                <p class="featured-desc">Unleash your Labubu collection with this exclusive case featuring 9 unique Labubu skins. Which one will you get?</p>
+                
+                <div class="featured-action" style="justify-content: center; margin-top: 20px;">
+                    <button class="featured-btn open-case-btn" data-case="labubu">
+                        Open Case for <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin: 0 5px;"> 100
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title" style="margin-top: 30px; padding-left: 20px;">
+            <i class="fas fa-list"></i> Possible Drops
+        </h2>
+        
+        <div class="skins-grid" style="padding: 0 20px 20px;">
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="VolcanicLabubu.png" alt="Volcanic Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-6">Volcanic Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />10000</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="GrinchLabubu.png" alt="Grinch Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-5">Grinch Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />750</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="GrassLabubu.png" alt="Grass Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-4">Grass Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="NewDeepSeaLabubu.png" alt="Deep Sea Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-4">Deep Sea Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />300</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="CircusLabubu.png" alt="Circus Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-3">Circus Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />120</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="AlienLabubu.png" alt="Alien Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-3">Alien Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />120</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="ZombieLabubu.png" alt="Zombie Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-2">Zombie Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />50</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="CandyLabubu.png" alt="Candy Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-2">Candy Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />50</div>
+                </div>
+            </div>
+            
+            <div class="skin-card">
+                <div class="skin-image">
+                    <img src="SkeletonLabubu.png" alt="Skeleton Labubu">
+                </div>
+                <div class="skin-info">
+                    <div class="skin-name tier-1">Skeleton Labubu</div>
+                    <div class="skin-price"><img src="ucoin2.png" alt="UCoin" />20</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roulette Overlay -->
+    <div class="roulette-overlay" id="roulette-overlay">
+        <div class="roulette-header">
+            <h2>Opening Labubu Case</h2>
+            <p>Good luck!</p>
+        </div>
+        
+        <div class="roulette-container">
+            <div class="roulette-marker"></div>
+            <div class="roulette-track" id="roulette-track"></div>
+        </div>
+        
+        <div class="roulette-result" id="roulette-result">
+            <h3>Congratulations!</h3>
+            <div class="roulette-result-image">
+                <img id="result-image" src="" alt="Your new skin">
+            </div>
+            <div class="roulette-result-name" id="result-name"></div>
+            <div class="roulette-buttons">
+                <button class="roulette-close" id="roulette-close">Awesome!</button>
+                <button class="roulette-sell" id="roulette-sell">
+                    <i class="fas fa-coins"></i> Sell for <span id="sell-price">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog -->
+    <div class="custom-dialog" id="custom-dialog">
+        <div class="dialog-content">
+            <div class="dialog-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="dialog-title">Congratulations!</div>
+            <div class="dialog-message" id="dialog-message">You've won a brand new item!</div>
+            <button class="dialog-btn" id="dialog-btn">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Not Enough Balance Dialog -->
+    <div class="not-enough-balance-dialog" id="not-enough-balance-dialog">
+        <div class="not-enough-balance-content">
+            <div class="not-enough-balance-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="not-enough-balance-title">Insufficient Balance</div>
+            <div class="not-enough-balance-message">Sorry, you don't have enough UCoins for this case.</div>
+            <button class="not-enough-balance-btn" id="not-enough-balance-btn">Okay</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Initialize Supabase client - FIXED INITIALIZATION
+        const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
+        // Fix: proper initialization of Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // User data from Telegram
+        const user = tg.initDataUnsafe?.user || {};
+        let userFirstName = user.first_name || 'User';
+        let userLastName = user.last_name || '';
+        let userName = user.username ? `@${user.username}` : '';
+        let userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+        let telegramId = user.id;
+        let userBalance = 0;
+
+        // Log extended debug info for Telegram connection
+        console.log("Detailed user data:", {
+            telegramId: telegramId,
+            firstName: userFirstName,
+            lastName: userLastName,
+            userName: userName,
+            photoUrl: userPhotoUrl
+        });
+        
+        // Log more details about the Telegram connection
+        console.log("Is Telegram WebApp defined:", typeof window.Telegram !== "undefined" && typeof window.Telegram.WebApp !== "undefined");
+        if (window.Telegram && window.Telegram.WebApp) {
+            console.log("Telegram WebApp initData:", window.Telegram.WebApp.initData ? "present" : "missing");
+            console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
+        }
+
+        // Debug: Log Telegram user data
+        console.log('Telegram user data:', user);
+        console.log('Telegram ID:', telegramId);
+
+        // Update profile wallet display to use ucoin img instead of "UCoin" text
+        function updateProfileWalletDisplay() {
+            const profileWallet = document.querySelector('.profile-section .wallet');
+            if (profileWallet) {
+                profileWallet.innerHTML = `
+                    <img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin-right: 5px;">
+                    <span id="profile-balance">${userBalance.toLocaleString()}</span>
+                `;
+            }
+        }
+
+        // Function to control the visibility of the rarity nav
+        function updateRarityNavVisibility(tabId) {
+            const rarityNav = document.getElementById('rarity-nav');
+            if (tabId === 'cases-tab') {
+                rarityNav.classList.add('show');
+            } else {
+                rarityNav.classList.remove('show');
+            }
+        }
+
+        // Original update balance function
+        function updateBalanceDisplay() {
+            const balanceElement = document.getElementById('user-balance');
+            if (balanceElement) {
+                balanceElement.textContent = userBalance.toLocaleString();
+            }
+            
+            // Also update balance in profile
+            const profileBalanceElement = document.getElementById('profile-balance');
+            if (profileBalanceElement) {
+                profileBalanceElement.textContent = userBalance.toLocaleString();
+            }
+            
+            // Also update the profile section if it exists
+            updateProfileWalletDisplay();
+        }
+
+        // Register user in Supabase and get their balance
+        async function registerUserAndGetBalance() {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    tg.showAlert('Unable to identify user. Please restart the app.');
+                    return;
+                }
+                
+                console.log('Attempting to register user with ID:', telegramId);
+                
+                // Call the custom function we created in Supabase
+                const { data, error } = await supabase.rpc('add_user_with_balance', {
+                    p_telegram_id: telegramId,
+                    p_username: userName || '',
+                    p_first_name: userFirstName || '',
+                    p_last_name: userLastName || ''
+                });
+                
+                if (error) {
+                    console.error('Error registering user:', error);
+                    tg.showAlert('Error connecting to database. Please try again later.');
+                    return;
+                }
+                
+                console.log('User registered successfully:', data);
+                
+                // Get user balance
+                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (balanceError) {
+                    console.error('Error getting balance:', balanceError);
+                    return;
+                }
+                
+                userBalance = balanceData || 0;
+                updateBalanceDisplay();
+                
+                console.log('User registered and balance retrieved:', userBalance);
+            } catch (err) {
+                console.error('Error in registerUserAndGetBalance:', err);
+                tg.showAlert('Error connecting to the service. Please try again later.');
+            }
+        }
+        
+        // Update user balance in Supabase
+        async function updateUserBalance(amount, description, type) {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    tg.showAlert('Unable to identify user. Please restart the app.');
+                    return false;
+                }
+                
+                console.log('Updating balance:', { telegramId, amount, description, type });
+                
+                const { data, error } = await supabase.rpc('update_balance', {
+                    p_telegram_id: telegramId,
+                    p_amount: amount,
+                    p_description: description,
+                    p_transaction_type: type
+                });
+                
+                if (error) {
+                    console.error('Error updating balance:', error);
+                    tg.showAlert('Error processing transaction. Please try again.');
+                    return false;
+                }
+                
+                userBalance = data || 0;
+                updateBalanceDisplay();
+                console.log('Balance updated successfully:', userBalance);
+                return true;
+            } catch (err) {
+                console.error('Error in updateUserBalance:', err);
+                tg.showAlert('Error processing transaction. Please try again.');
+                return false;
+            }
+        }
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 30;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random position
+            const posX = Math.random() * 100;
+            const posY = Math.random() * 100;
+            
+            // Random size
+            const size = Math.random() * 4 + 1;
+            
+            // Random opacity
+            const opacity = Math.random() * 0.5 + 0.1;
+            
+            // Random animation duration
+            const duration = Math.random() * 20 + 10;
+            
+            // Random delay
+            const delay = Math.random() * 10;
+            
+            particle.style.left = `${posX}%`;
+            particle.style.top = `${posY}%`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.opacity = opacity;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+
+        // Update user data
+        function updateUserData() {
+            // Avatar
+            const avatarContainer = document.getElementById('user-avatar');
+            if (avatarContainer) {
+                // Clear any existing content
+                avatarContainer.innerHTML = '';
+                
+                // Only add an image if we have a valid photo URL
+                if (userPhotoUrl && userPhotoUrl !== 'undefined') {
+                    const avatarImg = document.createElement('img');
+                    avatarImg.src = userPhotoUrl;
+                    avatarImg.alt = `${userFirstName}'s avatar`;
+                    avatarContainer.appendChild(avatarImg);
+                } else {
+                    // Create a fallback with user's initials
+                    const initials = userFirstName ? userFirstName.charAt(0) : 'U';
+                    avatarContainer.textContent = initials;
+                }
+            }
+            
+            // Profile data
+            const profileAvatar = document.getElementById('profile-avatar');
+            const profileName = document.getElementById('profile-username');
+            const profileBio = document.getElementById('profile-bio');
+            
+            if (profileAvatar) {
+                // Only set src if we have a valid photo URL
+                if (userPhotoUrl && userPhotoUrl !== 'undefined') {
+                    profileAvatar.src = userPhotoUrl;
+                    profileAvatar.alt = `${userFirstName}'s avatar`;
+                } else {
+                    // Use a blank transparent image as fallback
+                    profileAvatar.style.display = 'none';
+                }
+            }
+            
+            if (profileName) profileName.textContent = userFirstName + (userLastName ? ' ' + userLastName : '');
+            if (profileBio) profileBio.textContent = userName || 'NFT enthusiast since 2022';
+            
+            // Update profile wallet display
+            updateProfileWalletDisplay();
+        }
+        
+        // Tab Navigation (Bottom)
+        const bottomNavBtns = document.querySelectorAll('.nav-btn');
+        bottomNavBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                bottomNavBtns.forEach(nav => nav.classList.remove('active'));
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const targetTab = document.getElementById(tabId);
+                if (targetTab) targetTab.classList.add('active');
+                
+                // Update rarity navigation visibility based on tab
+                updateRarityNavVisibility(tabId);
+                
+                // If profile tab is selected, update user data
+                if (tabId === 'profile-tab') {
+                    updateUserData();
+                }
+            });
+        });
+        
+        // Top navigation items - Restore this functionality
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Filter cases by rarity
+                const rarity = item.getAttribute('data-tab');
+                filterCasesByRarity(rarity);
+            });
+        });
+        
+        // Filter cases by rarity - Restore this functionality
+        function filterCasesByRarity(rarity) {
+            if (rarity === 'all') {
+                document.querySelectorAll('.case-card').forEach(card => {
+                    card.style.display = 'block';
+                });
+            } else {
+                document.querySelectorAll('.case-card').forEach(card => {
+                    const cardRarity = card.querySelector('.rarity-text')?.textContent.toLowerCase();
+                    if (cardRarity === rarity.toUpperCase()) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Center button functionality
+        const centerBtn = document.querySelector('.nav-btn.center');
+        if (centerBtn) {
+            centerBtn.addEventListener('click', () => {
+                // Show the cases tab
+                bottomNavBtns.forEach(btn => {
+                    if (btn !== centerBtn) btn.classList.remove('active');
+                });
+                
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                document.getElementById('cases-tab').classList.add('active');
+                
+                // Show the rarity navigation for the cases tab
+                updateRarityNavVisibility('cases-tab');
+            });
+        }
+        
+        // Case opening animation with balance integration
+        const caseOpenButtons = document.querySelectorAll('.open-btn, .featured-btn');
+        caseOpenButtons.forEach(btn => {
+            // Skip buttons that have data-case attribute if they don't have the open-case-btn class
+            if (btn.hasAttribute('data-case') && !btn.classList.contains('open-case-btn')) {
+                return;
+            }
+            
+            btn.addEventListener('click', async function() {
+                const card = this.closest('.case-card, .featured-card');
+                const img = card.querySelector('img');
+                
+                // Get the price
+                let price = 0;
+                const priceElement = card.querySelector('.price') || card.querySelector('.featured-price');
+                if (priceElement) {
+                    const priceText = priceElement.textContent.trim();
+                    // Extract number from price (assuming price is in ETH format like "0.125")
+                    const match = priceText.match(/([0-9]*[.])?[0-9]+/);
+                    if (match) {
+                        price = parseFloat(match[0]) * 100; // Convert to game currency (100 credits per ETH)
+                    }
+                }
+                
+                // Check if user has enough balance
+                if (userBalance < price) {
+                    showNotEnoughBalanceDialog();
+                    return;
+                }
+                
+                // Simple animation
+                img.style.transform = 'scale(1.2) rotate(10deg)';
+                
+                if (this.classList.contains('featured-btn')) {
+                    this.innerHTML = 'Opening... <i class="fas fa-spinner fa-spin"></i>';
+                } else {
+                    this.innerHTML = 'Opening... <i class="fas fa-spinner fa-spin"></i>';
+                }
+                
+                this.disabled = true;
+                
+                // Deduct the price from balance
+                const success = await updateUserBalance(-price, `Opened a ${card.querySelector('.case-name')?.textContent || 'NFT'} case`, 'purchase');
+                
+                if (!success) {
+                    tg.showAlert('Failed to process the transaction. Please try again.');
+                    this.disabled = false;
+                    return;
+                }
+                
+                setTimeout(() => {
+                    img.style.transform = 'scale(1) rotate(0deg)';
+                    
+                    if (this.classList.contains('featured-btn')) {
+                        this.innerHTML = 'Open Case <i class="fas fa-unlock"></i>';
+                    } else {
+                        this.innerHTML = 'Open <i class="fas fa-unlock-alt"></i>';
+                    }
+                    
+                    this.disabled = false;
+                    
+                    // We don't need to show an alert here since we have a custom animation
+                }, 1500);
+            });
+        });
+        
+        // Buy Now buttons with balance integration
+        document.querySelectorAll('.btn').forEach(button => {
+            if (button.textContent === 'Buy Now') {
+                button.addEventListener('click', async () => {
+                    const card = button.closest('.nft-card');
+                    const priceElement = card.querySelector('.nft-price');
+                    
+                    let price = 0;
+                    if (priceElement) {
+                        const priceText = priceElement.textContent.trim();
+                        const match = priceText.match(/([0-9]*[.])?[0-9]+/);
+                        if (match) {
+                            price = parseFloat(match[0]); // Convert to number
+                        }
+                    }
+                    
+                    // Check if user has enough balance
+                    if (userBalance < price) {
+                        showNotEnoughBalanceDialog();
+                        return;
+                    }
+                    
+                    // Deduct the price from balance
+                    const success = await updateUserBalance(-price, `Purchased ${card.querySelector('.nft-title')?.textContent || 'NFT'}`, 'purchase');
+                    
+                    if (success) {
+                        tg.showAlert('Purchase successful! The NFT has been added to your collection.');
+                    } else {
+                        tg.showAlert('Failed to process the transaction. Please try again.');
+                    }
+                });
+            }
+        });
+        
+        // Get user stats
+        async function getUserStats() {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                // Get user statistics
+                const { data: statsData, error: statsError } = await supabase.rpc('get_user_stats', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (statsError) {
+                    console.error('Error getting user stats:', statsError);
+                    return;
+                }
+                
+                // Update the profile stats with real data
+                const nftCountElement = document.getElementById('profile-nfts-count');
+                const casesOpenedElement = document.getElementById('profile-cases-opened');
+                const legendaryCountElement = document.getElementById('profile-legendary-count');
+                
+                if (nftCountElement && statsData) nftCountElement.textContent = statsData.nft_count || '0';
+                if (casesOpenedElement && statsData) casesOpenedElement.textContent = statsData.cases_opened || '0';
+                if (legendaryCountElement && statsData) legendaryCountElement.textContent = statsData.legendary_count || '0';
+                
+                console.log('User stats retrieved:', statsData);
+            } catch (err) {
+                console.error('Error in getUserStats:', err);
+            }
+        }
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('App initialized');
+            
+            // Register user and get balance from Supabase
+            await registerUserAndGetBalance();
+            
+            // Get user stats
+            await getUserStats();
+            
+            // Get user inventory
+            await getUserInventory();
+            
+            // Update user data
+            updateUserData();
+            
+            // Set initial rarity nav visibility
+            updateRarityNavVisibility('cases-tab');
+        });
+
+        // Function to show case detail
+        function showCaseDetail(caseId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Hide all case details
+            document.querySelectorAll('.case-detail').forEach(detail => {
+                detail.classList.remove('active');
+            });
+            
+            // Show the selected case detail
+            document.getElementById(`${caseId}-case-detail`).classList.add('active');
+            
+            // Hide rarity nav
+            updateRarityNavVisibility('none');
+        }
+
+        // View case button
+        document.querySelectorAll('.featured-btn[data-case]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const caseId = this.getAttribute('data-case');
+                showCaseDetail(caseId);
+            });
+        });
+
+        // Back button from case detail
+        document.getElementById('labubu-case-back').addEventListener('click', function() {
+            // Hide case detail
+            document.querySelectorAll('.case-detail').forEach(detail => {
+                detail.classList.remove('active');
+            });
+            
+            // Show cases tab
+            document.getElementById('cases-tab').classList.add('active');
+            
+            // Show rarity nav
+            updateRarityNavVisibility('cases-tab');
+        });
+
+        // Labubu skins data with tiers
+        const labubuSkins = [
+            { name: "Skeleton Labubu", image: "SkeletonLabubu.png", rarity: "uncommon", tier: 1, probability: 50 },
+            { name: "Zombie Labubu", image: "ZombieLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Candy Labubu", image: "CandyLabubu.png", rarity: "rare", tier: 2, probability: 25 },
+            { name: "Circus Labubu", image: "CircusLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Alien Labubu", image: "AlienLabubu.png", rarity: "epic", tier: 3, probability: 15 },
+            { name: "Grass Labubu", image: "GrassLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Deep Sea Labubu", image: "NewDeepSeaLabubu.png", rarity: "legendary", tier: 4, probability: 5 },
+            { name: "Grinch Labubu", image: "GrinchLabubu.png", rarity: "mythic", tier: 5, probability: 1 },
+            { name: "Volcanic Labubu", image: "VolcanicLabubu.png", rarity: "divine", tier: 6, probability: 0.00001 }
+        ];
+
+        // Roulette functionality
+        const rouletteOverlay = document.getElementById('roulette-overlay');
+        const rouletteTrack = document.getElementById('roulette-track');
+        const rouletteResult = document.getElementById('roulette-result');
+        const resultImage = document.getElementById('result-image');
+        const resultName = document.getElementById('result-name');
+
+        // Function to shuffle an array using Fisher-Yates algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        // Improved roulette initialization with randomized order
+        function initializeRoulette() {
+            // Clear previous items
+            rouletteTrack.innerHTML = '';
+            
+            // We'll create three sets of shuffled skins for a better experience
+            // This ensures a longer track and more variability
+            
+            // First set - completely random
+            const firstSet = shuffleArray(labubuSkins);
+            // Second set - different shuffle
+            const secondSet = shuffleArray(labubuSkins);
+            // Third set - different shuffle again
+            const thirdSet = shuffleArray(labubuSkins);
+            
+            // Combine all sets
+            const allSets = [...firstSet, ...secondSet, ...thirdSet];
+            
+            // Create roulette items
+            allSets.forEach(skin => {
+                const item = document.createElement('div');
+                item.className = 'roulette-item';
+                item.dataset.skinName = skin.name; // Store the skin name for reference
+                item.dataset.skinTier = skin.tier; // Store the tier for reference
+                
+                const img = document.createElement('img');
+                img.src = skin.image;
+                img.alt = skin.name;
+                
+                const name = document.createElement('div');
+                name.className = `roulette-item-name tier-${skin.tier}`;
+                name.textContent = skin.name;
+                
+                item.appendChild(img);
+                item.appendChild(name);
+                rouletteTrack.appendChild(item);
+            });
+            
+            // Reset transition and transform
+            rouletteTrack.style.transition = 'none';
+            rouletteTrack.style.transform = 'translateX(0)';
+            
+            // Force a reflow to ensure the transition reset is applied
+            rouletteTrack.offsetHeight;
+            
+            console.log('Roulette initialized with randomized items');
+        }
+
+        // Function to get random skin based on probability
+        function getRandomSkinByProbability() {
+            // Generate a random number between 0 and 100
+            const rand = Math.random() * 100;
+            
+            // Total probability to keep track
+            let cumulativeProbability = 0;
+            
+            // Create probability ranges for each skin
+            for (const skin of labubuSkins) {
+                cumulativeProbability += skin.probability;
+                if (rand <= cumulativeProbability) {
+                    return skin;
+                }
+            }
+            
+            // Fallback to first skin if something goes wrong
+            return labubuSkins[0];
+        }
+
+        // Function to get user inventory from database
+        async function getUserInventory() {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return;
+                }
+                
+                // Get user inventory from Supabase
+                const { data: inventoryData, error: inventoryError } = await supabase.rpc('get_user_inventory', {
+                    p_telegram_id: telegramId
+                });
+                
+                if (inventoryError) {
+                    console.error('Error getting user inventory:', inventoryError);
+                    return;
+                }
+                
+                // Clear existing inventory display
+                const userCollection = document.getElementById('user-collection');
+                userCollection.innerHTML = '';
+                
+                // Check if inventory is empty
+                if (!inventoryData || inventoryData.length === 0) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'empty-collection-message';
+                    emptyMessage.style.width = '100%';
+                    emptyMessage.style.textAlign = 'center';
+                    emptyMessage.style.padding = '30px';
+                    emptyMessage.style.color = 'rgba(255,255,255,0.7)';
+                    
+                    emptyMessage.innerHTML = `
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Your collection is empty. Open some cases to get Labubu skins!</p>
+                    `;
+                    
+                    userCollection.appendChild(emptyMessage);
+                    return;
+                }
+                
+                // Display each item in the inventory
+                inventoryData.forEach(item => {
+                    // Create new card for the collection
+                    const card = document.createElement('div');
+                    card.className = 'nft-card';
+                    
+                    // Add rarity badge based on tier
+                    let rarityClass;
+                    switch(item.skin_tier) {
+                        case 1: rarityClass = 'common'; break;
+                        case 2: rarityClass = 'rare'; break;
+                        case 3: rarityClass = 'epic'; break;
+                        case 4: rarityClass = 'legendary'; break;
+                        case 5: rarityClass = 'mythic'; break;
+                        case 6: rarityClass = 'divine'; break;
+                        default: rarityClass = 'common';
+                    }
+                    
+                    const rarityBadge = document.createElement('span');
+                    rarityBadge.className = `rarity-badge rarity-${rarityClass}`;
+                    rarityBadge.textContent = rarityClass.toUpperCase();
+                    card.appendChild(rarityBadge);
+                    
+                    // Add image
+                    const img = document.createElement('img');
+                    img.src = item.skin_image;
+                    img.alt = item.skin_name;
+                    img.className = 'nft-image';
+                    card.appendChild(img);
+                    
+                    // Add info
+                    const info = document.createElement('div');
+                    info.className = 'nft-info';
+                    
+                    const title = document.createElement('div');
+                    title.className = `nft-title tier-${item.skin_tier}`;
+                    title.textContent = item.skin_name;
+                    info.appendChild(title);
+                    
+                    // Add acquisition date
+                    const date = document.createElement('div');
+                    date.style.fontSize = '0.7rem';
+                    date.style.color = 'rgba(255,255,255,0.5)';
+                    date.textContent = new Date(item.acquired_date).toLocaleDateString();
+                    info.appendChild(date);
+                    
+                    // Add sell button
+                    const sellPrice = skinPrices[item.skin_tier];
+                    const sellBtn = document.createElement('button');
+                    sellBtn.className = 'inventory-sell-btn';
+                    sellBtn.innerHTML = `<i class="fas fa-coins"></i> Sell for <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; margin: 0 3px;"> ${sellPrice}`;
+                    sellBtn.onclick = async () => {
+                        await sellNFT(item.skin_name, item.skin_image, item.skin_tier);
+                    };
+                    info.appendChild(sellBtn);
+                    
+                    card.appendChild(info);
+                    
+                    // Add to collection
+                    userCollection.appendChild(card);
+                });
+                
+                console.log('User inventory loaded:', inventoryData);
+            } catch (err) {
+                console.error('Error in getUserInventory:', err);
+            }
+        }
+
+        // Function to update user stats
+        async function updateUserStat(statName, changeAmount) {
+            try {
+                if (!telegramId) {
+                    console.error('No Telegram ID available');
+                    return false;
+                }
+                
+                let params = {
+                    p_telegram_id: telegramId
+                };
+                
+                if (statName === 'nft_count') {
+                    params.p_nft_count_change = changeAmount;
+                } else if (statName === 'cases_opened') {
+                    params.p_cases_opened_change = changeAmount;
+                } else if (statName === 'legendary_count') {
+                    params.p_legendary_count_change = changeAmount;
+                }
+                
+                const { data, error } = await supabase.rpc('update_user_stats', params);
+                
+                if (error) {
+                    console.error(`Error updating ${statName}:`, error);
+                    return false;
+                }
+                
+                console.log(`${statName} updated successfully:`, data);
+                
+                // Update UI
+                await getUserStats();
+                
+                return true;
+            } catch (err) {
+                console.error(`Error in updateUserStat (${statName}):`, err);
+                return false;
+            }
+        }
+
+        // Improved roulette animation function for ultra-smooth motion
+        function startRouletteAnimation(finalPosition, selectedSkin) {
+            currentResultSkin = selectedSkin;
+            
+            // Set the sell price
+            const sellPrice = skinPrices[selectedSkin.tier];
+            const sellPriceElement = document.getElementById('sell-price');
+            sellPriceElement.innerHTML = `<img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin: 0 5px;"> ${sellPrice}`;
+            
+            // Style the result name according to tier
+            const resultNameElement = document.getElementById('result-name');
+            resultNameElement.className = `tier-${selectedSkin.tier}`;
+            resultNameElement.textContent = selectedSkin.name;
+            
+            // Set the total duration and easing
+            const totalDuration = 7000; // 7 seconds
+            
+            // Using cubic-bezier for super smooth animation
+            // This specific bezier curve will start fast and gradually slow down
+            const easingFunction = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+            
+            // Set up the animation
+            rouletteTrack.style.transition = `transform ${totalDuration}ms ${easingFunction}`;
+            rouletteTrack.style.transform = `translateX(-${finalPosition}px)`;
+            
+            // When animation ends, show the result
+            setTimeout(() => {
+                // Update result display
+                resultImage.src = selectedSkin.image;
+                
+                // Show result
+                rouletteResult.classList.add('active');
+                
+                // If legendary or epic, update stats
+                if (selectedSkin.rarity === 'legendary') {
+                    updateUserStat('legendary_count', 1);
+                }
+                
+                // Update NFT count
+                updateUserStat('nft_count', 1);
+                
+                // Add to user's inventory
+                addToInventory(selectedSkin);
+            }, totalDuration + 200); // Add a small buffer for animation completion
+        }
+
+        // Function to open case - also reset the roulette state
+        async function openCase(caseId) {
+            try {
+                // Get fresh balance data first
+                const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+                    p_telegram_id: telegramId
+                });
+                    
+                if (balanceError) {
+                    console.error('Error getting balance:', balanceError);
+                    showCustomDialog('Error retrieving your balance. Please try again.');
+                    return;
+                }
+                    
+                // Update the local userBalance variable with fresh data
+                userBalance = balanceData || 0;
+                updateBalanceDisplay();
+                
+                // Now check if user has enough balance
+                if (userBalance < 100) {
+                    showNotEnoughBalanceDialog();
+                    return;
+                }
+                
+                // Initialize roulette
+                initializeRoulette();
+                
+                // Reset roulette position
+                rouletteTrack.style.transform = 'translateX(0)';
+                
+                // Hide result
+                rouletteResult.classList.remove('active');
+                
+                // Show roulette overlay
+                rouletteOverlay.classList.add('active');
+                
+                // Deduct balance
+                const success = await updateUserBalance(-100, `Opened Labubu case`, 'purchase');
+                
+                if (!success) {
+                    showCustomDialog('Failed to process the transaction. Please try again.');
+                    rouletteOverlay.classList.remove('active');
+                    return;
+                }
+                
+                // Update cases opened stat
+                await updateUserStat('cases_opened', 1);
+                
+                // Pick a random skin based on probability
+                const selectedSkin = getRandomSkinByProbability();
+                
+                // Calculate roulette position
+                const itemWidth = 130; // item width + margin
+                const centerPosition = window.innerWidth / 2;
+                
+                // Position the selected item in the center (with the middle set of items)
+                // Find the index of the selected skin in the labubuSkins array
+                const selectedIndex = labubuSkins.findIndex(skin => skin.name === selectedSkin.name);
+                const selectedPosition = labubuSkins.length + selectedIndex; // Use the middle set of items
+                const finalPosition = selectedPosition * itemWidth - centerPosition + itemWidth / 2;
+                
+                // Add a small random offset for more natural feel
+                const randomOffset = Math.random() * 10 - 5;
+                
+                // Start the animation with gradually decreasing speed
+                startRouletteAnimation(finalPosition + randomOffset, selectedSkin);
+            } catch (err) {
+                console.error('Error in openCase:', err);
+                showCustomDialog('An error occurred. Please try again.');
+                rouletteOverlay.classList.remove('active');
+            }
+        }
+
+        // Open case button
+        document.querySelectorAll('.open-case-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const caseId = this.getAttribute('data-case');
+                openCase(caseId);
+            });
+        });
+
+        // Close roulette
+        document.getElementById('roulette-close').addEventListener('click', function() {
+            rouletteOverlay.classList.remove('active');
+        });
+
+        // Updated function to add skin to inventory both in UI and database
+        async function addToInventory(skin) {
+            try {
+                // Add to database first
+                const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                    p_telegram_id: telegramId,
+                    p_skin_name: skin.name,
+                    p_skin_image: skin.image,
+                    p_skin_tier: skin.tier
+                });
+                
+                if (error) {
+                    console.error('Error adding skin to inventory:', error);
+                    return;
+                }
+                
+                console.log('Skin added to inventory:', skin.name);
+                
+                // Now update the UI - we'll reload the entire inventory to ensure consistency
+                getUserInventory();
+            } catch (err) {
+                console.error('Error in addToInventory:', err);
+            }
+        }
+
+        // Load user inventory when app initializes and when inventory tab is selected
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('App initialized');
+            
+            // Register user and get balance from Supabase
+            await registerUserAndGetBalance();
+            
+            // Get user stats
+            await getUserStats();
+            
+            // Get user inventory
+            await getUserInventory();
+            
+            // Update user data
+            updateUserData();
+            
+            // Set initial rarity nav visibility
+            updateRarityNavVisibility('cases-tab');
+        });
+
+        // Load inventory when that tab is selected
+        bottomNavBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                // Remove active class from all buttons
+                bottomNavBtns.forEach(nav => nav.classList.remove('active'));
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const targetTab = document.getElementById(tabId);
+                if (targetTab) targetTab.classList.add('active');
+                
+                // Update rarity navigation visibility based on tab
+                updateRarityNavVisibility(tabId);
+                
+                // If profile tab is selected, update user data
+                if (tabId === 'profile-tab') {
+                    updateUserData();
+                }
+                
+                // If inventory tab is selected, refresh the inventory
+                if (tabId === 'inventory-tab') {
+                    await getUserInventory();
+                }
+            });
+        });
+
+        // Replace all Telegram showAlert calls with our custom dialog
+        // Function to create Telegram user object if testing outside Telegram
+
+        // Override Telegram.WebApp.showAlert to use our custom dialog
+        const originalShowAlert = window.Telegram.WebApp.showAlert;
+        window.Telegram.WebApp.showAlert = function(message) {
+            console.log('Alert intercepted:', message);
+            showCustomDialog(message);
+        };
+
+        // Function to show not enough balance dialog
+        function showNotEnoughBalanceDialog() {
+            const dialog = document.getElementById('not-enough-balance-dialog');
+            const okayBtn = document.getElementById('not-enough-balance-btn');
+            
+            // Show dialog
+            dialog.classList.add('active');
+            
+            // Handle button click
+            okayBtn.onclick = function() {
+                dialog.classList.remove('active');
+            };
+        }
+
+        // Show custom dialog function
+        function showCustomDialog(message, callback) {
+            const dialog = document.getElementById('custom-dialog');
+            const dialogMessage = document.getElementById('dialog-message');
+            const dialogBtn = document.getElementById('dialog-btn');
+            
+            // Set message
+            dialogMessage.textContent = message;
+            
+            // Show dialog
+            dialog.classList.add('active');
+            
+            // Create confetti effect
+            createDialogConfetti();
+            
+            // Handle button click
+            dialogBtn.onclick = function() {
+                dialog.classList.remove('active');
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            };
+        }
+
+        // Create confetti inside dialog
+        function createDialogConfetti() {
+            const dialogContent = document.querySelector('.dialog-content');
+            const colors = ['#6c5ce7', '#fd79a8', '#00cec9', '#fdcb6e', '#ff7675'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'dialog-confetti';
+                
+                // Random styles
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = -20 + 'px';
+                confetti.style.width = Math.random() * 8 + 5 + 'px';
+                confetti.style.height = Math.random() * 8 + 5 + 'px';
+                confetti.style.opacity = '1';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                dialogContent.appendChild(confetti);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Add click handler for the case cards' buttons
+        document.querySelectorAll('.open-btn[data-case]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const caseId = this.getAttribute('data-case');
+                showCaseDetail(caseId);
+            });
+        });
+
+        // Modified to include tier-based skin selling prices
+        const skinPrices = {
+            1: 20,   // Tier 1
+            2: 50,   // Tier 2
+            3: 120,  // Tier 3
+            4: 300,  // Tier 4
+            5: 750,  // Tier 5
+            6: 10000 // Tier 6
+        };
+
+        // Store the current skin being viewed in the result
+        let currentResultSkin = null;
+
+        // Common function for selling NFTs from anywhere
+        async function sellNFT(skinName, skinImage, skinTier) {
+            try {
+                // Get the sell price
+                const sellPrice = skinPrices[skinTier];
+                
+                // Remove from inventory
+                const { data: removeData, error: removeError } = await supabase.rpc('remove_skin_from_inventory', {
+                    p_telegram_id: telegramId,
+                    p_skin_name: skinName,
+                    p_skin_image: skinImage
+                });
+                
+                if (removeError) {
+                    console.error('Error removing skin from inventory:', removeError);
+                    showCustomDialog('Error selling the skin. Please try again.');
+                    return false;
+                }
+                
+                // Update balance
+                const success = await updateUserBalance(sellPrice, `Sold ${skinName}`, 'sale');
+                
+                if (success) {
+                    showCustomDialog(`You sold ${skinName} for ${sellPrice} UCoins!`);
+                    
+                    // Refresh inventory
+                    await getUserInventory();
+                    
+                    // Update stats
+                    await updateUserStat('nft_count', -1);
+                    return true;
+                } else {
+                    showCustomDialog('Error processing the transaction. Please try again.');
+                    return false;
+                }
+            } catch (err) {
+                console.error('Error in sellNFT:', err);
+                showCustomDialog('An error occurred. Please try again.');
+                return false;
+            }
+        }
+
+        // Sell button functionality
+        document.getElementById('roulette-sell').addEventListener('click', async function() {
+            if (!currentResultSkin) return;
+            
+            try {
+                await sellNFT(currentResultSkin.name, currentResultSkin.image, currentResultSkin.tier);
+                rouletteOverlay.classList.remove('active');
+            } catch (err) {
+                console.error('Error in sell button click handler:', err);
+            }
+        });
+
+        // Call this function at app initialization
+        ensureTelegramApiAvailable();
+        
+        // Make extra sure telegramId is set correctly
+        if (typeof telegramId === 'undefined' || !telegramId) {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+                telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+                console.log("Fixed telegramId after initialization:", telegramId);
+            } else {
+                console.error("CRITICAL: Failed to get Telegram ID even after initialization attempts");
+            }
+        }
+    </script>
+</body>
+</html>

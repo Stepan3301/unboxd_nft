@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js" defer></script>
     <!-- TON Connect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@2.0.2/dist/tonconnect-ui.min.js" defer></script>
+    <!-- Lottie Player for animations -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script defer>
         // Test script immediately after TON Connect SDK
         console.log('[TON Connect SDK Test] Checking for TON_CONNECT_UI.TonConnectUI immediately after its presumed load by defer...');
@@ -3930,15 +3932,31 @@
                         rarityBadge.textContent = rarityClass.toUpperCase();
                         card.appendChild(rarityBadge);
                         
-                        const img = document.createElement('img');
-                        img.src = item.skin_image || 'placeholder.png'; // Fallback image
-                        img.alt = item.skin_name;
-                        img.className = 'nft-image';
-                        img.onerror = function() {
-                            this.src = "https://via.placeholder.com/150?text=NFT"; // More specific placeholder
-                            console.error(`[Inventory] Failed to load image for ${item.skin_name}: ${item.skin_image}`);
-                        };
-                        card.appendChild(img);
+                        // Check if the image is a Lottie animation (JSON file)
+                        if (item.skin_image && item.skin_image.includes('.json')) {
+                            // Create Lottie player for animations
+                            const lottiePlayer = document.createElement('lottie-player');
+                            lottiePlayer.setAttribute('src', item.skin_image);
+                            lottiePlayer.setAttribute('background', 'transparent');
+                            lottiePlayer.setAttribute('speed', '1');
+                            lottiePlayer.style.width = '150px';
+                            lottiePlayer.style.height = '150px';
+                            lottiePlayer.className = 'nft-image';
+                            lottiePlayer.setAttribute('loop', '');
+                            lottiePlayer.setAttribute('autoplay', '');
+                            card.appendChild(lottiePlayer);
+                        } else {
+                            // Create regular image for static NFTs
+                            const img = document.createElement('img');
+                            img.src = item.skin_image || 'placeholder.png'; // Fallback image
+                            img.alt = item.skin_name;
+                            img.className = 'nft-image';
+                            img.onerror = function() {
+                                this.src = "https://via.placeholder.com/150?text=NFT"; // More specific placeholder
+                                console.error(`[Inventory] Failed to load image for ${item.skin_name}: ${item.skin_image}`);
+                            };
+                            card.appendChild(img);
+                        }
                         
                         const info = document.createElement('div');
                         info.className = 'nft-info';
@@ -4112,7 +4130,14 @@
 
         // Available skins for Dark Aura case
         const darkAuraSkins = [
-            { name: "Scared Cat Obelisk", image: "ScaredCatObelisk.svg", tier: 6 }
+            { name: "Haunted Desk Calendar", image: "LottieAnimations/cleaned-deskcalendar-280571.json", tier: 1, type: "lottie" },
+            { name: "Mad Pumpkin Spirit", image: "LottieAnimations/cleaned-madpumpkin-7551.json", tier: 2, type: "lottie" },
+            { name: "Electric Skull", image: "LottieAnimations/cleaned-electricskull-8221.json", tier: 3, type: "lottie" },
+            { name: "Cursed Voodoo Doll", image: "LottieAnimations/cleaned-voodoodoll-7970.json", tier: 4, type: "lottie" },
+            { name: "Mystical Signet Ring", image: "LottieAnimations/cleaned-signetring-14328.json", tier: 5, type: "lottie" },
+            { name: "Mini Oscar Phantom", image: "LottieAnimations/cleaned-minioscar-1983.json", tier: 6, type: "lottie" },
+            { name: "Bewitched Ginger Cookie", image: "LottieAnimations/cleaned-gingercookie-20477.json", tier: 4, type: "lottie" },
+            { name: "Scared Cat Obelisk", image: "LottieAnimations/cleaned-scaredcat-18595.json", tier: 6, type: "lottie" }
         ];
 
         // Global variable to store the skin won from the roulette
@@ -4352,8 +4377,37 @@
             // After animation finishes
             setTimeout(() => {
                 console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
-                resultImage.src = wonSkin.image;
-                resultImage.alt = wonSkin.name;
+                
+                // Handle different result types
+                if (wonSkin.type === 'lottie') {
+                    // For Lottie animations, replace the img with lottie-player
+                    const resultContainer = resultImage.parentElement;
+                    resultImage.style.display = 'none';
+                    
+                    // Check if lottie player already exists, if not create one
+                    let lottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (!lottiePlayer) {
+                        lottiePlayer = document.createElement('lottie-player');
+                        lottiePlayer.style.width = '200px';
+                        lottiePlayer.style.height = '200px';
+                        lottiePlayer.setAttribute('background', 'transparent');
+                        lottiePlayer.setAttribute('speed', '1');
+                        lottiePlayer.setAttribute('loop', '');
+                        lottiePlayer.setAttribute('autoplay', '');
+                        resultContainer.insertBefore(lottiePlayer, resultImage);
+                    }
+                    lottiePlayer.setAttribute('src', wonSkin.image);
+                } else {
+                    // For regular images
+                    const resultContainer = resultImage.parentElement;
+                    const existingLottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (existingLottiePlayer) {
+                        existingLottiePlayer.style.display = 'none';
+                    }
+                    resultImage.style.display = 'block';
+                    resultImage.src = wonSkin.image;
+                    resultImage.alt = wonSkin.name;
+                }
                 
                 // Apply tier class to result name
                 resultName.className = 'roulette-result-name'; // Reset classes
@@ -4367,7 +4421,7 @@
                 
                 showConfetti();
 
-            }, 7500); 
+            }, 7500);
         }
 
         // Function to start the Dark Aura roulette animation
@@ -4409,10 +4463,26 @@
                 items.push(skin);
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
-                itemEl.innerHTML = `
-                    <img src="${skin.image}" alt="${skin.name}">
-                    <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
-                `;
+                
+                // Check if it's a Lottie animation or regular image
+                if (skin.type === 'lottie') {
+                    itemEl.innerHTML = `
+                        <lottie-player
+                            src="${skin.image}"
+                            background="transparent"
+                            speed="1"
+                            style="width: 100px; height: 100px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
+                    `;
+                } else {
+                    itemEl.innerHTML = `
+                        <img src="${skin.image}" alt="${skin.name}">
+                        <div class="roulette-item-name tier-${skin.tier}">${skin.name}</div>
+                    `;
+                }
                 rouletteTrack.appendChild(itemEl);
             }
 
@@ -4423,10 +4493,25 @@
             // Re-render the specific winning item in the track
             const trackChildren = rouletteTrack.children;
             if (trackChildren[winningItemIndex]) {
-                 trackChildren[winningItemIndex].innerHTML = `
-                    <img src="${wonSkin.image}" alt="${wonSkin.name}">
-                    <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
-                `;
+                // Check if winning skin is Lottie animation
+                if (wonSkin.type === 'lottie') {
+                    trackChildren[winningItemIndex].innerHTML = `
+                        <lottie-player
+                            src="${wonSkin.image}"
+                            background="transparent"
+                            speed="1"
+                            style="width: 100px; height: 100px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
+                    `;
+                } else {
+                    trackChildren[winningItemIndex].innerHTML = `
+                        <img src="${wonSkin.image}" alt="${wonSkin.name}">
+                        <div class="roulette-item-name tier-${wonSkin.tier}">${wonSkin.name}</div>
+                    `;
+                }
             } else {
                 console.error("[Roulette] Winning item index out of bounds for track children.");
             }
@@ -4457,8 +4542,37 @@
             // After animation finishes
             setTimeout(() => {
                 console.log('[Roulette] Animation finished. Displaying result for:', wonSkin.name);
-                resultImage.src = wonSkin.image;
-                resultImage.alt = wonSkin.name;
+                
+                // Handle different result types
+                if (wonSkin.type === 'lottie') {
+                    // For Lottie animations, replace the img with lottie-player
+                    const resultContainer = resultImage.parentElement;
+                    resultImage.style.display = 'none';
+                    
+                    // Check if lottie player already exists, if not create one
+                    let lottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (!lottiePlayer) {
+                        lottiePlayer = document.createElement('lottie-player');
+                        lottiePlayer.style.width = '200px';
+                        lottiePlayer.style.height = '200px';
+                        lottiePlayer.setAttribute('background', 'transparent');
+                        lottiePlayer.setAttribute('speed', '1');
+                        lottiePlayer.setAttribute('loop', '');
+                        lottiePlayer.setAttribute('autoplay', '');
+                        resultContainer.insertBefore(lottiePlayer, resultImage);
+                    }
+                    lottiePlayer.setAttribute('src', wonSkin.image);
+                } else {
+                    // For regular images
+                    const resultContainer = resultImage.parentElement;
+                    const existingLottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (existingLottiePlayer) {
+                        existingLottiePlayer.style.display = 'none';
+                    }
+                    resultImage.style.display = 'block';
+                    resultImage.src = wonSkin.image;
+                    resultImage.alt = wonSkin.name;
+                }
                 
                 // Apply tier class to result name
                 resultName.className = 'roulette-result-name'; // Reset classes
@@ -4472,7 +4586,7 @@
                 
                 showConfetti();
 
-            }, 7500); 
+            }, 7500);
         }
         
         // Function to show confetti
@@ -5088,15 +5202,31 @@
                         rarityBadge.textContent = rarityClass.toUpperCase();
                         card.appendChild(rarityBadge);
                         
-                        const img = document.createElement('img');
-                        img.src = item.skin_image || 'placeholder.png'; // Fallback image
-                        img.alt = item.skin_name;
-                        img.className = 'nft-image';
-                        img.onerror = function() {
-                            this.src = "https://via.placeholder.com/150?text=NFT"; // More specific placeholder
-                            console.error(`[Inventory] Failed to load image for ${item.skin_name}: ${item.skin_image}`);
-                        };
-                        card.appendChild(img);
+                        // Check if the image is a Lottie animation (JSON file)
+                        if (item.skin_image && item.skin_image.includes('.json')) {
+                            // Create Lottie player for animations
+                            const lottiePlayer = document.createElement('lottie-player');
+                            lottiePlayer.setAttribute('src', item.skin_image);
+                            lottiePlayer.setAttribute('background', 'transparent');
+                            lottiePlayer.setAttribute('speed', '1');
+                            lottiePlayer.style.width = '150px';
+                            lottiePlayer.style.height = '150px';
+                            lottiePlayer.className = 'nft-image';
+                            lottiePlayer.setAttribute('loop', '');
+                            lottiePlayer.setAttribute('autoplay', '');
+                            card.appendChild(lottiePlayer);
+                        } else {
+                            // Create regular image for static NFTs
+                            const img = document.createElement('img');
+                            img.src = item.skin_image || 'placeholder.png'; // Fallback image
+                            img.alt = item.skin_name;
+                            img.className = 'nft-image';
+                            img.onerror = function() {
+                                this.src = "https://via.placeholder.com/150?text=NFT"; // More specific placeholder
+                                console.error(`[Inventory] Failed to load image for ${item.skin_name}: ${item.skin_image}`);
+                            };
+                            card.appendChild(img);
+                        }
                         
                         const info = document.createElement('div');
                         info.className = 'nft-info';

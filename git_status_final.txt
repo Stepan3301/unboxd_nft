@@ -1,0 +1,26 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	apply_changes.sh
+	exampleroulette.txt
+	final_fix.sh
+	fix_profile.sh
+	fix_telegram.sh
+	fix_telegram_proper.sh
+	git_status.txt
+	git_status_after.txt
+	git_status_final.txt
+	roulette_example.txt
+	roulette_fix.js
+	telegram_fix.js
+	updates/
+	webapp.html.backup
+	webapp.html.backup.before_roulette
+	webapp.html.bak
+	webapp.html.roulette_backup
+	webapp.html.telegram-fix
+	webapp_update.html
+
+nothing added to commit but untracked files present (use "git add" to track)

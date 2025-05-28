@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk NFT Case Roulette</title>
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0a0a14;
+            color: #e0e0ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 200, 0.05) 0%, transparent 20%);
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        h1 {
+            color: transparent;
+            background: linear-gradient(90deg, #00f0ff, #ff00c8);
+            -webkit-background-clip: text;
+            font-size: 3rem;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(255, 0, 200, 0.3);
+        }
+        
+        .roulette-container {
+            position: relative;
+            width: 600px;
+            height: 300px;
+            margin: 0 auto 30px;
+            perspective: 1000px;
+        }
+        
+        .roulette-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            border-radius: 10px;
+            box-shadow: 
+                0 0 10px rgba(0, 240, 255, 0.5),
+                0 0 20px rgba(255, 0, 200, 0.3),
+                inset 0 0 15px rgba(0, 240, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .roulette {
+            display: flex;
+            position: absolute;
+            height: 100%;
+            transform: translateX(0);
+        }
+        
+        .item {
+            flex: 0 0 200px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(0, 240, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: rgba(10, 10, 20, 0.8);
+        }
+        
+        .item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.5), transparent);
+        }
+        
+        .item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 200, 0.5), transparent);
+        }
+        
+        .item-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        
+        .item-content img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.7));
+        }
+        
+        .item-name {
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.7);
+        }
+        
+        .item-rarity {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        
+        .legendary {
+            background: linear-gradient(90deg, #ffaa00, #ff5500);
+            color: #000;
+        }
+        
+        .epic {
+            background: linear-gradient(90deg, #aa00ff, #ff00aa);
+            color: #fff;
+        }
+        
+        .rare {
+            background: linear-gradient(90deg, #0088ff, #00ffaa);
+            color: #000;
+        }
+        
+        .uncommon {
+            background: linear-gradient(90deg, #00ff88, #88ff00);
+            color: #000;
+        }
+        
+        .common {
+            background: linear-gradient(90deg, #aaaaaa, #ffffff);
+            color: #000;
+        }
+        
+        .pointer-top, .pointer-bottom {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            z-index: 10;
+        }
+        
+        .pointer-top {
+            top: -15px;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #00f0ff;
+            filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.7));
+        }
+        
+        .pointer-bottom {
+            bottom: -15px;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid #ff00c8;
+            filter: drop-shadow(0 0 5px rgba(255, 0, 200, 0.7));
+        }
+        
+        .center-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: linear-gradient(to bottom, #00f0ff, #ff00c8);
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 20px rgba(255, 0, 200, 0.5);
+        }
+        
+        button {
+            background: linear-gradient(90deg, #00f0ff, #ff00c8);
+            color: #0a0a14;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.5), 0 0 30px rgba(255, 0, 200, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        
+        button:hover::before {
+            opacity: 1;
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(255, 0, 200, 0.5);
+        }
+        
+        button:disabled {
+            background: linear-gradient(90deg, #555555, #888888);
+            cursor: not-allowed;
+            transform: scale(1);
+            box-shadow: none;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(10, 10, 20, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 1s;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3), 0 0 30px rgba(255, 0, 200, 0.2);
+            max-width: 400px;
+        }
+        
+        .result h2 {
+            color: transparent;
+            background: linear-gradient(90deg, #00f0ff, #ff00c8);
+            -webkit-background-clip: text;
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+        
+        .result img {
+            max-width: 120px;
+            max-height: 120px;
+            margin: 15px;
+            filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.7));
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+        
+        .star-rating {
+            display: flex;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .star {
+            color: #ffaa00;
+            font-size: 1.5rem;
+            margin: 0 2px;
+            text-shadow: 0 0 5px rgba(255, 170, 0, 0.7);
+        }
+        
+        .glitch-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 240, 255, 0.05);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+        
+        @keyframes glitch {
+            0% { opacity: 0; }
+            10% { opacity: 0.1; transform: translate(-5px, 0); }
+            20% { opacity: 0; }
+            50% { opacity: 0.1; transform: translate(5px, 0); }
+            60% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+        
+        .loading-text {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: none;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @font-face {
+            font-family: 'Rajdhani';
+            font-style: normal;
+            font-weight: 400;
+            src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7p4HMA.woff2) format('woff2');
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cyberpunk NFT Roulette</h1>
+        
+        <div class="roulette-container">
+            <div class="pointer-top"></div>
+            <div class="pointer-bottom"></div>
+            <div class="roulette-wrapper">
+                <div class="center-line"></div>
+                <div class="glitch-effect"></div>
+                <div class="roulette" id="roulette"></div>
+            </div>
+            <div class="loading-text" id="loadingText">INITIALIZING BLOCKCHAIN CONNECTION...</div>
+        </div>
+        
+        <button id="openBtn">Open Case</button>
+        
+        <div class="result" id="result">
+            <h2>Congratulations!</h2>
+            <p>You received:</p>
+            <div id="prizeImage"></div>
+            <div id="prizeName" class="item-name"></div>
+            <div id="prizeRarity"></div>
+            <div class="star-rating" id="starRating"></div>
+        </div>
+    </div>
+
+    <script>
+        // Products for the roulette with NFT-style items
+        const products = [
+            { 
+                name: "Cyber Katana", 
+                image: "https://placehold.co/200x200/00f0ff/111111?text=Cyber+Katana", 
+                rarity: "legendary",
+                stars: 5
+            },
+            { 
+                name: "Neon Visor", 
+                image: "https://placehold.co/200x200/ff00c8/111111?text=Neon+Visor", 
+                rarity: "epic",
+                stars: 4
+            },
+            { 
+                name: "Holographic Gloves", 
+                image: "https://placehold.co/200x200/00ff88/111111?text=Holo+Gloves", 
+                rarity: "rare",
+                stars: 3
+            },
+            { 
+                name: "Digital Soul", 
+                image: "https://placehold.co/200x200/aa00ff/111111?text=Digital+Soul", 
+                rarity: "epic",
+                stars: 4
+            },
+            { 
+                name: "Quantum Pistol", 
+                image: "https://placehold.co/200x200/ffaa00/111111?text=Quantum+Pistol", 
+                rarity: "legendary",
+                stars: 5
+            },
+            { 
+                name: "Neural Implant", 
+                image: "https://placehold.co/200x200/0088ff/111111?text=Neural+Implant", 
+                rarity: "rare",
+                stars: 3
+            },
+            { 
+                name: "Synth Boots", 
+                image: "https://placehold.co/200x200/88ff00/111111?text=Synth+Boots", 
+                rarity: "uncommon",
+                stars: 2
+            },
+            { 
+                name: "Data Shard", 
+                image: "https://placehold.co/200x200/aaaaaa/111111?text=Data+Shard", 
+                rarity: "common",
+                stars: 1
+            },
+            { 
+                name: "Plasma Rifle", 
+                image: "https://placehold.co/200x200/ff5500/111111?text=Plasma+Rifle", 
+                rarity: "legendary",
+                stars: 5
+            },
+            { 
+                name: "Techno Mask", 
+                image: "https://placehold.co/200x200/00ffaa/111111?text=Techno+Mask", 
+                rarity: "rare",
+                stars: 3
+            }
+        ];
+
+        // Create roulette items
+        const roulette = document.getElementById('roulette');
+        const itemWidth = 200; // Width of each item in pixels
+        
+        // Create multiple copies of items to make the roulette longer
+        const totalItems = products.length * 3; // 3 copies of each item
+        const rouletteWidth = totalItems * itemWidth;
+        roulette.style.width = rouletteWidth + 'px';
+        
+        for (let i = 0; i < 3; i++) {
+            products.forEach((product, index) => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                
+                const content = document.createElement('div');
+                content.className = 'item-content';
+                
+                const img = document.createElement('img');
+                img.src = product.image;
+                img.alt = product.name;
+                
+                const name = document.createElement('div');
+                name.className = 'item-name';
+                name.textContent = product.name;
+                
+                const rarity = document.createElement('div');
+                rarity.className = `item-rarity ${product.rarity}`;
+                rarity.textContent = product.rarity.toUpperCase();
+                
+                content.appendChild(img);
+                content.appendChild(name);
+                content.appendChild(rarity);
+                item.appendChild(content);
+                roulette.appendChild(item);
+            });
+        }
+
+        // Roulette functionality
+        const openBtn = document.getElementById('openBtn');
+        const resultDiv = document.getElementById('result');
+        const prizeImage = document.getElementById('prizeImage');
+        const prizeName = document.getElementById('prizeName');
+        const prizeRarity = document.getElementById('prizeRarity');
+        const starRating = document.getElementById('starRating');
+        const glitchEffect = document.querySelector('.glitch-effect');
+        const loadingText = document.getElementById('loadingText');
+        
+        // Initial position - center the roulette
+        const initialOffset = (rouletteWidth / 2) - (window.innerWidth / 2);
+        roulette.style.transform = `translateX(-${initialOffset}px)`;
+        
+        openBtn.addEventListener('click', () => {
+            // Disable button during spin
+            openBtn.disabled = true;
+            resultDiv.style.display = 'none';
+            loadingText.style.display = 'block';
+            loadingText.textContent = 'CONNECTING TO BLOCKCHAIN...';
+            loadingText.style.animation = 'blink 1s infinite';
+            
+            // Trigger glitch effect
+            glitchEffect.style.animation = 'glitch 2s';
+            
+            // Get current position
+            const currentTransform = window.getComputedStyle(roulette).getPropertyValue('transform');
+            const matrix = new DOMMatrix(currentTransform);
+            const currentX = matrix.m41;
+            
+            // Random product selection
+            const randomIndex = Math.floor(Math.random() * products.length);
+            const winner = products[randomIndex];
+            
+            // Calculate final position
+            const centerPosition = window.innerWidth / 2;
+            const itemPosition = (randomIndex + products.length) * itemWidth; // Use the middle set of items
+            const finalOffset = itemPosition - centerPosition + (itemWidth / 2);
+            
+            // Add some randomness to make it look more natural
+            const randomOffset = Math.random() * 10 - 5;
+            const targetX = -(finalOffset + randomOffset);
+            
+            // Animation duration
+            const duration = 7000; // 7 seconds
+            
+            // Start time of animation
+            const startTime = performance.now();
+            // Starting position
+            const startX = currentX;
+            
+            // Always move left (negative direction)
+            // We want to ensure we're always moving in the same direction (left)
+            // and that the items cycle properly
+            
+            // Calculate how far we need to move to reach the target
+            let totalDistance;
+            
+            // If target is to the right of current position, we need to go left (negative)
+            // by wrapping around the entire roulette
+            if (targetX > startX) {
+                totalDistance = targetX - startX - rouletteWidth;
+            } else {
+                // If target is already to the left, just go directly there
+                totalDistance = targetX - startX;
+            }
+            
+            // Ensure we move at least 3000px for a good spin effect
+            if (Math.abs(totalDistance) < 3000) {
+                // Add additional full rotations to ensure minimum distance
+                const additionalRotations = Math.ceil((3000 - Math.abs(totalDistance)) / rouletteWidth);
+                totalDistance -= additionalRotations * rouletteWidth;
+            }
+            
+            // Animation function
+            function animateSpin(currentTime) {
+                // Calculate elapsed time
+                const elapsedTime = currentTime - startTime;
+                
+                if (elapsedTime < duration) {
+                    // Calculate progress (0 to 1)
+                    const progress = elapsedTime / duration;
+                    
+                    // Easing function - starts fast, slows down (ease-out)
+                    // Using cubic ease-out for smooth deceleration
+                    const easedProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    // Calculate current position
+                    let currentPosition = startX + (totalDistance * easedProgress);
+                    
+                    // Handle cycling of the roulette
+                    // If we've moved past the end of the roulette, wrap around
+                    // This ensures the items are always visible during scrolling
+                    const normalizedPosition = currentPosition % rouletteWidth;
+                    
+                    // Apply the new position
+                    roulette.style.transform = `translateX(${normalizedPosition}px)`;
+                    
+                    // Continue animation
+                    requestAnimationFrame(animateSpin);
+                    
+                    // Update loading text during animation
+                    if (elapsedTime > 2000 && elapsedTime < 3000) {
+                        loadingText.textContent = 'VERIFYING TRANSACTION...';
+                    } else if (elapsedTime > 3000) {
+                        loadingText.textContent = 'GENERATING NFT...';
+                    }
+                } else {
+                    // Animation complete - ensure we're exactly at target position
+                    roulette.style.transform = `translateX(${targetX}px)`;
+                    
+                    // Show result
+                    setTimeout(() => {
+                        // Prepare result display
+                        prizeImage.innerHTML = '';
+                        starRating.innerHTML = '';
+                        
+                        const img = document.createElement('img');
+                        img.src = winner.image;
+                        img.alt = winner.name;
+                        prizeImage.appendChild(img);
+                        
+                        prizeName.textContent = winner.name;
+                        
+                        const rarityEl = document.createElement('div');
+                        rarityEl.className = `item-rarity ${winner.rarity}`;
+                        rarityEl.textContent = winner.rarity.toUpperCase();
+                        prizeRarity.innerHTML = '';
+                        prizeRarity.appendChild(rarityEl);
+                        
+                        // Add star rating
+                        for (let i = 0; i < winner.stars; i++) {
+                            const star = document.createElement('div');
+                            star.className = 'star';
+                            star.textContent = '★';
+                            starRating.appendChild(star);
+                        }
+                        
+                        resultDiv.style.display = 'block';
+                        openBtn.disabled = false;
+                        loadingText.style.display = 'none';
+                        
+                        // Create confetti effect
+                        createConfetti(winner.rarity);
+                    }, 500);
+                }
+            }
+            
+            // Start the animation
+            requestAnimationFrame(animateSpin);
+        });
+        
+        // Confetti effect
+        function createConfetti(rarity) {
+            const container = document.querySelector('.container');
+            const colors = {
+                legendary: ['#ffaa00', '#ff5500', '#ffcc00'],
+                epic: ['#aa00ff', '#ff00aa', '#cc00ff'],
+                rare: ['#0088ff', '#00ffaa', '#00ccff'],
+                uncommon: ['#00ff88', '#88ff00', '#aaff00'],
+                common: ['#aaaaaa', '#ffffff', '#cccccc']
+            };
+            
+            const particleCount = rarity === 'legendary' ? 150 : 
+                                rarity === 'epic' ? 100 :
+                                rarity === 'rare' ? 70 :
+                                rarity === 'uncommon' ? 40 : 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random position, color, and animation
+                confetti.style.left = Math.random() * 100 + 'vw';
+                const colorArray = colors[rarity] || colors.common;
+                confetti.style.backgroundColor = colorArray[Math.floor(Math.random() * colorArray.length)];
+                confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+                confetti.style.opacity = '1';
+                confetti.style.transform = `translateY(0) rotate(${Math.random() * 360}deg)`;
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                
+                // Add keyframe animation dynamically
+                const keyframes = `
+                    @keyframes fall {
+                        to {
+                            transform: translateY(100vh) rotate(${Math.random() * 360 + 360}deg);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                
+                const style = document.createElement('style');
+                style.innerHTML = keyframes;
+                document.head.appendChild(style);
+                
+                container.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                    style.remove();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

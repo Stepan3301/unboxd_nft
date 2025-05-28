@@ -20,9 +20,10 @@ TOKEN = "7548063060:AAFRPyueo070wzlN-Ui0MzKGLXiz1YcUK5U"
 WEBAPP_URL = "https://stepan3301.github.io/unboxd_nft/webapp.html"
 
 # Supabase credentials - replace with your own
-SUPABASE_URL = "YOUR_SUPABASE_URL"
-SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"
+SUPABASE_URL = "https://vjlsmlkwoiwpercoljfo.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 async def register_user(user):
     """Register user in the database if they don't exist yet"""

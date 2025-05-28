@@ -166,7 +166,7 @@ $$;
 -- Updates balance in the 'balances' table.
 CREATE OR REPLACE FUNCTION add_coins_to_user(
     p_telegram_id BIGINT,
-    p_amount_to_add NUMERIC(15,2) -- Changed to NUMERIC to match balances.amount
+    p_amount NUMERIC(15,2) -- Changed p_amount_to_add to p_amount
 ) RETURNS NUMERIC(15,2)
 LANGUAGE plpgsql
 AS $$
@@ -182,7 +182,7 @@ BEGIN
     END IF;
 
     UPDATE public.balances
-    SET amount = amount + p_amount_to_add,
+    SET amount = amount + p_amount, -- Use p_amount here
         updated_at = NOW()
     WHERE user_id = v_user_id
     RETURNING amount INTO v_new_balance;
@@ -259,36 +259,48 @@ END;
 $$;
 
 
--- Function: get_user_inventory (Seems largely compatible, ensure FK to users.telegram_id if possible or join via users.id)
+-- Function: get_user_inventory (Temporary JSONB return for debugging)
 CREATE OR REPLACE FUNCTION get_user_inventory(
     p_telegram_id BIGINT
-) RETURNS TABLE (
-    skin_name TEXT,
-    skin_image TEXT,
-    skin_tier INT,
-    acquired_date TIMESTAMP WITH TIME ZONE,
-    unique_id UUID
-) 
+) RETURNS JSONB -- Changed from TABLE to JSONB
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_item_count INTEGER;
+    v_inventory_json JSONB;
 BEGIN
-    RETURN QUERY
-    SELECT 
-        ui.skin_name,
-        ui.skin_image,
-        ui.skin_tier,
-        ui.acquired_date,
-        ui.unique_id
-    FROM 
-        public.user_inventory ui
-    WHERE 
-        ui.telegram_id = p_telegram_id -- Assumes user_inventory directly uses telegram_id
-    ORDER BY 
-        ui.acquired_date DESC;
+    RAISE NOTICE '[get_user_inventory_jsonb] Called with p_telegram_id: %', p_telegram_id;
+
+    SELECT count(*) INTO v_item_count FROM public.user_inventory ui WHERE ui.telegram_id = p_telegram_id;
+    RAISE NOTICE '[get_user_inventory_jsonb] Count for p_telegram_id % in user_inventory table is: %', p_telegram_id, v_item_count;
+
+    IF v_item_count > 0 THEN
+        RAISE NOTICE '[get_user_inventory_jsonb] Found % items. Proceeding to aggregate to JSONB for p_telegram_id %.', v_item_count, p_telegram_id;
+        SELECT jsonb_agg(t) INTO v_inventory_json FROM (
+            SELECT 
+                ui.skin_name,
+                ui.skin_image,
+                ui.skin_tier,
+                ui.acquired_date,
+                ui.unique_id
+            FROM 
+                public.user_inventory ui
+            WHERE 
+                ui.telegram_id = p_telegram_id
+            ORDER BY 
+                ui.acquired_date DESC
+        ) t;
+    ELSE
+        RAISE NOTICE '[get_user_inventory_jsonb] No items found for p_telegram_id %. Will return empty JSON array.', p_telegram_id;
+        v_inventory_json := '[]'::JSONB;
+    END IF;
+
+    RAISE NOTICE '[get_user_inventory_jsonb] Returning: %', v_inventory_json;
+    RETURN v_inventory_json;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE NOTICE 'Error in get_user_inventory: %', SQLERRM;
-        RETURN;
+        RAISE NOTICE '[get_user_inventory_jsonb] ERROR: %', SQLERRM;
+        RETURN jsonb_build_object('error', SQLERRM); 
 END;
 $$;
 
@@ -498,7 +510,7 @@ $$;
 -- Uses the revised add_coins_to_user (which maps to update_balance on the 'balances' table)
 CREATE OR REPLACE FUNCTION claim_reward(
     p_telegram_id BIGINT,
-    p_amount_to_claim INT DEFAULT 50 -- Renamed for clarity, will be NUMERIC in add_coins_to_user
+    p_amount INT DEFAULT 50 -- Changed p_amount_to_claim back to p_amount to match JS call
 ) RETURNS JSONB
 LANGUAGE plpgsql
 AS $$
@@ -528,17 +540,17 @@ BEGIN
     ) VALUES (
         p_telegram_id,
         NOW(),
-        p_amount_to_claim,
+        p_amount,
         next_available
     );
     
     -- Call add_coins_to_user, which handles the balance update
-    SELECT add_coins_to_user(p_telegram_id, p_amount_to_claim::NUMERIC) INTO current_balance_numeric;
+    SELECT add_coins_to_user(p_telegram_id, p_amount::NUMERIC) INTO current_balance_numeric;
     
     RETURN jsonb_build_object(
         'success', true,
         'message', 'Reward claimed successfully',
-        'amount', p_amount_to_claim,
+        'amount', p_amount,
         'next_available', to_char(next_available, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
         'balance', current_balance_numeric 
     );

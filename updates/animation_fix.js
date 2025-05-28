@@ -1,0 +1,126 @@
+// Fix roulette animation
+function startRouletteAnimation(finalPosition, selectedSkin) {
+    currentResultSkin = selectedSkin;
+    
+    // Set the sell price with coin icon
+    const sellPrice = skinPrices[selectedSkin.tier];
+    const sellPriceElement = document.getElementById('sell-price');
+    sellPriceElement.innerHTML = `<img src="ucoin2.png" alt="UCoin" style="width: 18px; height: 18px; margin: 0 5px;"> ${sellPrice}`;
+    
+    // Style the result name according to tier
+    const resultNameElement = document.getElementById('result-name');
+    resultNameElement.className = `tier-${selectedSkin.tier}`;
+    resultNameElement.textContent = selectedSkin.name;
+    
+    // Reset animation state
+    rouletteTrack.style.transition = 'none';
+    rouletteTrack.offsetHeight; // Force a reflow to ensure transition reset is applied
+    
+    // Set the total duration and easing
+    const totalDuration = 7000; // 7 seconds
+    
+    // Using cubic-bezier for super smooth animation
+    // This specific bezier curve will start fast and gradually slow down
+    const easingFunction = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+    
+    // Set up the animation
+    setTimeout(() => {
+        rouletteTrack.style.transition = `transform ${totalDuration}ms ${easingFunction}`;
+        rouletteTrack.style.transform = `translateX(-${finalPosition}px)`;
+    }, 50); // Small delay to ensure the transition reset is fully applied
+    
+    // When animation ends, show the result
+    setTimeout(() => {
+        // Update result display
+        resultImage.src = selectedSkin.image;
+        
+        // Show result
+        rouletteResult.classList.add('active');
+        
+        // If legendary or epic, update stats
+        if (selectedSkin.rarity === 'legendary') {
+            updateUserStat('legendary_count', 1);
+        }
+        
+        // Update NFT count
+        updateUserStat('nft_count', 1);
+        
+        // Add to user's inventory
+        addToInventory(selectedSkin);
+    }, totalDuration + 200); // Add a small buffer for animation completion
+}
+
+// Function to open case - also reset the roulette state
+async function openCase(caseId) {
+    try {
+        // Get fresh balance data first
+        const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
+            p_telegram_id: telegramId
+        });
+            
+        if (balanceError) {
+            console.error('Error getting balance:', balanceError);
+            showCustomDialog('Error retrieving your balance. Please try again.');
+            return;
+        }
+            
+        // Update the local userBalance variable with fresh data
+        userBalance = balanceData || 0;
+        updateBalanceDisplay();
+        
+        // Now check if user has enough balance
+        if (userBalance < 100) {
+            showNotEnoughBalanceDialog();
+            return;
+        }
+        
+        // Initialize roulette
+        initializeRoulette();
+        
+        // Reset roulette position and state
+        rouletteTrack.style.transition = 'none';
+        rouletteTrack.style.transform = 'translateX(0)';
+        rouletteTrack.offsetHeight; // Force a reflow
+        
+        // Hide result
+        rouletteResult.classList.remove('active');
+        
+        // Show roulette overlay
+        rouletteOverlay.classList.add('active');
+        
+        // Deduct balance
+        const success = await updateUserBalance(-100, `Opened Labubu case`, 'purchase');
+        
+        if (!success) {
+            showCustomDialog('Failed to process the transaction. Please try again.');
+            rouletteOverlay.classList.remove('active');
+            return;
+        }
+        
+        // Update cases opened stat
+        await updateUserStat('cases_opened', 1);
+        
+        // Pick a random skin based on probability
+        const selectedSkin = getRandomSkinByProbability();
+        
+        // Calculate roulette position
+        const itemWidth = 130; // item width + margin
+        const centerPosition = window.innerWidth / 2;
+        
+        // Position the selected item in the center (with the middle set of items)
+        // Find the index of the selected skin in the labubuSkins array
+        const selectedIndex = labubuSkins.findIndex(skin => skin.name === selectedSkin.name);
+        const selectedPosition = labubuSkins.length + selectedIndex; // Use the middle set of items
+        const finalPosition = selectedPosition * itemWidth - centerPosition + itemWidth / 2;
+        
+        // Add a small random offset for more natural feel
+        const randomOffset = Math.random() * 10 - 5;
+        
+        // Start the animation with gradually decreasing speed
+        startRouletteAnimation(finalPosition + randomOffset, selectedSkin);
+    } catch (err) {
+        console.error('Error in openCase:', err);
+        showCustomDialog('An error occurred. Please try again.');
+        rouletteOverlay.classList.remove('active');
+    }
+} 
