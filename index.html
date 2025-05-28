@@ -2999,9 +2999,44 @@
             const rouletteCloseBtn = document.getElementById('roulette-close');
             if (rouletteCloseBtn) {
                 rouletteCloseBtn.addEventListener('click', () => {
+                     console.log('Roulette close button clicked');
                      const rouletteOverlayEl = document.getElementById('roulette-overlay');
-                     if (rouletteOverlayEl) rouletteOverlayEl.classList.remove('active');
+                     if (rouletteOverlayEl) {
+                         rouletteOverlayEl.classList.remove('active');
+                         console.log('Roulette overlay closed');
+                     }
                 });
+            } else {
+                console.error('Roulette close button not found');
+            }
+
+            // Roulette sell button
+            const rouletteSellBtn = document.getElementById('roulette-sell');
+            if (rouletteSellBtn) {
+                rouletteSellBtn.addEventListener('click', async () => {
+                    console.log('Roulette sell button clicked');
+                    console.log('Current result skin:', currentResultSkin);
+                    
+                    if (!currentResultSkin) {
+                        console.error('No current result skin available');
+                        alert('Cannot sell this item right now. Please try again later.');
+                        return;
+                    }
+                    
+                    try {
+                        const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
+                        if (success) {
+                            console.log('Item sold successfully, closing roulette');
+                            const rouletteOverlayEl = document.getElementById('roulette-overlay');
+                            if (rouletteOverlayEl) rouletteOverlayEl.classList.remove('active');
+                        }
+                    } catch (err) {
+                        console.error('Error in sell button click handler:', err);
+                        alert('An error occurred while selling. Please try again.');
+                    }
+                });
+            } else {
+                console.error('Roulette sell button not found');
             }
 
             // Labubu Case Open Button (inside the case detail view)
@@ -4641,7 +4676,7 @@
             
             console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
             
-            // Create roulette items
+            // Create roulette items with static placeholders instead of animated Lottie players
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4649,18 +4684,15 @@
                 // Add tier-based styling
                 rouletteItem.style.borderColor = getTierColor(item.tier);
                 
+                // Use a simple static representation instead of Lottie during spin
                 rouletteItem.innerHTML = `
-                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
-                        <lottie-player
-                            src="${item.lottie}"
-                            background="transparent"
-                            speed="1"
-                            style="width: 80px; height: 80px"
-                            loop
-                            autoplay>
-                        </lottie-player>
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid ${getTierColor(item.tier)};">
+                        <div style="text-align: center; color: white; font-size: 0.8rem; padding: 5px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${getTierName(item.tier)}</div>
+                            <div style="font-size: 0.7rem; opacity: 0.8;">Tier ${item.tier}</div>
+                        </div>
                     </div>
-                    <div class="roulette-item-name tier-${item.tier}">${item.name}</div>
+                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.6rem; margin-top: 3px;">${item.name}</div>
                 `;
                 
                 rouletteTrack.appendChild(rouletteItem);
@@ -4671,6 +4703,19 @@
             });
             
             console.log(`Successfully created ${trackItems.length} roulette items`);
+        }
+        
+        // Get tier name for display
+        function getTierName(tier) {
+            switch(tier) {
+                case 1: return 'COMMON';
+                case 2: return 'RARE';
+                case 3: return 'EPIC';
+                case 4: return 'LEGENDARY';
+                case 5: return 'MYTHIC';
+                case 6: return 'DIVINE';
+                default: return 'UNKNOWN';
+            }
         }
         
         // Animate the roulette track
@@ -4801,14 +4846,29 @@
                 sellPrice.textContent = wonItem.price;
                 
                 // Store won item globally for selling functionality
-                currentResultSkin = wonItem;
+                // Make sure it has a unique_id (will be set by addItemToInventory)
+                currentResultSkin = {
+                    name: wonItem.name,
+                    tier: wonItem.tier,
+                    price: wonItem.price,
+                    lottie: wonItem.lottie,
+                    unique_id: null // Will be set by addItemToInventory
+                };
+                
+                console.log('Set currentResultSkin:', currentResultSkin);
                 
                 // Add to user inventory
                 try {
                     await addItemToInventory(wonItem);
                     console.log('Item added to inventory:', wonItem.name);
+                    console.log('Updated currentResultSkin after inventory add:', currentResultSkin);
                 } catch (error) {
                     console.error('Error adding item to inventory:', error);
+                    // Even if inventory add fails, ensure we have a sellable item
+                    if (!currentResultSkin.unique_id) {
+                        currentResultSkin.unique_id = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                        console.log('Set fallback unique_id for selling:', currentResultSkin.unique_id);
+                    }
                 }
                 
                 // Show result with proper animation
@@ -4849,7 +4909,24 @@
                     throw error;
                 }
                 
-                console.log('Item successfully added to inventory using RPC function');
+                console.log('Item successfully added to inventory using RPC function', data);
+                
+                // The RPC function should return the unique_id of the created item
+                if (data && data.unique_id) {
+                    // Store the unique_id in the current result for selling
+                    if (currentResultSkin && currentResultSkin.name === item.name) {
+                        currentResultSkin.unique_id = data.unique_id;
+                        console.log('Updated currentResultSkin with unique_id:', data.unique_id);
+                    }
+                } else {
+                    console.warn('No unique_id returned from add_skin_to_inventory RPC');
+                    // Generate a temporary unique_id for selling (fallback)
+                    const tempUniqueId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    if (currentResultSkin && currentResultSkin.name === item.name) {
+                        currentResultSkin.unique_id = tempUniqueId;
+                        console.log('Using temporary unique_id for selling:', tempUniqueId);
+                    }
+                }
                 
                 // Add to activity log
                 addActivity('case_open', {
