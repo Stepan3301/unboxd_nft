@@ -4466,8 +4466,19 @@
 
             rouletteTrack.innerHTML = ''; // Clear previous items
             rouletteResult.classList.remove('active');
+            
+            // COMPLETE cleanup of result display to prevent any caching issues
             resultImage.src = '';
+            resultImage.style.display = 'none';
             resultName.textContent = '';
+            
+            // Remove any existing lottie player from previous results
+            const resultContainer = resultImage.parentElement;
+            const oldLottiePlayer = resultContainer.querySelector('lottie-player');
+            if (oldLottiePlayer) {
+                console.log('[Roulette] Cleaning up old lottie player from previous result');
+                oldLottiePlayer.remove();
+            }
 
             const itemsCount = 50; // Number of items in the roulette strip
             const items = [];
@@ -4560,30 +4571,43 @@
                 
                 // Handle different result types - show ANIMATED version in result
                 if (wonSkin.type === 'lottie') {
-                    // For Lottie animations, replace the img with animated lottie-player
+                    // For Lottie animations, completely remove old player and create fresh one
                     const resultContainer = resultImage.parentElement;
                     resultImage.style.display = 'none';
                     
-                    // Check if lottie player already exists, if not create one
-                    let lottiePlayer = resultContainer.querySelector('lottie-player');
-                    if (!lottiePlayer) {
-                        lottiePlayer = document.createElement('lottie-player');
-                        lottiePlayer.style.width = '200px';
-                        lottiePlayer.style.height = '200px';
-                        lottiePlayer.setAttribute('background', 'transparent');
-                        lottiePlayer.setAttribute('speed', '1');
-                        lottiePlayer.setAttribute('loop', '');
-                        lottiePlayer.setAttribute('autoplay', '');
-                        resultContainer.insertBefore(lottiePlayer, resultImage);
-                    }
-                    lottiePlayer.setAttribute('src', wonSkin.image);
-                } else {
-                    // For regular images
-                    const resultContainer = resultImage.parentElement;
+                    // ALWAYS remove existing lottie player to prevent caching issues
                     const existingLottiePlayer = resultContainer.querySelector('lottie-player');
                     if (existingLottiePlayer) {
-                        existingLottiePlayer.style.display = 'none';
+                        console.log('[Roulette] Removing existing lottie player to prevent caching');
+                        existingLottiePlayer.remove();
                     }
+                    
+                    // Create a completely fresh lottie-player for this specific animation
+                    const lottiePlayer = document.createElement('lottie-player');
+                    lottiePlayer.style.width = '200px';
+                    lottiePlayer.style.height = '200px';
+                    lottiePlayer.setAttribute('background', 'transparent');
+                    lottiePlayer.setAttribute('speed', '1');
+                    lottiePlayer.setAttribute('loop', '');
+                    lottiePlayer.setAttribute('autoplay', '');
+                    
+                    // Insert the fresh player
+                    resultContainer.insertBefore(lottiePlayer, resultImage);
+                    
+                    // Use .load() method to ensure proper loading of the new animation
+                    console.log('[Roulette] Loading fresh Lottie animation:', wonSkin.image, 'for skin:', wonSkin.name);
+                    lottiePlayer.load(wonSkin.image);
+                } else {
+                    // For regular images (Labubu case)
+                    const resultContainer = resultImage.parentElement;
+                    
+                    // Remove any existing lottie player
+                    const existingLottiePlayer = resultContainer.querySelector('lottie-player');
+                    if (existingLottiePlayer) {
+                        existingLottiePlayer.remove();
+                    }
+                    
+                    // Show the regular image
                     resultImage.style.display = 'block';
                     resultImage.src = wonSkin.image;
                     resultImage.alt = wonSkin.name;
