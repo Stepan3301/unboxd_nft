@@ -4682,27 +4682,32 @@
             rouletteTrack.style.transform = 'translateX(0)';
             console.log('Cleared existing track');
             
-            // Create a sequence of items for the roulette
+            // **1. Roulette Track Length Calculation**
+            const winningIndex = 15;
+            const extraSpinsCount = 25; // Configurable constant for extra spins
+            const neededLength = winningIndex + extraSpinsCount + 1;
+            
+            console.log(`🎯 Roulette Configuration:
+                - Winning index: ${winningIndex}
+                - Extra spins count: ${extraSpinsCount}
+                - Minimum needed length: ${neededLength}`);
+            
+            // **2. Dynamic Track Generation**
             const trackItems = [];
             
-            // Add random items before the winning item
-            for (let i = 0; i < 15; i++) {
-                const randomItem = items[Math.floor(Math.random() * items.length)];
-                trackItems.push(randomItem);
+            // Fill with random items until the minimum length is reached
+            while (trackItems.length < neededLength) {
+                const randItem = items[Math.floor(Math.random() * items.length)];
+                trackItems.push(randItem);
             }
             
-            // Add the winning item
-            trackItems.push(wonItem);
+            // Overwrite the winner at the correct index
+            trackItems[winningIndex] = wonItem;
             
-            // Add more random items after
-            for (let i = 0; i < 10; i++) {
-                const randomItem = items[Math.floor(Math.random() * items.length)];
-                trackItems.push(randomItem);
-            }
+            console.log(`✅ Created track sequence with ${trackItems.length} items, winning item at index ${winningIndex}`);
+            console.log(`🚀 trackItems length: ${trackItems.length} | will spin through indices up to: ${winningIndex + extraSpinsCount}`);
             
-            console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
-            
-            // Create roulette items with actual Lottie animations for better visual experience
+            // **3. Render Track Items with Lottie Animations**
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4728,12 +4733,57 @@
                 
                 rouletteTrack.appendChild(rouletteItem);
                 
-                if (index === 15) {
-                    console.log(`Added winning item "${item.name}" at position ${index}`);
+                if (index === winningIndex) {
+                    console.log(`🎯 Added winning item "${item.name}" at position ${index}`);
                 }
             });
             
-            console.log(`Successfully created ${trackItems.length} roulette items with static styling`);
+            console.log(`✅ Successfully created ${trackItems.length} roulette items with Lottie animations`);
+            
+            // Store track length for animation function
+            rouletteTrack.dataset.trackLength = trackItems.length;
+            rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
+            
+            // **4. Optional Enhancement — Infinite Scroll Trick**
+            // For a truly endless-looking animation, we can duplicate items at the end
+            // This allows for smoother visual transitions and prevents visible track boundaries
+            const infiniteScrollEnabled = false; // Toggle for infinite scroll feature
+            
+            if (infiniteScrollEnabled && trackItems.length > 0) {
+                console.log('🔄 Applying infinite scroll enhancement...');
+                const originalLength = trackItems.length;
+                
+                // Create a second copy of trackItems for seamless looping
+                const duplicatedItems = [...trackItems];
+                
+                duplicatedItems.forEach((item, index) => {
+                    const rouletteItem = document.createElement('div');
+                    rouletteItem.className = 'roulette-item infinite-duplicate';
+                    rouletteItem.style.borderColor = getTierColor(item.tier);
+                    
+                    rouletteItem.innerHTML = `
+                        <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                            <lottie-player
+                                src="${item.lottie}"
+                                background="transparent"
+                                speed="0.8"
+                                style="width: 80px; height: 80px"
+                                loop
+                                autoplay>
+                            </lottie-player>
+                            <div style="position: absolute; top: 2px; right: 2px; background: ${getTierColor(item.tier)}; color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.5rem; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.5);">T${item.tier}</div>
+                        </div>
+                        <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1; color: ${getTierColor(item.tier)}; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.name}</div>
+                    `;
+                    
+                    rouletteTrack.appendChild(rouletteItem);
+                });
+                
+                // Update stored length to include duplicates
+                rouletteTrack.dataset.trackLength = originalLength * 2;
+                rouletteTrack.dataset.originalLength = originalLength;
+                console.log(`🔄 Infinite scroll: Extended track from ${originalLength} to ${originalLength * 2} items`);
+            }
         }
         
         // Get secondary tier color for gradients
@@ -4764,22 +4814,93 @@
         
         // Animate the roulette track
         function animateRouletteTrack(wonItem) {
+            console.log('=== STARTING ROULETTE ANIMATION ===');
             const rouletteTrack = document.getElementById('roulette-track');
-            if (!rouletteTrack) return;
+            if (!rouletteTrack) {
+                console.error('Roulette track element not found!');
+                return;
+            }
             
-            // Calculate position to land on the winning item (index 15)
+            // **1. Animation Configuration Constants**
             const itemWidth = 130; // 120px width + 10px margin
-            const winningIndex = 15;
+            const winningIndex = 15; // Winner position (must match createRouletteTrack)
             const containerWidth = window.innerWidth;
-            const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
             
-            // Add some extra spins for drama
-            const extraSpins = itemWidth * 25; // 2 full rounds
+            // **2. Get Track Information from DOM**
+            const trackLength = parseInt(rouletteTrack.dataset.trackLength) || 41; // Fallback to old default
+            const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount) || 25;
+            
+            console.log(`🎯 Animation Configuration:
+                - Track length: ${trackLength}
+                - Winning index: ${winningIndex}
+                - Configured extra spins: ${configuredExtraSpinsCount}
+                - Item width: ${itemWidth}px
+                - Container width: ${containerWidth}px`);
+            
+            // **3. Calculate Safe Animation Distance**
+            // Ensure we never spin past trackItems.length
+            const maxExtra = trackLength - winningIndex - 1;
+            const actualExtraSpinsCount = Math.min(configuredExtraSpinsCount, maxExtra);
+            
+            if (actualExtraSpinsCount !== configuredExtraSpinsCount) {
+                console.warn(`⚠️ Clamped extra spins from ${configuredExtraSpinsCount} to ${actualExtraSpinsCount} to prevent overshooting track`);
+            }
+            
+            // **4. Compute Animation Positions**
+            const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+            const extraSpins = itemWidth * actualExtraSpinsCount;
             const finalPosition = targetPosition - extraSpins;
             
-            // Apply animation
+            console.log(`🎬 Animation Calculations:
+                - Target position (winner centered): ${targetPosition}px
+                - Extra spins distance: ${extraSpins}px (${actualExtraSpinsCount} items)
+                - Final position: ${finalPosition}px`);
+            
+            // **5. Debug Logging Before Animation**
+            console.log(`🚀 trackItems length: ${trackLength} | will spin through indices up to: ${winningIndex + actualExtraSpinsCount}`);
+            
+            if (winningIndex + actualExtraSpinsCount >= trackLength) {
+                console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
+                return;
+            }
+            
+            // **6. Apply CSS Animation**
             rouletteTrack.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
             rouletteTrack.style.transform = `translateX(${finalPosition}px)`;
+            
+            console.log('✅ Roulette animation started - winner will be revealed at the center');
+            
+            // **7. Optional Infinite Scroll Reset**
+            // If infinite scroll is enabled, reset position after animation for seamless looping
+            const originalLength = rouletteTrack.dataset.originalLength;
+            if (originalLength && trackLength === originalLength * 2) {
+                console.log('🔄 Infinite scroll detected - setting up reset after animation');
+                
+                // Set up animation end listener for seamless reset
+                const handleAnimationEnd = () => {
+                    setTimeout(() => {
+                        // Remove transition temporarily
+                        rouletteTrack.style.transition = 'none';
+                        
+                        // Calculate reset position (back to start of duplicated section)
+                        const resetPosition = finalPosition + (originalLength * itemWidth);
+                        rouletteTrack.style.transform = `translateX(${resetPosition}px)`;
+                        
+                        console.log('🔄 Infinite scroll: Reset position for seamless looping');
+                        
+                        // Force reflow to apply the immediate position change
+                        rouletteTrack.offsetHeight;
+                        
+                        // Re-enable transitions for future animations
+                        setTimeout(() => {
+                            rouletteTrack.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                        }, 50);
+                    }, 100);
+                };
+                
+                // Listen for transition end
+                rouletteTrack.addEventListener('transitionend', handleAnimationEnd, { once: true });
+            }
         }
         
         // Get tier color for styling
