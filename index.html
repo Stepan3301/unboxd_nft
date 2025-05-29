@@ -1114,7 +1114,6 @@
         
         .roulette-track {
             display: flex;
-            transition: transform 7s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         }
         
         .roulette-item {
@@ -4638,34 +4637,25 @@
                 console.log('Creating roulette track...');
                 createRouletteTrack(darkAuraItems, wonItem);
                 
-                // Show roulette overlay with a slight delay to ensure everything is ready
-                setTimeout(() => {
-                    console.log('Showing roulette overlay...');
-                    rouletteOverlay.style.display = 'flex';
-                    rouletteOverlay.classList.add('active');
-                    console.log('Roulette overlay should now be visible');
-                    
-                    // Force immediate visibility for debugging
-                    rouletteOverlay.style.opacity = '1';
-                    rouletteOverlay.style.pointerEvents = 'auto';
-                    console.log('Forced roulette visibility');
-                }, 100);
+                // Show overlay immediately, then on next frame start spin
+                rouletteOverlay.style.display = 'flex';
+                rouletteOverlay.classList.add('active');
+                console.log('Roulette overlay should now be visible');
                 
-                // Start roulette animation after overlay is shown
-                setTimeout(() => {
+                // Force immediate visibility for debugging
+                rouletteOverlay.style.opacity = '1';
+                rouletteOverlay.style.pointerEvents = 'auto';
+                console.log('Forced roulette visibility');
+                
+                requestAnimationFrame(async () => {
                     console.log('Starting roulette track animation...');
-                    animateRouletteTrack(wonItem);
-                }, 600);
+                    await animateRouletteTrack(wonItem);
+                });
             } else {
                 console.error('Roulette overlay or track not found:', {
                     rouletteOverlay: !!rouletteOverlay,
                     rouletteTrack: !!rouletteTrack
                 });
-                // Fallback: show result immediately
-                console.log('Fallback: showing result immediately');
-                setTimeout(async () => {
-                    await showRouletteResult(wonItem, true);
-                }, 1000);
             }
         }
         
@@ -4680,7 +4670,6 @@
             
             // Clear existing track
             rouletteTrack.innerHTML = '';
-            rouletteTrack.style.transform = 'translateX(0)';
             console.log('Cleared existing track');
             
             // **1. Roulette Track Length Calculation**
@@ -4816,71 +4805,76 @@
         
         // Animate the roulette track
         function animateRouletteTrack(wonItem) {
-            console.log('=== STARTING ROULETTE ANIMATION ===');
-            const rouletteTrack = document.getElementById('roulette-track');
-            if (!rouletteTrack) {
-                console.error('Roulette track element not found!');
-                return;
-            }
-            
-            // **1. Animation Configuration Constants**
-            const itemWidth = 130; // 120px width + 10px margin
-            
-            // 📌 Measure the actual roulette viewport, not the full window
-            const container = document.getElementById('roulette-overlay') 
-                            || rouletteTrack.parentElement;
-            const containerWidth = container.clientWidth;
-            
-            // Read the exact same values stored at track creation
-            const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
-            const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount, 10);
-            const trackLength         = parseInt(rouletteTrack.dataset.trackLength,     10);
-            
-            console.log(`🎯 Animation Configuration:
-                - Track length: ${trackLength}
-                - Winning index: ${winningIndex}
-                - Configured extra spins: ${configuredExtraSpinsCount}
-                - Item width: ${itemWidth}px
-                - Container width: ${containerWidth}px`);
-            
-            // **3. Calculate Safe Animation Distance**
-            // Ensure we never spin past trackItems.length
-            const maxExtra = trackLength - winningIndex - 1;
-            const actualExtraSpinsCount = Math.min(configuredExtraSpinsCount, maxExtra);
-            
-            if (actualExtraSpinsCount !== configuredExtraSpinsCount) {
-                console.warn(`⚠️ Clamped extra spins from ${configuredExtraSpinsCount} to ${actualExtraSpinsCount} to prevent overshooting track`);
-            }
-            
-            // **4. Compute Animation Positions**
-            const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
-            const extraSpins = itemWidth * actualExtraSpinsCount;
-            const finalPosition = targetPosition - extraSpins;
-            
-            console.log(`🎬 Animation Calculations:
-                - Target position (winner centered): ${targetPosition}px
-                - Extra spins distance: ${extraSpins}px (${actualExtraSpinsCount} items)
-                - Final position: ${finalPosition}px`);
-            
-            // **5. Debug Logging Before Animation**
-            console.log(`🚀 trackItems length: ${trackLength} | will spin through indices up to: ${winningIndex + actualExtraSpinsCount}`);
-            
-            if (winningIndex + actualExtraSpinsCount >= trackLength) {
-                console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
-                return;
-            }
-            
-            // **6. Apply GSAP Animation**
-            gsap.to(rouletteTrack, {
-                x: finalPosition,
-                duration: 4,
-                ease: "power3.out",
-                onComplete: () => {
-                    showRouletteResult(wonItem, true);
+            return new Promise(resolve => {
+                console.log('=== STARTING ROULETTE ANIMATION ===');
+                const rouletteTrack = document.getElementById('roulette-track');
+                if (!rouletteTrack) {
+                    console.error('Roulette track element not found!');
+                    resolve();
+                    return;
                 }
+                
+                // **1. Animation Configuration Constants**
+                const itemWidth = 130; // 120px width + 10px margin
+                
+                // 📌 Measure the actual roulette viewport, not the full window
+                const container = document.getElementById('roulette-overlay') 
+                                || rouletteTrack.parentElement;
+                const containerWidth = container.clientWidth;
+                
+                // Read the exact same values stored at track creation
+                const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
+                const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount, 10);
+                const trackLength         = parseInt(rouletteTrack.dataset.trackLength,     10);
+                
+                console.log(`🎯 Animation Configuration:
+                    - Track length: ${trackLength}
+                    - Winning index: ${winningIndex}
+                    - Configured extra spins: ${configuredExtraSpinsCount}
+                    - Item width: ${itemWidth}px
+                    - Container width: ${containerWidth}px`);
+                
+                // **3. Calculate Safe Animation Distance**
+                // Ensure we never spin past trackItems.length
+                const maxExtra = trackLength - winningIndex - 1;
+                const actualExtraSpinsCount = Math.min(configuredExtraSpinsCount, maxExtra);
+                
+                if (actualExtraSpinsCount !== configuredExtraSpinsCount) {
+                    console.warn(`⚠️ Clamped extra spins from ${configuredExtraSpinsCount} to ${actualExtraSpinsCount} to prevent overshooting track`);
+                }
+                
+                // **4. Compute Animation Positions**
+                const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+                const extraSpins = itemWidth * actualExtraSpinsCount;
+                const finalPosition = targetPosition - extraSpins;
+                
+                console.log(`🎬 Animation Calculations:
+                    - Target position (winner centered): ${targetPosition}px
+                    - Extra spins distance: ${extraSpins}px (${actualExtraSpinsCount} items)
+                    - Final position: ${finalPosition}px`);
+                
+                // **5. Debug Logging Before Animation**
+                console.log(`🚀 trackItems length: ${trackLength} | will spin through indices up to: ${winningIndex + actualExtraSpinsCount}`);
+                
+                if (winningIndex + actualExtraSpinsCount >= trackLength) {
+                    console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
+                    resolve();
+                    return;
+                }
+                
+                // **6. Apply GSAP Animation**
+                gsap.to(rouletteTrack, {
+                    x: finalPosition,
+                    duration: 4,
+                    ease: "power3.out",
+                    onComplete: () => {
+                        showRouletteResult(wonItem, true);
+                        resolve();
+                    }
+                });
+                
+                console.log('✅ Roulette animation started - winner will be revealed at the center');
             });
-            
-            console.log('✅ Roulette animation started - winner will be revealed at the center');
         }
         
         // Get tier color for styling
