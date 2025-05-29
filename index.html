@@ -4717,6 +4717,11 @@
             // Overwrite the winner at the correct index
             trackItems[winningIndex] = wonItem;
             
+            // Store indices for animation
+            rouletteTrack.dataset.winningIndex    = winningIndex;
+            rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
+            rouletteTrack.dataset.trackLength     = trackItems.length;
+            
             console.log(`✅ Created track sequence with ${trackItems.length} items, winning item at index ${winningIndex}`);
             console.log(`🚀 trackItems length: ${trackItems.length} | will spin through indices up to: ${winningIndex + extraSpinsCount}`);
             
@@ -4752,10 +4757,6 @@
             });
             
             console.log(`✅ Successfully created ${trackItems.length} roulette items with Lottie animations`);
-            
-            // Store track length for animation function
-            rouletteTrack.dataset.trackLength = trackItems.length;
-            rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
             
             // **4. Optional Enhancement — Infinite Scroll Trick**
             // For a truly endless-looking animation, we can duplicate items at the end
@@ -4836,8 +4837,19 @@
             
             // **1. Animation Configuration Constants**
             const itemWidth = 130; // 120px width + 10px margin
-            const winningIndex = 15; // Winner position (must match createRouletteTrack)
             const containerWidth = window.innerWidth;
+            
+            // Read the exact same values stored at track creation
+            const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
+            const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount, 10);
+            const trackLength         = parseInt(rouletteTrack.dataset.trackLength,     10);
+            
+            console.log(`🎯 Animation Configuration:
+                - Track length: ${trackLength}
+                - Winning index: ${winningIndex}
+                - Configured extra spins: ${configuredExtraSpinsCount}
+                - Item width: ${itemWidth}px
+                - Container width: ${containerWidth}px`);
             
             // **2. Get Track Information from DOM**
             const trackLength = parseInt(rouletteTrack.dataset.trackLength) || 41; // Fallback to old default
@@ -4878,7 +4890,7 @@
             }
             
             // **6. Apply CSS Animation**
-            rouletteTrack.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+            rouletteTrack.style.transition = 'transform 4s ease-out';
             rouletteTrack.style.transform = `translateX(${finalPosition}px)`;
             
             console.log('✅ Roulette animation started - winner will be revealed at the center');
