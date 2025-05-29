@@ -13,6 +13,8 @@
     <script src="https://unpkg.com/@tonconnect/ui@2.0.2/dist/tonconnect-ui.min.js" defer></script>
     <!-- Lottie Player for animations -->
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <!-- GSAP for hardware-accelerated animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script defer>
         // Test script immediately after TON Connect SDK
         console.log('[TON Connect SDK Test] Checking for TON_CONNECT_UI.TonConnectUI immediately after its presumed load by defer...');
@@ -4655,15 +4657,6 @@
                     animateRouletteTrack(wonItem);
                 }, 600);
                 
-                // Show result after animation completes
-                setTimeout(async () => {
-                    console.log('Animation completed, showing roulette result...');
-                    
-                    // Ensure overlay remains visible
-                    rouletteOverlay.style.display = 'flex';
-                    rouletteOverlay.classList.add('active');
-                    
-                    await showRouletteResult(wonItem, true); // true for Lottie support
                     
                     // Keep overlay visible after showing result
                     console.log('Result shown, keeping overlay active');
@@ -4882,40 +4875,15 @@
                 return;
             }
             
-            // **6. Apply CSS Animation**
-            rouletteTrack.style.transition = 'transform 4s ease-out';
-            rouletteTrack.style.transform = `translateX(${finalPosition}px)`;
-            
-            console.log('✅ Roulette animation started - winner will be revealed at the center');
-            
-            // **7. Optional Infinite Scroll Reset**
-            // If infinite scroll is enabled, reset position after animation for seamless looping
-            const originalLength = rouletteTrack.dataset.originalLength;
-            if (originalLength && trackLength === originalLength * 2) {
-                console.log('🔄 Infinite scroll detected - setting up reset after animation');
-                
-                // Set up animation end listener for seamless reset
-                const handleAnimationEnd = () => {
-                    setTimeout(() => {
-                        // Remove transition temporarily
-                        rouletteTrack.style.transition = 'none';
-                        
-                        // Calculate reset position (back to start of duplicated section)
-                        const resetPosition = finalPosition + (originalLength * itemWidth);
-                        rouletteTrack.style.transform = `translateX(${resetPosition}px)`;
-                        
-                        console.log('🔄 Infinite scroll: Reset position for seamless looping');
-                        
-                        // Force reflow to apply the immediate position change
-                        rouletteTrack.offsetHeight;
-                        
-                        // Re-enable transitions for future animations
-                        setTimeout(() => {
-                            rouletteTrack.style.transition = 'transform 4s ease-out';
-                        }, 50);
-                    }, 100);
-                };
-                
+            // **6. Apply GSAP Animation**
+            gsap.to(rouletteTrack, {
+                x: finalPosition,
+                duration: 4,
+                ease: "power3.out",
+                onComplete: () => {
+                    showRouletteResult(wonItem, true);
+                }
+            });
                 // Listen for transition end
                 rouletteTrack.addEventListener('transitionend', handleAnimationEnd, { once: true });
             }
