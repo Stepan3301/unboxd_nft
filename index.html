@@ -4851,17 +4851,6 @@
                 - Item width: ${itemWidth}px
                 - Container width: ${containerWidth}px`);
             
-            // **2. Get Track Information from DOM**
-            const trackLength = parseInt(rouletteTrack.dataset.trackLength) || 41; // Fallback to old default
-            const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount) || 25;
-            
-            console.log(`🎯 Animation Configuration:
-                - Track length: ${trackLength}
-                - Winning index: ${winningIndex}
-                - Configured extra spins: ${configuredExtraSpinsCount}
-                - Item width: ${itemWidth}px
-                - Container width: ${containerWidth}px`);
-            
             // **3. Calculate Safe Animation Distance**
             // Ensure we never spin past trackItems.length
             const maxExtra = trackLength - winningIndex - 1;
@@ -4918,7 +4907,7 @@
                         
                         // Re-enable transitions for future animations
                         setTimeout(() => {
-                            rouletteTrack.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                            rouletteTrack.style.transition = 'transform 4s ease-out';
                         }, 50);
                     }, 100);
                 };
