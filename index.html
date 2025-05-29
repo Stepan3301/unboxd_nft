@@ -4837,7 +4837,11 @@
             
             // **1. Animation Configuration Constants**
             const itemWidth = 130; // 120px width + 10px margin
-            const containerWidth = window.innerWidth;
+            
+            // 📌 Measure the actual roulette viewport, not the full window
+            const container = document.getElementById('roulette-overlay') 
+                            || rouletteTrack.parentElement;
+            const containerWidth = container.clientWidth;
             
             // Read the exact same values stored at track creation
             const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
