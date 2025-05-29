@@ -4579,6 +4579,13 @@
             // Select a random item based on probability
             const wonItem = selectRandomItemByProbability(darkAuraItems);
             console.log('Dark Aura case won item:', wonItem);
+            console.log('Won item properties:', {
+                name: wonItem.name,
+                tier: wonItem.tier,
+                price: wonItem.price,
+                lottie: wonItem.lottie,
+                probability: wonItem.probability
+            });
             
             // Show roulette overlay
             const rouletteOverlay = document.getElementById('roulette-overlay');
@@ -4637,8 +4644,16 @@
                 
                 // Show result after animation completes
                 setTimeout(async () => {
-                    console.log('Showing roulette result...');
+                    console.log('Animation completed, showing roulette result...');
+                    
+                    // Ensure overlay remains visible
+                    rouletteOverlay.style.display = 'flex';
+                    rouletteOverlay.classList.add('active');
+                    
                     await showRouletteResult(wonItem, true); // true for Lottie support
+                    
+                    // Keep overlay visible after showing result
+                    console.log('Result shown, keeping overlay active');
                 }, 5000);
             } else {
                 console.error('Roulette overlay or track not found:', {
@@ -4845,7 +4860,7 @@
                     tier: wonItem.tier,
                     price: wonItem.price,
                     lottie: wonItem.lottie,
-                    unique_id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Temporary ID
+                    unique_id: generateUUID() // Generate proper UUID format
                 };
                 
                 console.log('Set currentResultSkin with temporary ID:', currentResultSkin);
@@ -4976,20 +4991,20 @@
                 } else if (data && typeof data === 'object' && !data.unique_id) {
                     // If data is an object but doesn't have unique_id, log it
                     console.log('RPC returned object without unique_id:', data);
-                    // Generate a temporary unique_id for selling (fallback)
-                    const tempUniqueId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    // Generate a proper UUID for selling (fallback)
+                    const fallbackUniqueId = generateUUID();
                     if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = tempUniqueId;
-                        console.log('Using temporary unique_id for selling:', tempUniqueId);
+                        currentResultSkin.unique_id = fallbackUniqueId;
+                        console.log('Using fallback UUID for selling:', fallbackUniqueId);
                     }
                 } else {
                     console.warn('No unique_id returned from add_skin_to_inventory RPC');
                     console.log('Data type:', typeof data, 'Data value:', data);
-                    // Generate a temporary unique_id for selling (fallback)
-                    const tempUniqueId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    // Generate a proper UUID for selling (fallback)
+                    const fallbackUniqueId = generateUUID();
                     if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = tempUniqueId;
-                        console.log('Using temporary unique_id for selling:', tempUniqueId);
+                        currentResultSkin.unique_id = fallbackUniqueId;
+                        console.log('Using fallback UUID for selling:', fallbackUniqueId);
                     }
                 }
                 
@@ -5184,6 +5199,16 @@
             }, 3000);
         }
 
+        // Generate proper UUID v4 format for database compatibility
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Enhanced Dark Aura roulette animation with probability-based selection
 
     </script>
 </body>
