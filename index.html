@@ -4656,11 +4656,6 @@
                     console.log('Starting roulette track animation...');
                     animateRouletteTrack(wonItem);
                 }, 600);
-                
-                    
-                    // Keep overlay visible after showing result
-                    console.log('Result shown, keeping overlay active');
-                }, 5000);
             } else {
                 console.error('Roulette overlay or track not found:', {
                     rouletteOverlay: !!rouletteOverlay,
@@ -4884,9 +4879,8 @@
                     showRouletteResult(wonItem, true);
                 }
             });
-                // Listen for transition end
-                rouletteTrack.addEventListener('transitionend', handleAnimationEnd, { once: true });
-            }
+            
+            console.log('✅ Roulette animation started - winner will be revealed at the center');
         }
         
         // Get tier color for styling
