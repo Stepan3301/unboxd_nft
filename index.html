@@ -1191,6 +1191,19 @@
             object-fit: contain;
         }
         
+        .roulette-result-lottie {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .roulette-result-lottie lottie-player {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
         .roulette-result-name {
             font-size: 1.2rem;
             font-weight: bold;
@@ -4971,12 +4984,13 @@
             
             const resultSection = document.getElementById('roulette-result');
             const resultImage = document.getElementById('result-image');
+            const resultImageContainer = resultSection.querySelector('.roulette-result-image');
             const resultName = document.getElementById('result-name');
             const sellPrice = document.getElementById('sell-price');
             
-            if (resultSection && resultImage && resultName && sellPrice) {
+            if (resultSection && resultImage && resultImageContainer && resultName && sellPrice) {
                 // **1. Remove any previous Lottie container for fresh start**
-                const oldLottieContainer = resultSection.querySelector('.roulette-result-lottie');
+                const oldLottieContainer = resultImageContainer.querySelector('.roulette-result-lottie');
                 if (oldLottieContainer) {
                     oldLottieContainer.remove();
                     console.log('🗑️ Removed previous Lottie container for fresh rendering');
@@ -5008,15 +5022,15 @@
                             src="${wonItem.lottie}"
                             background="transparent"
                             speed="1"
-                            style="width: 150px; height: 150px"
+                            style="width: 130px; height: 130px"
                             loop
                             autoplay>
                         </lottie-player>
                     `;
                     
-                    // Append the new container to result section
-                    resultSection.appendChild(lottieContainer);
-                    console.log('✅ Fresh Lottie container created and added to DOM');
+                    // Append the new container to the image container (not the main result section)
+                    resultImageContainer.appendChild(lottieContainer);
+                    console.log('✅ Fresh Lottie container created and added to image container');
                     
                 } else {
                     // For Labubu regular images or non-Lottie items
@@ -5050,6 +5064,7 @@
                 console.error('Roulette result elements not found:', {
                     resultSection: !!resultSection,
                     resultImage: !!resultImage,
+                    resultImageContainer: !!resultImageContainer,
                     resultName: !!resultName,
                     sellPrice: !!sellPrice
                 });
