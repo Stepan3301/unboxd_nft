@@ -4688,7 +4688,7 @@
             
             console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
             
-            // Create roulette items with static tier representations to prevent disappearing
+            // Create roulette items with actual Lottie animations for better visual experience
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4696,14 +4696,20 @@
                 // Add tier-based styling
                 rouletteItem.style.borderColor = getTierColor(item.tier);
                 
-                // Use static image with tier styling instead of Lottie during spin for better performance
+                // Use actual Lottie animations with proper fallback
                 rouletteItem.innerHTML = `
-                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, ${getTierColor(item.tier)}15, ${getTierColor(item.tier)}35); border-radius: 10px; position: relative; overflow: hidden; border: 2px solid ${getTierColor(item.tier)};">
-                        <div style="width: 60px; height: 60px; background: ${getTierColor(item.tier)}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
-                            ${getTierName(item.tier).charAt(0)}${item.tier}
-                        </div>
-                        <div style="position: absolute; bottom: 2px; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; padding: 1px 2px; font-size: 0.4rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <lottie-player
+                            src="${item.lottie}"
+                            background="transparent"
+                            speed="0.8"
+                            style="width: 80px; height: 80px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <div style="position: absolute; top: 2px; right: 2px; background: ${getTierColor(item.tier)}; color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.5rem; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.5);">T${item.tier}</div>
                     </div>
+                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1; color: ${getTierColor(item.tier)}; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.name}</div>
                 `;
                 
                 rouletteTrack.appendChild(rouletteItem);
@@ -5114,6 +5120,73 @@
             { name: 'Mini Oscar Phantom', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-minioscar-1983.json', type: 'lottie' },
             { name: 'Scared Cat Obelisk', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-scaredcat-18595.json', type: 'lottie' }
         ];
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            console.log(`[Toast ${type.toUpperCase()}]: ${message}`);
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            // Style the toast
+            Object.assign(toast.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                zIndex: '10000',
+                maxWidth: '300px',
+                wordWrap: 'break-word',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s ease',
+                transform: 'translateX(100%)',
+                opacity: '0'
+            });
+            
+            // Set color based on type
+            switch(type) {
+                case 'success':
+                    toast.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+                    break;
+                case 'error':
+                    toast.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                    break;
+                case 'warning':
+                    toast.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                    break;
+                default:
+                    toast.style.background = 'linear-gradient(135deg, #6c5ce7, #5f3dc4)';
+            }
+            
+            // Add to document
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+            }, 100);
+            
+            // Remove after delay
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Global variable to store the skin won from the roulette
+        let currentResultSkin = null;
 
     </script>
 </body>
