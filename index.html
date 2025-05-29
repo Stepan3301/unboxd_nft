@@ -5091,63 +5091,16 @@
                 // Use the existing add_skin_to_inventory RPC function with correct parameters including price
                 const rpcParams = {
                     p_telegram_id: telegramId,
-                    p_skin_name: item.name,
-                    p_skin_image: imagePath,
-                    p_skin_tier: item.tier,
-                    p_skin_price: item.price
+                    p_skin_name:   item.name,
+                    p_skin_image:  item.lottie || item.image || '',
+                    p_skin_tier:   item.tier,
+                    p_skin_price:  item.price
                 };
                 
-                console.log('RPC parameters:', rpcParams);
-                
                 const { data, error } = await supabase.rpc('add_skin_to_inventory', rpcParams);
-                    
-                if (error) {
-                    console.error('Error adding item to inventory:', error);
-                    console.error('Error details:', {
-                        message: error.message,
-                        details: error.details,
-                        hint: error.hint,
-                        code: error.code
-                    });
-                    showToast(`Failed to add item: ${error.message}`, 'error');
-                    throw error;
-                }
+                if (error) throw error;
                 
-                console.log('Item successfully added to inventory using RPC function');
-                console.log('RPC response data:', data);
-                
-                // The RPC function should return the unique_id of the created item
-                if (data && data.unique_id) {
-                    // Store the unique_id in the current result for selling
-                    if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = data.unique_id;
-                        console.log('Updated currentResultSkin with unique_id:', data.unique_id);
-                    }
-                } else if (data && typeof data === 'string') {
-                    // Handle case where RPC returns a simple string (like a UUID)
-                    if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = data;
-                        console.log('Updated currentResultSkin with unique_id from string:', data);
-                    }
-                } else if (data && typeof data === 'object' && !data.unique_id) {
-                    // If data is an object but doesn't have unique_id, log it
-                    console.log('RPC returned object without unique_id:', data);
-                    // Generate a proper UUID for selling (fallback)
-                    const fallbackUniqueId = generateUUID();
-                    if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = fallbackUniqueId;
-                        console.log('Using fallback UUID for selling:', fallbackUniqueId);
-                    }
-                } else {
-                    console.warn('No unique_id returned from add_skin_to_inventory RPC');
-                    console.log('Data type:', typeof data, 'Data value:', data);
-                    // Generate a proper UUID for selling (fallback)
-                    const fallbackUniqueId = generateUUID();
-                    if (currentResultSkin && currentResultSkin.name === item.name) {
-                        currentResultSkin.unique_id = fallbackUniqueId;
-                        console.log('Using fallback UUID for selling:', fallbackUniqueId);
-                    }
-                }
+                currentResultSkin.unique_id = data;
                 
                 // Add to activity log
                 addActivity('case_open', {
