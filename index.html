@@ -4688,7 +4688,7 @@
             
             console.log(`Created track sequence with ${trackItems.length} items, winning item at index 15`);
             
-            // Create roulette items with actual Lottie animations
+            // Create roulette items with static tier representations to prevent disappearing
             trackItems.forEach((item, index) => {
                 const rouletteItem = document.createElement('div');
                 rouletteItem.className = 'roulette-item';
@@ -4696,20 +4696,14 @@
                 // Add tier-based styling
                 rouletteItem.style.borderColor = getTierColor(item.tier);
                 
-                // Create the roulette item with Lottie animation
+                // Use static image with tier styling instead of Lottie during spin for better performance
                 rouletteItem.innerHTML = `
-                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <lottie-player
-                            src="${item.lottie}"
-                            background="transparent"
-                            speed="0.5"
-                            style="width: 80px; height: 80px"
-                            loop
-                            autoplay>
-                        </lottie-player>
-                        <div style="position: absolute; top: 2px; right: 2px; background: ${getTierColor(item.tier)}; color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.5rem; font-weight: bold; opacity: 0.9;">T${item.tier}</div>
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, ${getTierColor(item.tier)}15, ${getTierColor(item.tier)}35); border-radius: 10px; position: relative; overflow: hidden; border: 2px solid ${getTierColor(item.tier)};">
+                        <div style="width: 60px; height: 60px; background: ${getTierColor(item.tier)}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
+                            ${getTierName(item.tier).charAt(0)}${item.tier}
+                        </div>
+                        <div style="position: absolute; bottom: 2px; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; padding: 1px 2px; font-size: 0.4rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
                     </div>
-                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1; color: ${getTierColor(item.tier)}; font-weight: bold;">${item.name}</div>
                 `;
                 
                 rouletteTrack.appendChild(rouletteItem);
@@ -4719,7 +4713,7 @@
                 }
             });
             
-            console.log(`Successfully created ${trackItems.length} roulette items with Lottie animations`);
+            console.log(`Successfully created ${trackItems.length} roulette items with static styling`);
         }
         
         // Get secondary tier color for gradients
@@ -4918,27 +4912,48 @@
         
         // Add item to user inventory
         async function addItemToInventory(item) {
+            console.log('=== ADDING ITEM TO INVENTORY ===');
+            console.log('Item to add:', item);
+            console.log('Telegram ID:', telegramId);
+            
             if (!telegramId) {
                 console.error('No Telegram ID available for inventory update');
+                showToast('User not authenticated!', 'error');
                 return;
             }
             
             try {
+                // Prepare the image path - use lottie property for Dark Aura items
+                const imagePath = item.lottie || item.image || '';
+                console.log('Using image path:', imagePath);
+                
                 // Use the existing add_skin_to_inventory RPC function with correct parameters including price
-                const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                const rpcParams = {
                     p_telegram_id: telegramId,
                     p_skin_name: item.name,
-                    p_skin_image: item.lottie || item.image || '',
+                    p_skin_image: imagePath,
                     p_skin_tier: item.tier,
-                    p_skin_price: item.price // Adding back the price parameter
-                });
+                    p_skin_price: item.price
+                };
+                
+                console.log('RPC parameters:', rpcParams);
+                
+                const { data, error } = await supabase.rpc('add_skin_to_inventory', rpcParams);
                     
                 if (error) {
                     console.error('Error adding item to inventory:', error);
+                    console.error('Error details:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
+                    showToast(`Failed to add item: ${error.message}`, 'error');
                     throw error;
                 }
                 
-                console.log('Item successfully added to inventory using RPC function', data);
+                console.log('Item successfully added to inventory using RPC function');
+                console.log('RPC response data:', data);
                 
                 // The RPC function should return the unique_id of the created item
                 if (data && data.unique_id) {
@@ -4953,8 +4968,18 @@
                         currentResultSkin.unique_id = data;
                         console.log('Updated currentResultSkin with unique_id from string:', data);
                     }
+                } else if (data && typeof data === 'object' && !data.unique_id) {
+                    // If data is an object but doesn't have unique_id, log it
+                    console.log('RPC returned object without unique_id:', data);
+                    // Generate a temporary unique_id for selling (fallback)
+                    const tempUniqueId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    if (currentResultSkin && currentResultSkin.name === item.name) {
+                        currentResultSkin.unique_id = tempUniqueId;
+                        console.log('Using temporary unique_id for selling:', tempUniqueId);
+                    }
                 } else {
                     console.warn('No unique_id returned from add_skin_to_inventory RPC');
+                    console.log('Data type:', typeof data, 'Data value:', data);
                     // Generate a temporary unique_id for selling (fallback)
                     const tempUniqueId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     if (currentResultSkin && currentResultSkin.name === item.name) {
@@ -4970,11 +4995,24 @@
                     skinTier: item.tier
                 });
                 
+                // Show success message
+                showToast(`${item.name} added to inventory!`, 'success');
+                
                 // Refresh inventory display if user is on inventory tab
-                await getUserInventory();
+                try {
+                    await getUserInventory();
+                    console.log('Inventory refreshed successfully');
+                } catch (inventoryError) {
+                    console.error('Error refreshing inventory:', inventoryError);
+                }
                 
             } catch (err) {
                 console.error('Failed to add item to inventory:', err);
+                console.error('Error stack:', err.stack);
+                
+                // Show user-friendly error message
+                showToast('Failed to add item to inventory. Please contact support.', 'error');
+                
                 // Don't throw the error to prevent roulette from breaking
                 console.warn('Continuing despite inventory error to show roulette result');
             }
@@ -5064,6 +5102,18 @@
                 });
             }
         });
+
+        // Dark Aura skins data for preloading
+        const darkAuraSkins = [
+            { name: 'Haunted Desk Calendar', tier: 1, price: 20, image: 'LottieAnimations/cleaned-deskcalendar-280571.json', type: 'lottie' },
+            { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, image: 'LottieAnimations/cleaned-madpumpkin-7551.json', type: 'lottie' },
+            { name: 'Electric Skull', tier: 3, price: 120, image: 'LottieAnimations/cleaned-electricskull-8221.json', type: 'lottie' },
+            { name: 'Cursed Voodoo Doll', tier: 4, price: 300, image: 'LottieAnimations/cleaned-voodoodoll-7970.json', type: 'lottie' },
+            { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, image: 'LottieAnimations/cleaned-gingercookie-20477.json', type: 'lottie' },
+            { name: 'Mystical Signet Ring', tier: 5, price: 750, image: 'LottieAnimations/cleaned-signetring-14328.json', type: 'lottie' },
+            { name: 'Mini Oscar Phantom', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-minioscar-1983.json', type: 'lottie' },
+            { name: 'Scared Cat Obelisk', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-scaredcat-18595.json', type: 'lottie' }
+        ];
 
     </script>
 </body>
