@@ -4975,6 +4975,13 @@
             const sellPrice = document.getElementById('sell-price');
             
             if (resultSection && resultImage && resultName && sellPrice) {
+                // **1. Remove any previous Lottie container for fresh start**
+                const oldLottieContainer = resultSection.querySelector('.roulette-result-lottie');
+                if (oldLottieContainer) {
+                    oldLottieContainer.remove();
+                    console.log('🗑️ Removed previous Lottie container for fresh rendering');
+                }
+                
                 // Store won item globally for selling functionality FIRST
                 currentResultSkin = {
                     name: wonItem.name,
@@ -4984,40 +4991,38 @@
                     unique_id: generateUUID() // Generate proper UUID format
                 };
                 
-                console.log('Set currentResultSkin with temporary ID:', currentResultSkin);
+                console.log('Set currentResultSkin with UUID:', currentResultSkin);
                 
-                // Update result display
+                // **2. Always render a brand-new Lottie player**
                 if (isLottie && wonItem.lottie) {
-                    // For Dark Aura Lottie items, create a lottie-player
+                    console.log('🎬 Creating fresh Lottie player for:', wonItem.lottie);
+                    
+                    // Hide the regular image element
                     resultImage.style.display = 'none';
-                    let lottieContainer = resultSection.querySelector('.roulette-result-lottie');
-                    if (!lottieContainer) {
-                        lottieContainer = document.createElement('div');
-                        lottieContainer.className = 'roulette-result-lottie';
-                        lottieContainer.innerHTML = `
-                            <lottie-player
-                                src="${wonItem.lottie}"
-                                background="transparent"
-                                speed="1"
-                                style="width: 150px; height: 150px"
-                                loop
-                                autoplay>
-                            </lottie-player>
-                        `;
-                        resultImage.parentNode.appendChild(lottieContainer);
-                    } else {
-                        const lottiePlayer = lottieContainer.querySelector('lottie-player');
-                        if (lottiePlayer) {
-                            lottiePlayer.src = wonItem.lottie;
-                        }
-                        lottieContainer.style.display = 'block';
-                    }
+                    
+                    // Create fresh Lottie container every time
+                    const lottieContainer = document.createElement('div');
+                    lottieContainer.className = 'roulette-result-lottie';
+                    lottieContainer.innerHTML = `
+                        <lottie-player
+                            src="${wonItem.lottie}"
+                            background="transparent"
+                            speed="1"
+                            style="width: 150px; height: 150px"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                    `;
+                    
+                    // Append the new container to result section
+                    resultSection.appendChild(lottieContainer);
+                    console.log('✅ Fresh Lottie container created and added to DOM');
+                    
                 } else {
-                    // For Labubu regular images
+                    // For Labubu regular images or non-Lottie items
+                    console.log('🖼️ Displaying regular image for:', wonItem.name);
                     resultImage.src = wonItem.image || '';
                     resultImage.style.display = 'block';
-                    const lottieContainer = resultSection.querySelector('.roulette-result-lottie');
-                    if (lottieContainer) lottieContainer.style.display = 'none';
                 }
                 
                 resultName.textContent = wonItem.name;
