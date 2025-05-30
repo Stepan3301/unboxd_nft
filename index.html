@@ -3022,8 +3022,8 @@
                     }
                     
                     // Clear current result
-                    RouletteStateManager.clearCurrentResult();
-                    console.log('Cleared RouletteStateManager.currentResultSkin after closing roulette');
+                    currentResultSkin = null;
+                    console.log('Cleared currentResultSkin after closing roulette');
                 });
             } else {
                 console.error('Roulette close button not found');
@@ -3034,60 +3034,24 @@
             if (rouletteSellBtn) {
                 rouletteSellBtn.addEventListener('click', async () => {
                     console.log('Roulette sell button clicked');
-                    console.log('Current result skin from RouletteStateManager:', RouletteStateManager.currentResultSkin);
+                    console.log('Current result skin:', currentResultSkin);
                     
-                    if (!RouletteStateManager.currentResultSkin) {
-                        console.error('No item to sell');
-                        showToast('No item to sell!', 'error');
-                        return;
-                    }
-                    
-                    if (!RouletteStateManager.currentResultSkin.unique_id) {
-                        console.error('No unique_id found for selling in RouletteStateManager.currentResultSkin');
-                        showToast('Cannot sell this item - no ID found!', 'error');
+                    if (!currentResultSkin) {
+                        console.error('No current result skin available');
+                        alert('Cannot sell this item right now. Please try again later.');
                         return;
                     }
                     
                     try {
-                        console.log(`Attempting to sell "${RouletteStateManager.currentResultSkin.name}" with unique_id: ${RouletteStateManager.currentResultSkin.unique_id}`);
-                        
-                        // Use the remove_skin_from_inventory RPC function
-                        const { data, error } = await supabase.rpc('remove_skin_from_inventory', {
-                            p_telegram_id: telegramId,
-                            p_unique_id: RouletteStateManager.currentResultSkin.unique_id
-                        });
-                        
-                        if (error) {
-                            console.error('Error selling item:', error);
-                            showToast('Failed to sell item!', 'error');
-                            return;
+                        const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
+                        if (success) {
+                            console.log('Item sold successfully, closing roulette');
+                            const rouletteOverlayEl = document.getElementById('roulette-overlay');
+                            if (rouletteOverlayEl) rouletteOverlayEl.classList.remove('active');
                         }
-                        
-                        console.log('Item sold successfully:', data);
-                        
-                        // Add coins to user balance
-                        const coinValue = parseInt(RouletteStateManager.currentResultSkin.price) || 0;
-                        await updateUserBalance(coinValue, `Sold ${RouletteStateManager.currentResultSkin.name}`, 'sale'); // updateUserBalance used instead of updateUserCoins
-                        
-                        showToast(`Sold for ${coinValue} UCoins!`, 'success');
-                        
-                        // Close the roulette result
-                        const rouletteOverlay = document.getElementById('roulette-overlay');
-                        if (rouletteOverlay) {
-                            rouletteOverlay.style.display = 'none';
-                            rouletteOverlay.classList.remove('active');
-                        }
-                        
-                        // Clear current result using RouletteStateManager
-                        RouletteStateManager.clearCurrentResult();
-                        // console.log('Cleared RouletteStateManager.currentResultSkin after successful sale'); // Logged by clearCurrentResult
-                        
-                        // Refresh inventory and user data
-                        await getUserInventory();
-                        
                     } catch (err) {
-                        console.error('Failed to sell item:', err);
-                        showToast('Failed to sell item!', 'error');
+                        console.error('Error in sell button click handler:', err);
+                        alert('An error occurred while selling. Please try again.');
                     }
                 });
             } else {
@@ -3187,60 +3151,75 @@
         }
         
         // Setup click handlers for Dark Aura Lottie animations
-        function setupDarkAuraLottieClickHandlers() {
-            // Find all static Lottie players in the Dark Aura case
-            const darkAuraLotties = document.querySelectorAll('#darkaura-case-detail .static-lottie');
-            
-            darkAuraLotties.forEach(lottiePlayer => {
-                lottiePlayer.addEventListener('click', () => {
-                    console.log('Dark Aura Lottie clicked:', lottiePlayer.src);
+        async function setupDarkAuraLottieClickHandlers() {
+            try {
+                // Wait for the lottie-player custom element to be defined
+                await customElements.whenDefined('lottie-player');
+                console.log('lottie-player element is defined, proceeding to set up click handlers.');
+
+                // Find all static Lottie players in the Dark Aura case
+                const darkAuraLotties = document.querySelectorAll('#darkaura-case-detail .static-lottie');
+                
+                darkAuraLotties.forEach(lottiePlayer => {
+                    // Ensure the lottiePlayer itself has the methods, sometimes it takes a moment after definition
+                    if (typeof lottiePlayer.play !== 'function' || typeof lottiePlayer.stop !== 'function') {
+                        console.warn('Lottie player methods not yet available on this instance, will try again shortly or skip:', lottiePlayer.src);
+                        // Optionally, you could add a small timeout and retry, or listen for a ready event on the player itself if available
+                        return; // Skip this one for now if methods not ready
+                    }
+
+                    lottiePlayer.addEventListener('click', () => {
+                        console.log('Dark Aura Lottie clicked:', lottiePlayer.src);
+                        
+                        // Toggle between static and animated state
+                        if (lottiePlayer.classList.contains('static-lottie')) {
+                            // Start animation
+                            lottiePlayer.classList.remove('static-lottie');
+                            lottiePlayer.classList.add('animated-lottie');
+                            lottiePlayer.loop = true; // Set loop attribute
+                            lottiePlayer.autoplay = true; // Set autoplay attribute
+                            lottiePlayer.play();
+                            
+                            // Add visual feedback
+                            lottiePlayer.style.transform = 'scale(1.1)';
+                            lottiePlayer.style.transition = 'transform 0.3s ease';
+                            
+                            console.log('Started Lottie animation for:', lottiePlayer.src);
+                        } else {
+                            // Stop animation and return to static
+                            lottiePlayer.classList.remove('animated-lottie');
+                            lottiePlayer.classList.add('static-lottie');
+                            lottiePlayer.loop = false;
+                            lottiePlayer.autoplay = false;
+                            lottiePlayer.stop();
+                            
+                            // Remove visual feedback
+                            lottiePlayer.style.transform = 'scale(1)';
+                            
+                            console.log('Stopped Lottie animation for:', lottiePlayer.src);
+                        }
+                    });
                     
-                    // Toggle between static and animated state
-                    if (lottiePlayer.classList.contains('static-lottie')) {
-                        // Start animation
-                        lottiePlayer.classList.remove('static-lottie');
-                        lottiePlayer.classList.add('animated-lottie');
-                        lottiePlayer.setAttribute('loop', 'true');
-                        lottiePlayer.setAttribute('autoplay', 'true');
-                        lottiePlayer.play();
-                        
-                        // Add visual feedback
-                        lottiePlayer.style.transform = 'scale(1.1)';
-                        lottiePlayer.style.transition = 'transform 0.3s ease';
-                        
-                        console.log('Started Lottie animation for:', lottiePlayer.src);
-                    } else {
-                        // Stop animation and return to static
-                        lottiePlayer.classList.remove('animated-lottie');
-                        lottiePlayer.classList.add('static-lottie');
-                        lottiePlayer.removeAttribute('loop');
-                        lottiePlayer.removeAttribute('autoplay');
-                        lottiePlayer.stop();
-                        
-                        // Remove visual feedback
-                        lottiePlayer.style.transform = 'scale(1)';
-                        
-                        console.log('Stopped Lottie animation for:', lottiePlayer.src);
-                    }
+                    // Add hover effects
+                    lottiePlayer.addEventListener('mouseenter', () => {
+                        lottiePlayer.style.cursor = 'pointer';
+                        if (lottiePlayer.classList.contains('static-lottie')) {
+                            lottiePlayer.style.opacity = '0.8';
+                            lottiePlayer.style.transition = 'opacity 0.2s ease';
+                        }
+                    });
+                    
+                    lottiePlayer.addEventListener('mouseleave', () => {
+                        if (lottiePlayer.classList.contains('static-lottie')) {
+                            lottiePlayer.style.opacity = '1';
+                        }
+                    });
                 });
                 
-                // Add hover effects
-                lottiePlayer.addEventListener('mouseenter', () => {
-                    lottiePlayer.style.cursor = 'pointer';
-                    if (lottiePlayer.classList.contains('static-lottie')) {
-                        lottiePlayer.style.opacity = '0.8';
-                        lottiePlayer.style.transition = 'opacity 0.2s ease';
-                    }
-                });
-                
-                lottiePlayer.addEventListener('mouseleave', () => {
-                    if (lottiePlayer.classList.contains('static-lottie')) {
-                        lottiePlayer.style.opacity = '1';
-                    }
-                });
-            });
-            
-            console.log(`Setup click handlers for ${darkAuraLotties.length} Dark Aura Lottie animations`);
+                console.log(`Setup click handlers for ${darkAuraLotties.length} Dark Aura Lottie animations`);
+            } catch (error) {
+                console.error('Error setting up Dark Aura Lottie click handlers:', error);
+            }
         }
 
         // Update profile wallet display to use ucoin img instead of "UCoin" text
@@ -4064,13 +4043,13 @@
 
         // Sell button functionality
         document.getElementById('roulette-sell').addEventListener('click', async function() {
-            if (!RouletteStateManager.currentResultSkin || !RouletteStateManager.currentResultSkin.unique_id) {
+            if (!currentResultSkin || !currentResultSkin.unique_id) {
                 showCustomDialog('Cannot sell this item right now. Please try again later.');
                 return;
             }
             
             try {
-                const success = await sellNFT(RouletteStateManager.currentResultSkin.name, RouletteStateManager.currentResultSkin.tier, RouletteStateManager.currentResultSkin.unique_id);
+                const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
                 if (success) {
                     rouletteOverlay.classList.remove('active');
                 }
@@ -4430,6 +4409,12 @@
         let preloadedLottieAnimations = new Map();
         let reusableLottiePlayer = null;
         let isPreloadingLottie = false;
+        let currentRouletteState = {
+            isAnimating: false,
+            currentSkin: null,
+            animationStartTime: null,
+            transitionListenerActive: false
+        };
 
         // Enhanced Lottie preloading system for better performance
         async function preloadLottieAnimations() {
@@ -4516,7 +4501,7 @@
                 resultImage.style.display = 'block';
                 // Create a simple fallback SVG
                 resultImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNDA0MDQwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkFuaW1hdGlvbiBFcnJvcjwvdGV4dD48L3N2Zz4=';
-                resultName.textContent = `${RouletteStateManager.currentResultSkin?.name || 'Unknown Item'} (Animation Error)`;
+                resultName.textContent = `${currentRouletteState.currentSkin?.name || 'Unknown Item'} (Animation Error)`;
                 
                 // Show error notification to user
                 if (typeof showNotification === 'function') {
@@ -4543,8 +4528,8 @@
                     container.appendChild(player);
                 }
                 
-                // Update current state using RouletteStateManager
-                RouletteStateManager.setCurrentResult({ name: skinName, image: skinImage });
+                // Update current state
+                currentRouletteState.currentSkin = { name: skinName, image: skinImage };
                 
                 // Try to use preloaded animation data first
                 if (preloadedLottieAnimations.has(skinImage)) {
@@ -4575,8 +4560,18 @@
         }
 
         // Clean up event listeners to prevent memory leaks
-        // This function is now part of RouletteStateManager
-        // function cleanupEventListeners() { ... } // Removed
+        function cleanupEventListeners() {
+            const rouletteTrack = document.getElementById('roulette-track');
+            if (rouletteTrack && currentRouletteState.transitionListenerActive) {
+                // Clone the node to remove all event listeners
+                const newTrack = rouletteTrack.cloneNode(true);
+                rouletteTrack.parentNode.replaceChild(newTrack, rouletteTrack);
+                currentRouletteState.transitionListenerActive = false;
+                console.log('[Enhanced Cleanup] Event listeners cleaned up');
+            }
+        }
+
+        let currentResultSkin = null;
 
         // === CASE OPENING FUNCTIONS ===
         
@@ -4640,7 +4635,7 @@
                     console.log('Balance deducted successfully.');
                     // Balance deducted, item won. Now add to inventory and update stats.
                     await updateUserStat('cases_opened', 1); 
-                    // The showRouletteResult function (called by animateRouletteTrack) already sets RouletteStateManager.currentResultSkin.
+                    // The showRouletteResult function (called by animateRouletteTrack) already sets currentResultSkin.
                     // It should also handle adding to inventory or triggering that process.
                     // For now, we assume showRouletteResult handles the UI part of showing the item.
                     // If adding to inventory is a separate step, it should be called here.
@@ -4720,21 +4715,23 @@
                     rouletteOverlay.style.opacity = '1';
                     rouletteOverlay.style.pointerEvents = 'auto';
                     
-                    try {
-                        // Await the animation
-                        const animatedWonItem = await animateRouletteTrack(); 
-                        console.log('animateRouletteTrack completed, won item:', animatedWonItem);
-                        // Ensure the item resolved from animation matches the initially selected one for consistency, though GSAP part should be reliable.
-                        if (animatedWonItem && animatedWonItem.name === wonItem.name) {
-                           resolve(wonItem); // Resolve with the initially selected wonItem
-                        } else {
-                            console.error('Mismatch between selected item and animated item, or animation failed to return item.');
-                            reject(new Error('Animation result mismatch.'));
+                    // Wrap the call to animateRouletteTrack in requestAnimationFrame
+                    requestAnimationFrame(async () => {
+                        try {
+                            console.log('Inside requestAnimationFrame, attempting to animate roulette track...');
+                            const animatedWonItem = await animateRouletteTrack(); 
+                            console.log('animateRouletteTrack completed, won item:', animatedWonItem);
+                            if (animatedWonItem && animatedWonItem.name === wonItem.name) {
+                               resolve(wonItem);
+                            } else {
+                                console.error('Mismatch between selected item and animated item, or animation failed to return item.');
+                                reject(new Error('Animation result mismatch.'));
+                            }
+                        } catch (error) {
+                            console.error('animateRouletteTrack failed inside requestAnimationFrame:', error);
+                            reject(error); 
                         }
-                    } catch (error) {
-                        console.error('animateRouletteTrack failed:', error);
-                        reject(error); // Reject if animation fails
-                    }
+                    });
                 } else {
                     console.error('Roulette overlay or track not found:', {
                         rouletteOverlay: !!rouletteOverlay,
@@ -5105,17 +5102,16 @@
                     console.log('🗑️ Removed previous Lottie container for fresh rendering');
                 }
                 
-                // Store won item globally for selling functionality FIRST using RouletteStateManager
-                RouletteStateManager.setCurrentResult({
+                // Store won item globally for selling functionality FIRST
+                currentResultSkin = {
                     name: wonItem.name,
                     tier: wonItem.tier,
                     price: wonItem.price,
                     lottie: wonItem.lottie,
-                    image: wonItem.image, // Make sure to include image if it's not a Lottie
                     unique_id: generateUUID() // Generate proper UUID format
-                });
+                };
                 
-                // console.log('Set RouletteStateManager.currentResultSkin with UUID:', RouletteStateManager.currentResultSkin); // Already logged by setCurrentResult
+                console.log('Set currentResultSkin with UUID:', currentResultSkin);
                 
                 // **2. Always render a brand-new Lottie player**
                 if (isLottie && wonItem.lottie) {
@@ -5155,12 +5151,12 @@
                 
                 // Add to user inventory - this will update the unique_id if successful
                 try {
-                    await addItemToInventory(wonItem); // wonItem is the direct parameter, not from state manager here
+                    await addItemToInventory(wonItem);
                     console.log('Item added to inventory successfully');
-                    console.log('Final RouletteStateManager.currentResultSkin:', RouletteStateManager.currentResultSkin);
+                    console.log('Final currentResultSkin:', currentResultSkin);
                 } catch (error) {
                     console.error('Error adding item to inventory:', error);
-                    console.log('Using temporary unique_id for selling due to inventory error. Current skin:', RouletteStateManager.currentResultSkin);
+                    console.log('Using temporary unique_id for selling due to inventory error');
                 }
                 
                 // Show result with proper animation
@@ -5210,10 +5206,7 @@
                 const { data, error } = await supabase.rpc('add_skin_to_inventory', rpcParams);
                 if (error) throw error;
                 
-                // Update the unique_id in the state manager after DB confirmation
-                if (RouletteStateManager.currentResultSkin) {
-                    RouletteStateManager.currentResultSkin.unique_id = data; 
-                }
+                currentResultSkin.unique_id = data;
                 
                 // Add to activity log
                 addActivity('case_open', {
@@ -5260,9 +5253,9 @@
                         rouletteOverlay.classList.remove('active');
                     }
                     
-                    // Clear current result using RouletteStateManager
-                    RouletteStateManager.clearCurrentResult();
-                    // console.log('Cleared RouletteStateManager.currentResultSkin after closing roulette'); // Logged by clearCurrentResult
+                    // Clear current result
+                    currentResultSkin = null;
+                    console.log('Cleared currentResultSkin after closing roulette');
                 });
             }
             
@@ -5271,27 +5264,27 @@
             if (rouletteSellBtn) {
                 rouletteSellBtn.addEventListener('click', async () => {
                     console.log('=== ROULETTE SELL BUTTON CLICKED ===');
-                    console.log('Current result skin from RouletteStateManager:', RouletteStateManager.currentResultSkin);
+                    console.log('Current result skin:', currentResultSkin);
                     
-                    if (!RouletteStateManager.currentResultSkin) {
+                    if (!currentResultSkin) {
                         console.error('No item to sell');
                         showToast('No item to sell!', 'error');
                         return;
                     }
                     
-                    if (!RouletteStateManager.currentResultSkin.unique_id) {
-                        console.error('No unique_id found for selling in RouletteStateManager.currentResultSkin');
+                    if (!currentResultSkin.unique_id) {
+                        console.error('No unique_id found for selling');
                         showToast('Cannot sell this item - no ID found!', 'error');
                         return;
                     }
                     
                     try {
-                        console.log(`Attempting to sell "${RouletteStateManager.currentResultSkin.name}" with unique_id: ${RouletteStateManager.currentResultSkin.unique_id}`);
+                        console.log(`Attempting to sell "${currentResultSkin.name}" with unique_id: ${currentResultSkin.unique_id}`);
                         
                         // Use the remove_skin_from_inventory RPC function
                         const { data, error } = await supabase.rpc('remove_skin_from_inventory', {
                             p_telegram_id: telegramId,
-                            p_unique_id: RouletteStateManager.currentResultSkin.unique_id
+                            p_unique_id: currentResultSkin.unique_id
                         });
                         
                         if (error) {
@@ -5303,8 +5296,8 @@
                         console.log('Item sold successfully:', data);
                         
                         // Add coins to user balance
-                        const coinValue = parseInt(RouletteStateManager.currentResultSkin.price) || 0;
-                        await updateUserBalance(coinValue, `Sold ${RouletteStateManager.currentResultSkin.name}`, 'sale'); // updateUserBalance used instead of updateUserCoins
+                        const coinValue = parseInt(currentResultSkin.price) || 0;
+                        await updateUserCoins(coinValue);
                         
                         showToast(`Sold for ${coinValue} UCoins!`, 'success');
                         
@@ -5315,9 +5308,9 @@
                             rouletteOverlay.classList.remove('active');
                         }
                         
-                        // Clear current result using RouletteStateManager
-                        RouletteStateManager.clearCurrentResult();
-                        // console.log('Cleared RouletteStateManager.currentResultSkin after successful sale'); // Logged by clearCurrentResult
+                        // Clear current result
+                        currentResultSkin = null;
+                        console.log('Cleared currentResultSkin after successful sale');
                         
                         // Refresh inventory and user data
                         await getUserInventory();
@@ -5650,6 +5643,55 @@
             });
         }
 
+        // ... existing code ...
+        // Function to show a custom dialog (simple alert for now)
+        function showCustomDialog(title, message, isProcessing = false) { // Added isProcessing flag
+            const dialog = document.getElementById('custom-dialog');
+            const dialogTitle = dialog.querySelector('.dialog-title');
+            const dialogMessage = dialog.querySelector('.dialog-message');
+            const dialogIcon = dialog.querySelector('.dialog-icon i');
+            const dialogBtn = document.getElementById('dialog-btn');
+
+            if (dialog && dialogTitle && dialogMessage && dialogIcon) {
+                dialogTitle.textContent = title;
+                dialogMessage.textContent = message;
+
+                // Change icon based on type or add spinner for processing
+                if (isProcessing) {
+                    dialogIcon.className = 'fas fa-spinner fa-spin'; // Spinner for processing
+                    dialogBtn.style.display = 'none'; // Hide button during processing
+                } else if (title.toLowerCase().includes('error') || title.toLowerCase().includes('failed')) {
+                    dialogIcon.className = 'fas fa-times-circle'; // Error icon
+                    dialogBtn.style.display = 'block';
+                } else if (title.toLowerCase().includes('success') || title.toLowerCase().includes('congratulations')) {
+                    dialogIcon.className = 'fas fa-check-circle'; // Success icon
+                    dialogBtn.style.display = 'block';
+                } else {
+                    dialogIcon.className = 'fas fa-info-circle'; // Default info icon
+                    dialogBtn.style.display = 'block';
+                }
+                dialog.classList.add('active');
+            } else {
+                // Fallback to alert if dialog elements are not found
+                console.warn('Custom dialog elements not found, falling back to alert.');
+                alert(`${title}\n\n${message}`);
+            }
+        }
+
+        function hideCustomDialog() {
+            const dialog = document.getElementById('custom-dialog');
+            if (dialog) {
+                dialog.classList.remove('active');
+                // Restore button visibility if it was hidden
+                const dialogBtn = document.getElementById('dialog-btn');
+                if (dialogBtn) {
+                    dialogBtn.style.display = 'block'; 
+                }
+            }
+        }
+
+        // Create a proper state manager
+        // ... existing code ...
     </script>
 </body>
 </html>
