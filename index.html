@@ -4362,6 +4362,17 @@
             alert(`${title}\n\n${message}`);
         }
 
+        function hideCustomDialog() {
+            const dialog = document.getElementById('custom-dialog');
+            if (dialog) {
+                dialog.classList.remove('active');
+                // Restore button visibility if it was hidden
+                const dialogBtn = document.getElementById('dialog-btn');
+                if (dialogBtn) {
+                    dialogBtn.style.display = 'block'; 
+                }
+            }
+        }
         // Create a proper state manager
         const RouletteStateManager = {
             currentResultSkin: null,
@@ -4901,7 +4912,7 @@
         }
         
         // Animate the roulette track
-        function AnimateRouletteTrack() {
+        function animateRouletteTrack() {
     return new Promise((resolve, reject) => {
         const rouletteTrack = document.getElementById('roulette-track');
         if (!rouletteTrack) {
@@ -5678,17 +5689,6 @@
             }
         }
 
-        function hideCustomDialog() {
-            const dialog = document.getElementById('custom-dialog');
-            if (dialog) {
-                dialog.classList.remove('active');
-                // Restore button visibility if it was hidden
-                const dialogBtn = document.getElementById('dialog-btn');
-                if (dialogBtn) {
-                    dialogBtn.style.display = 'block'; 
-                }
-            }
-        }
 
         // Create a proper state manager
         // ... existing code ...
