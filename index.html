@@ -3022,8 +3022,8 @@
                     }
                     
                     // Clear current result
-                    currentResultSkin = null;
-                    console.log('Cleared currentResultSkin after closing roulette');
+                    RouletteStateManager.clearCurrentResult();
+                    console.log('Cleared RouletteStateManager.currentResultSkin after closing roulette');
                 });
             } else {
                 console.error('Roulette close button not found');
@@ -3034,24 +3034,60 @@
             if (rouletteSellBtn) {
                 rouletteSellBtn.addEventListener('click', async () => {
                     console.log('Roulette sell button clicked');
-                    console.log('Current result skin:', currentResultSkin);
+                    console.log('Current result skin from RouletteStateManager:', RouletteStateManager.currentResultSkin);
                     
-                    if (!currentResultSkin) {
-                        console.error('No current result skin available');
-                        alert('Cannot sell this item right now. Please try again later.');
+                    if (!RouletteStateManager.currentResultSkin) {
+                        console.error('No item to sell');
+                        showToast('No item to sell!', 'error');
+                        return;
+                    }
+                    
+                    if (!RouletteStateManager.currentResultSkin.unique_id) {
+                        console.error('No unique_id found for selling in RouletteStateManager.currentResultSkin');
+                        showToast('Cannot sell this item - no ID found!', 'error');
                         return;
                     }
                     
                     try {
-                        const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
-                        if (success) {
-                            console.log('Item sold successfully, closing roulette');
-                            const rouletteOverlayEl = document.getElementById('roulette-overlay');
-                            if (rouletteOverlayEl) rouletteOverlayEl.classList.remove('active');
+                        console.log(`Attempting to sell "${RouletteStateManager.currentResultSkin.name}" with unique_id: ${RouletteStateManager.currentResultSkin.unique_id}`);
+                        
+                        // Use the remove_skin_from_inventory RPC function
+                        const { data, error } = await supabase.rpc('remove_skin_from_inventory', {
+                            p_telegram_id: telegramId,
+                            p_unique_id: RouletteStateManager.currentResultSkin.unique_id
+                        });
+                        
+                        if (error) {
+                            console.error('Error selling item:', error);
+                            showToast('Failed to sell item!', 'error');
+                            return;
                         }
+                        
+                        console.log('Item sold successfully:', data);
+                        
+                        // Add coins to user balance
+                        const coinValue = parseInt(RouletteStateManager.currentResultSkin.price) || 0;
+                        await updateUserBalance(coinValue, `Sold ${RouletteStateManager.currentResultSkin.name}`, 'sale'); // updateUserBalance used instead of updateUserCoins
+                        
+                        showToast(`Sold for ${coinValue} UCoins!`, 'success');
+                        
+                        // Close the roulette result
+                        const rouletteOverlay = document.getElementById('roulette-overlay');
+                        if (rouletteOverlay) {
+                            rouletteOverlay.style.display = 'none';
+                            rouletteOverlay.classList.remove('active');
+                        }
+                        
+                        // Clear current result using RouletteStateManager
+                        RouletteStateManager.clearCurrentResult();
+                        // console.log('Cleared RouletteStateManager.currentResultSkin after successful sale'); // Logged by clearCurrentResult
+                        
+                        // Refresh inventory and user data
+                        await getUserInventory();
+                        
                     } catch (err) {
-                        console.error('Error in sell button click handler:', err);
-                        alert('An error occurred while selling. Please try again.');
+                        console.error('Failed to sell item:', err);
+                        showToast('Failed to sell item!', 'error');
                     }
                 });
             } else {
@@ -4028,13 +4064,13 @@
 
         // Sell button functionality
         document.getElementById('roulette-sell').addEventListener('click', async function() {
-            if (!currentResultSkin || !currentResultSkin.unique_id) {
+            if (!RouletteStateManager.currentResultSkin || !RouletteStateManager.currentResultSkin.unique_id) {
                 showCustomDialog('Cannot sell this item right now. Please try again later.');
                 return;
             }
             
             try {
-                const success = await sellNFT(currentResultSkin.name, currentResultSkin.tier, currentResultSkin.unique_id);
+                const success = await sellNFT(RouletteStateManager.currentResultSkin.name, RouletteStateManager.currentResultSkin.tier, RouletteStateManager.currentResultSkin.unique_id);
                 if (success) {
                     rouletteOverlay.classList.remove('active');
                 }
@@ -4347,16 +4383,53 @@
             alert(`${title}\n\n${message}`);
         }
 
+        // Create a proper state manager
+        const RouletteStateManager = {
+            currentResultSkin: null,
+            isAnimating: false,
+            transitionListenerActive: false,
+            
+            setCurrentResult(skin) {
+                this.currentResultSkin = skin;
+                console.log('Set currentResultSkin:', skin);
+            },
+            
+            clearCurrentResult() {
+                this.currentResultSkin = null;
+                console.log('Cleared currentResultSkin');
+            },
+            
+            setAnimating(state) {
+                this.isAnimating = state;
+            },
+            
+            setTransitionListenerActive(state) {
+                this.transitionListenerActive = state;
+            },
+            
+            cleanupEventListeners() {
+                const rouletteTrack = document.getElementById('roulette-track');
+                if (rouletteTrack && this.transitionListenerActive) {
+                    // Clone the node to remove all event listeners
+                    const newTrack = rouletteTrack.cloneNode(true);
+                    rouletteTrack.parentNode.replaceChild(newTrack, rouletteTrack);
+                    this.transitionListenerActive = false;
+                    console.log('Event listeners cleaned up by RouletteStateManager');
+                }
+                
+                // Kill any active GSAP animations on the rouletteTrack
+                // Ensure rouletteTrack exists before trying to kill animations on it
+                if (rouletteTrack && gsap.isTweening(rouletteTrack)) {
+                    gsap.killTweensOf(rouletteTrack);
+                    console.log('GSAP animations on rouletteTrack killed by RouletteStateManager');
+                }
+            }
+        };
+
         // Enhanced Dark Aura Case Implementation - Global Variables and Preloading System
         let preloadedLottieAnimations = new Map();
         let reusableLottiePlayer = null;
         let isPreloadingLottie = false;
-        let currentRouletteState = {
-            isAnimating: false,
-            currentSkin: null,
-            animationStartTime: null,
-            transitionListenerActive: false
-        };
 
         // Enhanced Lottie preloading system for better performance
         async function preloadLottieAnimations() {
@@ -4443,7 +4516,7 @@
                 resultImage.style.display = 'block';
                 // Create a simple fallback SVG
                 resultImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNDA0MDQwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkFuaW1hdGlvbiBFcnJvcjwvdGV4dD48L3N2Zz4=';
-                resultName.textContent = `${currentRouletteState.currentSkin?.name || 'Unknown Item'} (Animation Error)`;
+                resultName.textContent = `${RouletteStateManager.currentResultSkin?.name || 'Unknown Item'} (Animation Error)`;
                 
                 // Show error notification to user
                 if (typeof showNotification === 'function') {
@@ -4470,8 +4543,8 @@
                     container.appendChild(player);
                 }
                 
-                // Update current state
-                currentRouletteState.currentSkin = { name: skinName, image: skinImage };
+                // Update current state using RouletteStateManager
+                RouletteStateManager.setCurrentResult({ name: skinName, image: skinImage });
                 
                 // Try to use preloaded animation data first
                 if (preloadedLottieAnimations.has(skinImage)) {
@@ -4502,18 +4575,8 @@
         }
 
         // Clean up event listeners to prevent memory leaks
-        function cleanupEventListeners() {
-            const rouletteTrack = document.getElementById('roulette-track');
-            if (rouletteTrack && currentRouletteState.transitionListenerActive) {
-                // Clone the node to remove all event listeners
-                const newTrack = rouletteTrack.cloneNode(true);
-                rouletteTrack.parentNode.replaceChild(newTrack, rouletteTrack);
-                currentRouletteState.transitionListenerActive = false;
-                console.log('[Enhanced Cleanup] Event listeners cleaned up');
-            }
-        }
-
-        let currentResultSkin = null;
+        // This function is now part of RouletteStateManager
+        // function cleanupEventListeners() { ... } // Removed
 
         // === CASE OPENING FUNCTIONS ===
         
@@ -4577,7 +4640,7 @@
                     console.log('Balance deducted successfully.');
                     // Balance deducted, item won. Now add to inventory and update stats.
                     await updateUserStat('cases_opened', 1); 
-                    // The showRouletteResult function (called by animateRouletteTrack) already sets currentResultSkin.
+                    // The showRouletteResult function (called by animateRouletteTrack) already sets RouletteStateManager.currentResultSkin.
                     // It should also handle adding to inventory or triggering that process.
                     // For now, we assume showRouletteResult handles the UI part of showing the item.
                     // If adding to inventory is a separate step, it should be called here.
@@ -4685,60 +4748,54 @@
         // Create roulette track with items
         // Modified to accept chosenWinnerItem as a parameter
         function createRouletteTrack(items, chosenWinnerItem) { 
-            console.log('=== CREATING ROULETTE TRACK (Dark Aura) ===');
-            console.log('Expecting winner:', chosenWinnerItem);
-            const rouletteTrack = document.getElementById('roulette-track');
-            if (!rouletteTrack) {
-                console.error('Roulette track element not found!');
-                return;
-            }
+            console.log('=== CREATING ENHANCED ROULETTE TRACK ===');
+    const rouletteTrack = document.getElementById('roulette-track');
+    if (!rouletteTrack) {
+        console.error('Roulette track element not found!');
+        return;
+    }
+    
+    // Clear existing track
+    rouletteTrack.innerHTML = '';
+    
+    // Dynamic winning index calculation (middle of visible items + random offset)
+    const visibleItems = 7; // Approximate number of items visible in the viewport
+    const middleIndex = Math.floor(visibleItems / 2);
+    const randomOffset = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+    const winningIndex = middleIndex + randomOffset + 15; // Base index + randomization
+    
+    // Calculate track length with variable spins
+    const minSpins = 2; // Minimum number of full rotations
+    const maxSpins = 4; // Maximum number of full rotations
+    const itemsPerSpin = 20; // Approximate number of items in a full spin
+    const randomSpins = minSpins + Math.random() * (maxSpins - minSpins);
+    const extraSpinsCount = Math.floor(randomSpins * itemsPerSpin);
+    const neededLength = winningIndex + extraSpinsCount + 5; // Add buffer
+    
+    // Generate track with improved variety
+    const trackItems = [];
+    let previousItem = null;
+    
+    for (let i = 0; i < neededLength; i++) {
+        if (i === winningIndex) {
+            trackItems.push(chosenWinnerItem);
+            previousItem = chosenWinnerItem;
+        } else {
+            // Select random item, ensuring variety (avoid consecutive duplicates)
+            let randItem;
+            do {
+                randItem = items[Math.floor(Math.random() * items.length)];
+            } while (previousItem && randItem.name === previousItem.name && items.length > 1);
             
-            // Clear existing track
-            rouletteTrack.innerHTML = '';
-            console.log('Cleared existing track for Dark Aura');
-            
-            // **1. Roulette Track Length Calculation**
-            const winningIndex = 15;
-            const extraSpinsCount = 25; // Configurable constant for extra spins
-            const neededLength = winningIndex + extraSpinsCount + 1; // Ensure enough items for the winning item and spins
-            
-            console.log(`🎯 Dark Aura Roulette Configuration:
-                - Winning index: ${winningIndex}
-                - Extra spins count: ${extraSpinsCount}
-                - Minimum needed length: ${neededLength}`);
-            
-            // **2. Dynamic Track Generation**
-            const trackItems = [];
-            
-            // Fill with random items until the minimum length is reached
-            // Ensure the loop runs enough times to make space for the winning item if it's inserted at a specific index
-            for (let i = 0; i < neededLength; i++) {
-                if (i === winningIndex) {
-                    trackItems.push(chosenWinnerItem); // Insert the chosen winner at the winningIndex
-                } else {
-                    // Fill other spots with random items from the original items list
-                    const randItem = items[Math.floor(Math.random() * items.length)];
-                    trackItems.push(randItem);
-                }
-            }
-            
-             // Ensure the track is not shorter than neededLength, especially if winningIndex was near the end.
-            while (trackItems.length < neededLength) {
-                const randItem = items[Math.floor(Math.random() * items.length)];
-                trackItems.push(randItem);
-            }
-
-            // If, due to any logic flaw, the chosenWinnerItem is not at winningIndex, log error.
-            // This also handles if trackItems[winningIndex] was somehow overwritten.
-            if (trackItems[winningIndex] !== chosenWinnerItem) {
-                 console.error(`Winning item mismatch! Expected ${chosenWinnerItem.name} at index ${winningIndex}, but found ${trackItems[winningIndex] ? trackItems[winningIndex].name : 'nothing'}. Forcing correction.`);
-                 trackItems[winningIndex] = chosenWinnerItem; // Force set it
-            }
-            
-            // Store indices for animation
-            rouletteTrack.dataset.winningIndex    = winningIndex;
-            rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
-            rouletteTrack.dataset.trackLength     = trackItems.length; // This should be >= neededLength
+            trackItems.push(randItem);
+            previousItem = randItem;
+        }
+    }
+    
+    // Store metadata for animation
+    rouletteTrack.dataset.winningIndex = winningIndex;
+    rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
+    rouletteTrack.dataset.trackLength = trackItems.length;
             
             console.log(`✅ Created Dark Aura track sequence with ${trackItems.length} items, winning item '${chosenWinnerItem.name}' at index ${winningIndex}`);
             
@@ -4847,106 +4904,121 @@
         }
         
         // Animate the roulette track
-        function animateRouletteTrack() {
-            return new Promise((resolve, reject) => { // Modified to include reject
-                console.log('=== STARTING ROULETTE ANIMATION ===');
-                const rouletteTrack = document.getElementById('roulette-track');
-                if (!rouletteTrack) {
-                    console.error('Roulette track element not found!');
-                    reject(new Error('Roulette track element not found!')); // Reject on error
-                    return;
-                }
-                
-                const trackItems = rouletteTrack.trackItems; // Read back stored array
-                if (!trackItems || trackItems.length === 0) {
-                    console.error('Track items not found on rouletteTrack element or is empty!');
-                    reject(new Error('Track items not found or empty.')); // Reject on error
-                    return;
-                }
-
-                // **1. Animation Configuration Constants**
-                const itemWidth = 130; // 120px width + 10px margin
-                
-                // Measure the precise roulette viewport width
-                const container = document.querySelector('.roulette-container');
-                const containerInnerWidth = container.clientWidth; // excludes padding
-                
-                // Read the exact same values stored at track creation
-                const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
-                const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount, 10);
-                const trackLength         = parseInt(rouletteTrack.dataset.trackLength,     10);
-                
-                console.log(`🎯 Animation Configuration:
-                    - Track length: ${trackLength}
-                    - Winning index: ${winningIndex}
-                    - Configured extra spins: ${configuredExtraSpinsCount}
-                    - Item width: ${itemWidth}px
-                    - Container width: ${containerInnerWidth}px`);
-                
-                // **3. Calculate Safe Animation Distance**
-                // Ensure we never spin past trackItems.length
-                const maxExtra = trackLength - winningIndex - 1;
-                const actualExtraSpinsCount = Math.min(configuredExtraSpinsCount, maxExtra);
-                
-                if (actualExtraSpinsCount !== configuredExtraSpinsCount) {
-                    console.warn(`⚠️ Clamped extra spins from ${configuredExtraSpinsCount} to ${actualExtraSpinsCount} to prevent overshooting track`);
-                }
-                
-                // **4. Compute Animation Positions**
-                const centerOffset = (containerInnerWidth - itemWidth) / 2;
-                const targetPosition = -(winningIndex * itemWidth) + centerOffset;
-                const extraSpins = itemWidth * actualExtraSpinsCount;
-                const finalPosition = targetPosition - extraSpins;
-                
-                console.log(`🎬 Animation Calculations:
-                    - Target position (winner centered): ${targetPosition}px
-                    - Extra spins distance: ${extraSpins}px (${actualExtraSpinsCount} items)
-                    - Final position: ${finalPosition}px`);
-                
-                // **5. Debug Logging Before Animation**
-                console.log(`🚀 trackItems length: ${trackLength} | will spin through indices up to: ${winningIndex + actualExtraSpinsCount}`);
-                
-                if (winningIndex + actualExtraSpinsCount >= trackLength) {
-                    console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
-                    reject(new Error('Animation would exceed track bounds.')); // Reject on error
-                    return;
-                }
-                
-                // **6. Apply GSAP Animation**
+        function AnimateRouletteTrack() {
+    return new Promise((resolve, reject) => {
+        const rouletteTrack = document.getElementById('roulette-track');
+        if (!rouletteTrack) {
+            reject(new Error('Roulette track not found'));
+            return;
+        }
+        
+        // Get metadata
+        const winningIndex = parseInt(rouletteTrack.dataset.winningIndex) || 15;
+        const extraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount) || 25;
+        
+        // Calculate item width dynamically
+        const firstItem = rouletteTrack.querySelector('.roulette-item');
+        if (!firstItem) {
+            reject(new Error('No items in roulette track'));
+            return;
+        }
+        
+        const itemWidth = firstItem.offsetWidth + parseInt(getComputedStyle(firstItem).marginLeft) + 
+                          parseInt(getComputedStyle(firstItem).marginRight);
+        
+        // Calculate dynamic animation duration based on spins
+        const baseDuration = 2; // Base duration in seconds
+        const spinFactor = extraSpinsCount / 25; // Normalize to default value
+        const duration = baseDuration + (spinFactor * 1.5); // Longer tracks spin longer
+        
+        // Calculate target position with precise alignment
+        const targetPosition = -(winningIndex * itemWidth) + (window.innerWidth / 2) - (itemWidth / 2);
+        
+        // Clean up any existing animation
+        if (window.rouletteAnimation) {
+            window.rouletteAnimation.kill();
+        }
+        
+        // Create multi-stage animation for more realistic effect
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                // Add slight bounce at the end for better feel
                 gsap.to(rouletteTrack, {
-                    x: finalPosition,
-                    duration: 4,
-                    ease: "power3.out",
+                    x: targetPosition - 10,
+                    duration: 0.1,
+                    ease: "power1.out",
                     onComplete: () => {
-                        // Get the X offset after animation
-                        const currentX = gsap.getProperty(rouletteTrack, 'x');
-                        // Compute raw index from X
-                        const rawIndex = (-currentX + containerInnerWidth/2 - itemWidth/2) / itemWidth;
-                        // Round to the nearest item
-                        const centerIndex = Math.round(rawIndex);
-                        // Lookup the actual item
-                        const actualWon = trackItems[centerIndex];
-                        
-                        if (actualWon) {
-                            console.log('Computed winner by centerIndex:', centerIndex, actualWon);
-                            showRouletteResult(actualWon, true);
-                            resolve(actualWon); // Resolve with the winning item
-                        } else {
-                            console.error('Could not determine winning item from centerIndex:', centerIndex, 'Track items:', trackItems);
-                            // Fallback or error handling if actualWon is undefined
-                            showRouletteResult(trackItems[trackItems.length -1], true); // Show last item as a fallback
-                            reject(new Error('Could not determine winning item.')); // Reject on error
-                        }
-                    },
-                    onError: (error) => { // Added onError for GSAP
-                        console.error('GSAP animation failed:', error);
-                        reject(new Error('Roulette animation failed.'));
+                        gsap.to(rouletteTrack, {
+                            x: targetPosition,
+                            duration: 0.2,
+                            ease: "elastic.out(1, 0.3)",
+                            onComplete: () => {
+                                // Get the winning item
+                                const items = rouletteTrack.querySelectorAll('.roulette-item');
+                                const wonItem = items[winningIndex]?.dataset || {};
+                                
+                                // Highlight the winning item
+                                if (items[winningIndex]) {
+                                    gsap.to(items[winningIndex], {
+                                        scale: 1.1,
+                                        boxShadow: "0 0 20px rgba(108, 92, 231, 0.8)",
+                                        duration: 0.3,
+                                        repeat: 3,
+                                        yoyo: true
+                                    });
+                                }
+                                
+                                // Wait a moment before showing result
+                                setTimeout(() => {
+                                    // Get the actual item data from the track
+                                    const wonItemData = {
+                                        name: items[winningIndex]?.querySelector('.roulette-item-name')?.textContent,
+                                        tier: parseInt(items[winningIndex]?.dataset.tier || "1"),
+                                        price: parseInt(items[winningIndex]?.dataset.price || "0"),
+                                        lottie: items[winningIndex]?.dataset.lottie,
+                                        image: items[winningIndex]?.dataset.image
+                                    };
+                                    
+                                    // Show result and resolve promise
+                                    showRouletteResult(wonItemData, !!wonItemData.lottie);
+                                    resolve(wonItemData);
+                                }, 800);
+                            }
+                        });
                     }
                 });
-                
-                console.log('✅ Roulette animation started - winner will be revealed at the center');
-            });
-        }
+            }
+        });
+        
+        // Initial quick movement
+        timeline.set(rouletteTrack, { x: 0 });
+        
+        // Acceleration phase
+        timeline.to(rouletteTrack, {
+            x: targetPosition * 0.2,
+            duration: duration * 0.2,
+            ease: "power2.in"
+        });
+        
+        // Fast spinning phase
+        timeline.to(rouletteTrack, {
+            x: targetPosition * 0.7,
+            duration: duration * 0.5,
+            ease: "power1.inOut"
+        });
+        
+        // Deceleration phase with custom easing
+        timeline.to(rouletteTrack, {
+            x: targetPosition,
+            duration: duration * 0.3,
+            ease: "power3.out"
+        });
+        
+        // Store animation reference for cleanup
+        window.rouletteAnimation = timeline;
+    });
+}
+
         
         // Get tier color for styling
         function getTierColor(tier) {
@@ -4995,7 +5067,11 @@
         
         // Helper function to select item by probability
         function selectRandomItemByProbability(items) {
-            const totalProbability = items.reduce((sum, item) => sum + item.probability, 0);
+            let totalProbability = 0;
+            for (let item of items) {
+                totalProbability += item.probability;
+            }
+            
             let random = Math.random() * totalProbability;
             
             for (let item of items) {
@@ -5029,16 +5105,17 @@
                     console.log('🗑️ Removed previous Lottie container for fresh rendering');
                 }
                 
-                // Store won item globally for selling functionality FIRST
-                currentResultSkin = {
+                // Store won item globally for selling functionality FIRST using RouletteStateManager
+                RouletteStateManager.setCurrentResult({
                     name: wonItem.name,
                     tier: wonItem.tier,
                     price: wonItem.price,
                     lottie: wonItem.lottie,
+                    image: wonItem.image, // Make sure to include image if it's not a Lottie
                     unique_id: generateUUID() // Generate proper UUID format
-                };
+                });
                 
-                console.log('Set currentResultSkin with UUID:', currentResultSkin);
+                // console.log('Set RouletteStateManager.currentResultSkin with UUID:', RouletteStateManager.currentResultSkin); // Already logged by setCurrentResult
                 
                 // **2. Always render a brand-new Lottie player**
                 if (isLottie && wonItem.lottie) {
@@ -5078,12 +5155,12 @@
                 
                 // Add to user inventory - this will update the unique_id if successful
                 try {
-                    await addItemToInventory(wonItem);
+                    await addItemToInventory(wonItem); // wonItem is the direct parameter, not from state manager here
                     console.log('Item added to inventory successfully');
-                    console.log('Final currentResultSkin:', currentResultSkin);
+                    console.log('Final RouletteStateManager.currentResultSkin:', RouletteStateManager.currentResultSkin);
                 } catch (error) {
                     console.error('Error adding item to inventory:', error);
-                    console.log('Using temporary unique_id for selling due to inventory error');
+                    console.log('Using temporary unique_id for selling due to inventory error. Current skin:', RouletteStateManager.currentResultSkin);
                 }
                 
                 // Show result with proper animation
@@ -5133,7 +5210,10 @@
                 const { data, error } = await supabase.rpc('add_skin_to_inventory', rpcParams);
                 if (error) throw error;
                 
-                currentResultSkin.unique_id = data;
+                // Update the unique_id in the state manager after DB confirmation
+                if (RouletteStateManager.currentResultSkin) {
+                    RouletteStateManager.currentResultSkin.unique_id = data; 
+                }
                 
                 // Add to activity log
                 addActivity('case_open', {
@@ -5180,9 +5260,9 @@
                         rouletteOverlay.classList.remove('active');
                     }
                     
-                    // Clear current result
-                    currentResultSkin = null;
-                    console.log('Cleared currentResultSkin after closing roulette');
+                    // Clear current result using RouletteStateManager
+                    RouletteStateManager.clearCurrentResult();
+                    // console.log('Cleared RouletteStateManager.currentResultSkin after closing roulette'); // Logged by clearCurrentResult
                 });
             }
             
@@ -5191,27 +5271,27 @@
             if (rouletteSellBtn) {
                 rouletteSellBtn.addEventListener('click', async () => {
                     console.log('=== ROULETTE SELL BUTTON CLICKED ===');
-                    console.log('Current result skin:', currentResultSkin);
+                    console.log('Current result skin from RouletteStateManager:', RouletteStateManager.currentResultSkin);
                     
-                    if (!currentResultSkin) {
+                    if (!RouletteStateManager.currentResultSkin) {
                         console.error('No item to sell');
                         showToast('No item to sell!', 'error');
                         return;
                     }
                     
-                    if (!currentResultSkin.unique_id) {
-                        console.error('No unique_id found for selling');
+                    if (!RouletteStateManager.currentResultSkin.unique_id) {
+                        console.error('No unique_id found for selling in RouletteStateManager.currentResultSkin');
                         showToast('Cannot sell this item - no ID found!', 'error');
                         return;
                     }
                     
                     try {
-                        console.log(`Attempting to sell "${currentResultSkin.name}" with unique_id: ${currentResultSkin.unique_id}`);
+                        console.log(`Attempting to sell "${RouletteStateManager.currentResultSkin.name}" with unique_id: ${RouletteStateManager.currentResultSkin.unique_id}`);
                         
                         // Use the remove_skin_from_inventory RPC function
                         const { data, error } = await supabase.rpc('remove_skin_from_inventory', {
                             p_telegram_id: telegramId,
-                            p_unique_id: currentResultSkin.unique_id
+                            p_unique_id: RouletteStateManager.currentResultSkin.unique_id
                         });
                         
                         if (error) {
@@ -5223,8 +5303,8 @@
                         console.log('Item sold successfully:', data);
                         
                         // Add coins to user balance
-                        const coinValue = parseInt(currentResultSkin.price) || 0;
-                        await updateUserCoins(coinValue);
+                        const coinValue = parseInt(RouletteStateManager.currentResultSkin.price) || 0;
+                        await updateUserBalance(coinValue, `Sold ${RouletteStateManager.currentResultSkin.name}`, 'sale'); // updateUserBalance used instead of updateUserCoins
                         
                         showToast(`Sold for ${coinValue} UCoins!`, 'success');
                         
@@ -5235,9 +5315,9 @@
                             rouletteOverlay.classList.remove('active');
                         }
                         
-                        // Clear current result
-                        currentResultSkin = null;
-                        console.log('Cleared currentResultSkin after successful sale');
+                        // Clear current result using RouletteStateManager
+                        RouletteStateManager.clearCurrentResult();
+                        // console.log('Cleared RouletteStateManager.currentResultSkin after successful sale'); // Logged by clearCurrentResult
                         
                         // Refresh inventory and user data
                         await getUserInventory();
