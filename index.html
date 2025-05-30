@@ -4534,8 +4534,8 @@
                 // Deduct balance first
                 await updateUserBalance(-CASE_PRICE, 'Opened Labubu Case', 'case_opening');
                 
-                // Start the roulette animation
-                startRouletteAnimation('labubu');
+                // Start the enhanced roulette animation
+                await startEnhancedLabubuRouletteAnimation();
                 
             } catch (error) {
                 console.error('Error opening Labubu case:', error);
@@ -5264,6 +5264,239 @@
         }
 
         // Enhanced Dark Aura roulette animation with probability-based selection
+
+        // Enhanced Labubu roulette animation with proper roulette mechanics
+        async function startEnhancedLabubuRouletteAnimation() {
+            console.log('=== STARTING ENHANCED LABUBU ROULETTE ===');
+            
+            // Labubu case items with their properties and probabilities
+            const labubuItems = [
+                { name: 'Skeleton Labubu', tier: 1, price: 20, image: 'SkeletonLabubu.png', probability: 35 },
+                { name: 'Candy Labubu', tier: 2, price: 50, image: 'CandyLabubu.png', probability: 25 },
+                { name: 'Zombie Labubu', tier: 2, price: 50, image: 'ZombieLabubu.png', probability: 20 },
+                { name: 'Vampire Labubu', tier: 3, price: 120, image: 'VampireLabubu.png', probability: 10 },
+                { name: 'Ghost Labubu', tier: 3, price: 120, image: 'GhostLabubu.png', probability: 5 },
+                { name: 'Demon Labubu', tier: 4, price: 300, image: 'DemonLabubu.png', probability: 3 },
+                { name: 'Angel Labubu', tier: 5, price: 750, image: 'AngelLabubu.png', probability: 1.5 },
+                { name: 'Golden Labubu', tier: 6, price: 5000, image: 'GoldenLabubu.png', probability: 0.5 }
+            ];
+            
+            // Select a random item based on probability
+            const wonItem = selectRandomItemByProbability(labubuItems);
+            console.log('Labubu case won item:', wonItem);
+            console.log('Won item properties:', {
+                name: wonItem.name,
+                tier: wonItem.tier,
+                price: wonItem.price,
+                image: wonItem.image,
+                probability: wonItem.probability
+            });
+            
+            // Show roulette overlay
+            const rouletteOverlay = document.getElementById('roulette-overlay');
+            const rouletteTrack = document.getElementById('roulette-track');
+            const resultSection = document.getElementById('roulette-result');
+            
+            console.log('DOM elements found:', {
+                rouletteOverlay: !!rouletteOverlay,
+                rouletteTrack: !!rouletteTrack,
+                resultSection: !!resultSection
+            });
+            
+            if (rouletteOverlay && rouletteTrack) {
+                console.log('All DOM elements found, proceeding with Labubu roulette...');
+                
+                // Ensure overlay starts hidden
+                rouletteOverlay.style.display = 'none';
+                rouletteOverlay.classList.remove('active');
+                
+                // Update header for Labubu
+                const header = rouletteOverlay.querySelector('.roulette-header h2');
+                if (header) {
+                    header.textContent = 'Opening Labubu Case';
+                    console.log('Header updated for Labubu');
+                }
+                
+                // Hide result section initially
+                if (resultSection) {
+                    resultSection.style.display = 'none';
+                    resultSection.classList.remove('active');
+                    console.log('Result section hidden');
+                }
+                
+                // Create roulette track with Labubu items
+                console.log('Creating Labubu roulette track...');
+                createLabubuRouletteTrack(labubuItems, wonItem);
+                
+                // Show overlay immediately, then on next frame start spin
+                rouletteOverlay.style.display = 'flex';
+                rouletteOverlay.classList.add('active');
+                console.log('Labubu roulette overlay should now be visible');
+                
+                // Force immediate visibility for debugging
+                rouletteOverlay.style.opacity = '1';
+                rouletteOverlay.style.pointerEvents = 'auto';
+                console.log('Forced Labubu roulette visibility');
+                
+                requestAnimationFrame(async () => {
+                    console.log('Starting Labubu roulette track animation...');
+                    await animateLabubuRouletteTrack(wonItem);
+                });
+            } else {
+                console.error('Roulette overlay or track not found for Labubu:', {
+                    rouletteOverlay: !!rouletteOverlay,
+                    rouletteTrack: !!rouletteTrack
+                });
+            }
+        }
+        
+        // Create Labubu roulette track with items (using images instead of Lottie)
+        function createLabubuRouletteTrack(items, wonItem) {
+            console.log('=== CREATING LABUBU ROULETTE TRACK ===');
+            const rouletteTrack = document.getElementById('roulette-track');
+            if (!rouletteTrack) {
+                console.error('Roulette track element not found!');
+                return;
+            }
+            
+            // Clear existing track
+            rouletteTrack.innerHTML = '';
+            console.log('Cleared existing track for Labubu');
+            
+            // **1. Roulette Track Length Calculation**
+            const winningIndex = 15;
+            const extraSpinsCount = 25; // Configurable constant for extra spins
+            const neededLength = winningIndex + extraSpinsCount + 1;
+            
+            console.log(`🎯 Labubu Roulette Configuration:
+                - Winning index: ${winningIndex}
+                - Extra spins count: ${extraSpinsCount}
+                - Minimum needed length: ${neededLength}`);
+            
+            // **2. Dynamic Track Generation**
+            const trackItems = [];
+            
+            // Fill with random items until the minimum length is reached
+            while (trackItems.length < neededLength) {
+                const randItem = items[Math.floor(Math.random() * items.length)];
+                trackItems.push(randItem);
+            }
+            
+            // Overwrite the winner at the correct index
+            trackItems[winningIndex] = wonItem;
+            
+            // Store indices for animation
+            rouletteTrack.dataset.winningIndex    = winningIndex;
+            rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
+            rouletteTrack.dataset.trackLength     = trackItems.length;
+            
+            console.log(`✅ Created Labubu track sequence with ${trackItems.length} items, winning item at index ${winningIndex}`);
+            
+            // **3. Render Track Items with Images**
+            trackItems.forEach((item, index) => {
+                const rouletteItem = document.createElement('div');
+                rouletteItem.className = 'roulette-item';
+                
+                // Add tier-based styling
+                rouletteItem.style.borderColor = getTierColor(item.tier);
+                
+                // Use images for Labubu items
+                rouletteItem.innerHTML = `
+                    <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <img
+                            src="${item.image}"
+                            alt="${item.name}"
+                            style="width: 80px; height: 80px; object-fit: contain;"
+                            onerror="this.style.display='none'"
+                        >
+                        <div style="position: absolute; top: 2px; right: 2px; background: ${getTierColor(item.tier)}; color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.5rem; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.5);">T${item.tier}</div>
+                    </div>
+                    <div class="roulette-item-name tier-${item.tier}" style="font-size: 0.55rem; margin-top: 3px; text-align: center; line-height: 1.1; color: ${getTierColor(item.tier)}; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.name}</div>
+                `;
+                
+                rouletteTrack.appendChild(rouletteItem);
+                
+                if (index === winningIndex) {
+                    console.log(`🎯 Added winning Labubu item "${item.name}" at position ${index}`);
+                }
+            });
+            
+            console.log(`✅ Successfully created ${trackItems.length} Labubu roulette items with images`);
+        }
+        
+        // Animate the Labubu roulette track
+        function animateLabubuRouletteTrack(wonItem) {
+            return new Promise(resolve => {
+                console.log('=== STARTING LABUBU ROULETTE ANIMATION ===');
+                const rouletteTrack = document.getElementById('roulette-track');
+                if (!rouletteTrack) {
+                    console.error('Roulette track element not found!');
+                    resolve();
+                    return;
+                }
+                
+                // **1. Animation Configuration Constants**
+                const itemWidth = 130; // 120px width + 10px margin
+                
+                // 📌 Measure the actual roulette viewport, not the full window
+                const container = document.getElementById('roulette-overlay') 
+                                || rouletteTrack.parentElement;
+                const containerWidth = container.clientWidth;
+                
+                // Read the exact same values stored at track creation
+                const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
+                const configuredExtraSpinsCount = parseInt(rouletteTrack.dataset.extraSpinsCount, 10);
+                const trackLength         = parseInt(rouletteTrack.dataset.trackLength,     10);
+                
+                console.log(`🎯 Labubu Animation Configuration:
+                    - Track length: ${trackLength}
+                    - Winning index: ${winningIndex}
+                    - Configured extra spins: ${configuredExtraSpinsCount}
+                    - Item width: ${itemWidth}px
+                    - Container width: ${containerWidth}px`);
+                
+                // **3. Calculate Safe Animation Distance**
+                // Ensure we never spin past trackItems.length
+                const maxExtra = trackLength - winningIndex - 1;
+                const actualExtraSpinsCount = Math.min(configuredExtraSpinsCount, maxExtra);
+                
+                if (actualExtraSpinsCount !== configuredExtraSpinsCount) {
+                    console.warn(`⚠️ Clamped extra spins from ${configuredExtraSpinsCount} to ${actualExtraSpinsCount} to prevent overshooting track`);
+                }
+                
+                // **4. Compute Animation Positions**
+                const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+                const extraSpins = itemWidth * actualExtraSpinsCount;
+                const finalPosition = targetPosition - extraSpins;
+                
+                console.log(`🎬 Labubu Animation Calculations:
+                    - Target position (winner centered): ${targetPosition}px
+                    - Extra spins distance: ${extraSpins}px (${actualExtraSpinsCount} items)
+                    - Final position: ${finalPosition}px`);
+                
+                // **5. Debug Logging Before Animation**
+                console.log(`🚀 Labubu trackItems length: ${trackLength} | will spin through indices up to: ${winningIndex + actualExtraSpinsCount}`);
+                
+                if (winningIndex + actualExtraSpinsCount >= trackLength) {
+                    console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
+                    resolve();
+                    return;
+                }
+                
+                // **6. Apply GSAP Animation**
+                gsap.to(rouletteTrack, {
+                    x: finalPosition,
+                    duration: 4,
+                    ease: "power3.out",
+                    onComplete: () => {
+                        showRouletteResult(wonItem, false); // false for image support
+                        resolve();
+                    }
+                });
+                
+                console.log('✅ Labubu roulette animation started - winner will be revealed at the center');
+            });
+        }
 
     </script>
 </body>
