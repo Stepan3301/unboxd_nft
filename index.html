@@ -4547,122 +4547,146 @@
         // Open Dark Aura Case function  
         async function openDarkAuraCase() {
             console.log('=== STARTING DARK AURA CASE OPENING ===');
-            console.log('User balance:', userBalance);
+            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'testUser'; // Ensure telegramId is available
+            console.log('User balance before check:', userBalance, 'TG ID:', telegramId);
             const CASE_PRICE = 3000;
             
             // Check if user has enough balance
             if (userBalance < CASE_PRICE) {
                 console.log('Not enough balance, showing dialog');
-                const notEnoughDialog = document.getElementById('not-enough-balance-dialog');
-                if (notEnoughDialog) {
-                    notEnoughDialog.classList.add('active');
-                }
+                showCustomDialog('Not enough UCoins to open this case.', 'Balance Too Low'); // Use showCustomDialog
                 return;
             }
 
+            // Show a loading/processing indicator immediately
+            // You might want a more sophisticated loading modal here
+            showCustomDialog('Processing your request...', 'Opening Case', true); // true for isProcessing
+
             try {
-                console.log('Balance check passed, deducting coins...');
-                // Deduct balance first
-                await updateUserBalance(-CASE_PRICE, 'Opened Dark Aura Case', 'case_opening');
-                console.log('Balance deducted successfully, starting roulette...');
+                console.log('Balance check passed, attempting to start roulette animation...');
                 
-                // Start the enhanced Dark Aura roulette animation
-                await startEnhancedDarkAuraRouletteAnimation();
+                // Start the enhanced Dark Aura roulette animation and wait for it to complete
+                const wonItem = await startEnhancedDarkAuraRouletteAnimation();
+                console.log('Animation successful, item won:', wonItem);
+
+                // If animation was successful and wonItem is valid, then deduct balance
+                console.log('Attempting to deduct balance...');
+                const balanceDeducted = await updateUserBalance(-CASE_PRICE, `Opened Dark Aura Case - Won: ${wonItem.name}`, 'case_opening');
+                
+                if (balanceDeducted) {
+                    console.log('Balance deducted successfully.');
+                    // Balance deducted, item won. Now add to inventory and update stats.
+                    await updateUserStat('cases_opened', 1); 
+                    // The showRouletteResult function (called by animateRouletteTrack) already sets currentResultSkin.
+                    // It should also handle adding to inventory or triggering that process.
+                    // For now, we assume showRouletteResult handles the UI part of showing the item.
+                    // If adding to inventory is a separate step, it should be called here.
+                    // e.g., await addUserItemToInventory(wonItem, telegramId);
+                    
+                    // Update dialog to show success (or rely on showRouletteResult)
+                    // hideCustomDialog(); // Hide processing dialog if showRouletteResult doesn't
+                    console.log('Dark Aura Case opened successfully, item:', wonItem.name);
+                    // The result is shown by showRouletteResult, so no extra dialog here unless it is to confirm transaction.
+
+                } else {
+                    console.error('Failed to deduct balance after successful animation.');
+                    // This is a critical error: animation shown, item determined, but payment failed.
+                    // Needs robust handling: perhaps try to compensate, or at least inform user clearly.
+                    showCustomDialog('Could not process payment after case opening. Please contact support.', 'Payment Failed');
+                    // Potentially, remove the item from being displayed as won if payment failed post-animation
+                    const resultSection = document.getElementById('roulette-result');
+                    if (resultSection) resultSection.classList.remove('active'); 
+                }
                 
             } catch (error) {
-                console.error('Error opening Dark Aura case:', error);
-                alert('Failed to open case. Please try again.');
+                // This catch block handles errors from startEnhancedDarkAuraRouletteAnimation (e.g., animation failing)
+                console.error('Error during Dark Aura case opening process:', error);
+                // Ensure any processing dialog is hidden before showing the error
+                hideCustomDialog(); 
+                showCustomDialog(`Failed to open case: ${error.message || 'Please try again.'}`, 'Error');
             }
         }
         
         // Enhanced Dark Aura roulette animation with Lottie support
         async function startEnhancedDarkAuraRouletteAnimation() {
-            console.log('=== STARTING ENHANCED DARK AURA ROULETTE ===');
-            
-            // Dark Aura case items with their properties
-            const darkAuraItems = [
-                { name: 'Haunted Desk Calendar', tier: 1, price: 20, lottie: 'LottieAnimations/cleaned-deskcalendar-280571.json', probability: 40 },
-                { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, lottie: 'LottieAnimations/cleaned-madpumpkin-7551.json', probability: 25 },
-                { name: 'Electric Skull', tier: 3, price: 120, lottie: 'LottieAnimations/cleaned-electricskull-8221.json', probability: 15 },
-                { name: 'Cursed Voodoo Doll', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-voodoodoll-7970.json', probability: 10 },
-                { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-gingercookie-20477.json', probability: 7 },
-                { name: 'Mystical Signet Ring', tier: 5, price: 750, lottie: 'LottieAnimations/cleaned-signetring-14328.json', probability: 2 },
-                { name: 'Mini Oscar Phantom', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-minioscar-1983.json', probability: 0.8 },
-                { name: 'Scared Cat Obelisk', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-scaredcat-18595.json', probability: 0.2 }
-            ];
-            
-            // Select a random item based on probability
-            const wonItem = selectRandomItemByProbability(darkAuraItems);
-            console.log('Dark Aura case won item:', wonItem);
-            console.log('Won item properties:', {
-                name: wonItem.name,
-                tier: wonItem.tier,
-                price: wonItem.price,
-                lottie: wonItem.lottie,
-                probability: wonItem.probability
-            });
-            
-            // Show roulette overlay
-            const rouletteOverlay = document.getElementById('roulette-overlay');
-            const rouletteTrack = document.getElementById('roulette-track');
-            const resultSection = document.getElementById('roulette-result');
-            
-            console.log('DOM elements found:', {
-                rouletteOverlay: !!rouletteOverlay,
-                rouletteTrack: !!rouletteTrack,
-                resultSection: !!resultSection
-            });
-            
-            if (rouletteOverlay && rouletteTrack) {
-                console.log('All DOM elements found, proceeding with roulette...');
+            return new Promise(async (resolve, reject) => { // Wrap in a new Promise
+                console.log('=== STARTING ENHANCED DARK AURA ROULETTE ===');
                 
-                // Ensure overlay starts hidden
-                rouletteOverlay.style.display = 'none';
-                rouletteOverlay.classList.remove('active');
+                // Dark Aura case items with their properties
+                const darkAuraItems = [
+                    { name: 'Haunted Desk Calendar', tier: 1, price: 20, lottie: 'LottieAnimations/cleaned-deskcalendar-280571.json', probability: 40 },
+                    { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, lottie: 'LottieAnimations/cleaned-madpumpkin-7551.json', probability: 25 },
+                    { name: 'Electric Skull', tier: 3, price: 120, lottie: 'LottieAnimations/cleaned-electricskull-8221.json', probability: 15 },
+                    { name: 'Cursed Voodoo Doll', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-voodoodoll-7970.json', probability: 10 },
+                    { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-gingercookie-20477.json', probability: 7 },
+                    { name: 'Mystical Signet Ring', tier: 5, price: 750, lottie: 'LottieAnimations/cleaned-signetring-14328.json', probability: 2 },
+                    { name: 'Mini Oscar Phantom', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-minioscar-1983.json', probability: 0.8 },
+                    { name: 'Scared Cat Obelisk', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-scaredcat-18595.json', probability: 0.2 }
+                ];
                 
-                // Update header for Dark Aura
-                const header = rouletteOverlay.querySelector('.roulette-header h2');
-                if (header) {
-                    header.textContent = 'Opening Dark Aura Case';
-                    console.log('Header updated');
+                // Select a random item based on probability
+                const wonItem = selectRandomItemByProbability(darkAuraItems);
+                console.log('Dark Aura case won item:', wonItem);
+                // ... (removed some console.log for brevity)
+                
+                const rouletteOverlay = document.getElementById('roulette-overlay');
+                const rouletteTrack = document.getElementById('roulette-track');
+                const resultSection = document.getElementById('roulette-result');
+                
+                if (rouletteOverlay && rouletteTrack) {
+                    console.log('All DOM elements found, proceeding with roulette...');
+                    
+                    rouletteOverlay.style.display = 'none';
+                    rouletteOverlay.classList.remove('active');
+                    
+                    const header = rouletteOverlay.querySelector('.roulette-header h2');
+                    if (header) header.textContent = 'Opening Dark Aura Case';
+                    
+                    if (resultSection) {
+                        resultSection.style.display = 'none';
+                        resultSection.classList.remove('active');
+                    }
+                    
+                    // Pass wonItem to createRouletteTrack, so it knows what the winning item is
+                    createRouletteTrack(darkAuraItems, wonItem); 
+                    
+                    rouletteOverlay.style.display = 'flex';
+                    rouletteOverlay.classList.add('active');
+                    console.log('Roulette overlay should now be visible');
+                    
+                    rouletteOverlay.style.opacity = '1';
+                    rouletteOverlay.style.pointerEvents = 'auto';
+                    
+                    try {
+                        // Await the animation
+                        const animatedWonItem = await animateRouletteTrack(); 
+                        console.log('animateRouletteTrack completed, won item:', animatedWonItem);
+                        // Ensure the item resolved from animation matches the initially selected one for consistency, though GSAP part should be reliable.
+                        if (animatedWonItem && animatedWonItem.name === wonItem.name) {
+                           resolve(wonItem); // Resolve with the initially selected wonItem
+                        } else {
+                            console.error('Mismatch between selected item and animated item, or animation failed to return item.');
+                            reject(new Error('Animation result mismatch.'));
+                        }
+                    } catch (error) {
+                        console.error('animateRouletteTrack failed:', error);
+                        reject(error); // Reject if animation fails
+                    }
+                } else {
+                    console.error('Roulette overlay or track not found:', {
+                        rouletteOverlay: !!rouletteOverlay,
+                        rouletteTrack: !!rouletteTrack
+                    });
+                    reject(new Error('Roulette overlay or track not found.')); // Reject if essential DOM elements are missing
                 }
-                
-                // Hide result section initially
-                if (resultSection) {
-                    resultSection.style.display = 'none';
-                    resultSection.classList.remove('active');
-                    console.log('Result section hidden');
-                }
-                
-                // Create roulette track with Dark Aura items
-                console.log('Creating roulette track...');
-                createRouletteTrack(darkAuraItems);
-                
-                // Show overlay immediately, then on next frame start spin
-                rouletteOverlay.style.display = 'flex';
-                rouletteOverlay.classList.add('active');
-                console.log('Roulette overlay should now be visible');
-                
-                // Force immediate visibility for debugging
-                rouletteOverlay.style.opacity = '1';
-                rouletteOverlay.style.pointerEvents = 'auto';
-                console.log('Forced roulette visibility');
-                
-                requestAnimationFrame(async () => {
-                    console.log('Starting roulette track animation...');
-                    await animateRouletteTrack();
-                });
-            } else {
-                console.error('Roulette overlay or track not found:', {
-                    rouletteOverlay: !!rouletteOverlay,
-                    rouletteTrack: !!rouletteTrack
-                });
-            }
+            });
         }
         
         // Create roulette track with items
-        function createRouletteTrack(items) {
-            console.log('=== CREATING ROULETTE TRACK ===');
+        // Modified to accept chosenWinnerItem as a parameter
+        function createRouletteTrack(items, chosenWinnerItem) { 
+            console.log('=== CREATING ROULETTE TRACK (Dark Aura) ===');
+            console.log('Expecting winner:', chosenWinnerItem);
             const rouletteTrack = document.getElementById('roulette-track');
             if (!rouletteTrack) {
                 console.error('Roulette track element not found!');
@@ -4671,14 +4695,14 @@
             
             // Clear existing track
             rouletteTrack.innerHTML = '';
-            console.log('Cleared existing track');
+            console.log('Cleared existing track for Dark Aura');
             
             // **1. Roulette Track Length Calculation**
             const winningIndex = 15;
             const extraSpinsCount = 25; // Configurable constant for extra spins
-            const neededLength = winningIndex + extraSpinsCount + 1;
+            const neededLength = winningIndex + extraSpinsCount + 1; // Ensure enough items for the winning item and spins
             
-            console.log(`🎯 Roulette Configuration:
+            console.log(`🎯 Dark Aura Roulette Configuration:
                 - Winning index: ${winningIndex}
                 - Extra spins count: ${extraSpinsCount}
                 - Minimum needed length: ${neededLength}`);
@@ -4687,21 +4711,36 @@
             const trackItems = [];
             
             // Fill with random items until the minimum length is reached
+            // Ensure the loop runs enough times to make space for the winning item if it's inserted at a specific index
+            for (let i = 0; i < neededLength; i++) {
+                if (i === winningIndex) {
+                    trackItems.push(chosenWinnerItem); // Insert the chosen winner at the winningIndex
+                } else {
+                    // Fill other spots with random items from the original items list
+                    const randItem = items[Math.floor(Math.random() * items.length)];
+                    trackItems.push(randItem);
+                }
+            }
+            
+             // Ensure the track is not shorter than neededLength, especially if winningIndex was near the end.
             while (trackItems.length < neededLength) {
                 const randItem = items[Math.floor(Math.random() * items.length)];
                 trackItems.push(randItem);
             }
-            
-            // Overwrite the winner at the correct index
-            trackItems[winningIndex] = wonItem;
+
+            // If, due to any logic flaw, the chosenWinnerItem is not at winningIndex, log error.
+            // This also handles if trackItems[winningIndex] was somehow overwritten.
+            if (trackItems[winningIndex] !== chosenWinnerItem) {
+                 console.error(`Winning item mismatch! Expected ${chosenWinnerItem.name} at index ${winningIndex}, but found ${trackItems[winningIndex] ? trackItems[winningIndex].name : 'nothing'}. Forcing correction.`);
+                 trackItems[winningIndex] = chosenWinnerItem; // Force set it
+            }
             
             // Store indices for animation
             rouletteTrack.dataset.winningIndex    = winningIndex;
             rouletteTrack.dataset.extraSpinsCount = extraSpinsCount;
-            rouletteTrack.dataset.trackLength     = trackItems.length;
+            rouletteTrack.dataset.trackLength     = trackItems.length; // This should be >= neededLength
             
-            console.log(`✅ Created track sequence with ${trackItems.length} items, winning item at index ${winningIndex}`);
-            console.log(`🚀 trackItems length: ${trackItems.length} | will spin through indices up to: ${winningIndex + extraSpinsCount}`);
+            console.log(`✅ Created Dark Aura track sequence with ${trackItems.length} items, winning item '${chosenWinnerItem.name}' at index ${winningIndex}`);
             
             // **3. Render Track Items with Lottie Animations**
             trackItems.forEach((item, index) => {
@@ -4730,11 +4769,11 @@
                 rouletteTrack.appendChild(rouletteItem);
                 
                 if (index === winningIndex) {
-                    console.log(`🎯 Added winning item "${item.name}" at position ${index}`);
+                    console.log(`🎯 Added winning Dark Aura item "${item.name}" at position ${index}`);
                 }
             });
             
-            console.log(`✅ Successfully created ${trackItems.length} roulette items with Lottie animations`);
+            console.log(`✅ Successfully created ${trackItems.length} Dark Aura roulette items with Lottie animations`);
             
             // 📌 Keep the full list of items for result calculation
             rouletteTrack.trackItems = trackItems;
@@ -4809,19 +4848,19 @@
         
         // Animate the roulette track
         function animateRouletteTrack() {
-            return new Promise(resolve => {
+            return new Promise((resolve, reject) => { // Modified to include reject
                 console.log('=== STARTING ROULETTE ANIMATION ===');
                 const rouletteTrack = document.getElementById('roulette-track');
                 if (!rouletteTrack) {
                     console.error('Roulette track element not found!');
-                    resolve();
+                    reject(new Error('Roulette track element not found!')); // Reject on error
                     return;
                 }
                 
                 const trackItems = rouletteTrack.trackItems; // Read back stored array
                 if (!trackItems || trackItems.length === 0) {
                     console.error('Track items not found on rouletteTrack element or is empty!');
-                    resolve();
+                    reject(new Error('Track items not found or empty.')); // Reject on error
                     return;
                 }
 
@@ -4869,7 +4908,7 @@
                 
                 if (winningIndex + actualExtraSpinsCount >= trackLength) {
                     console.error(`❌ Animation would exceed track bounds! Max safe index: ${trackLength - 1}, attempted: ${winningIndex + actualExtraSpinsCount}`);
-                    resolve();
+                    reject(new Error('Animation would exceed track bounds.')); // Reject on error
                     return;
                 }
                 
@@ -4891,12 +4930,17 @@
                         if (actualWon) {
                             console.log('Computed winner by centerIndex:', centerIndex, actualWon);
                             showRouletteResult(actualWon, true);
+                            resolve(actualWon); // Resolve with the winning item
                         } else {
                             console.error('Could not determine winning item from centerIndex:', centerIndex, 'Track items:', trackItems);
                             // Fallback or error handling if actualWon is undefined
                             showRouletteResult(trackItems[trackItems.length -1], true); // Show last item as a fallback
+                            reject(new Error('Could not determine winning item.')); // Reject on error
                         }
-                        resolve();
+                    },
+                    onError: (error) => { // Added onError for GSAP
+                        console.error('GSAP animation failed:', error);
+                        reject(new Error('Roulette animation failed.'));
                     }
                 });
                 
@@ -4967,6 +5011,7 @@
         
         // Show roulette result with Lottie or image support
         async function showRouletteResult(wonItem, isLottie = false) {
+            hideCustomDialog(); // Hide any generic processing dialog first
             console.log('=== SHOWING ROULETTE RESULT ===');
             console.log('Won item:', wonItem);
             
