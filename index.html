@@ -4636,7 +4636,7 @@
                 
                 // Create roulette track with Dark Aura items
                 console.log('Creating roulette track...');
-                createRouletteTrack(darkAuraItems, wonItem);
+                createRouletteTrack(darkAuraItems);
                 
                 // Show overlay immediately, then on next frame start spin
                 rouletteOverlay.style.display = 'flex';
@@ -4650,7 +4650,7 @@
                 
                 requestAnimationFrame(async () => {
                     console.log('Starting roulette track animation...');
-                    await animateRouletteTrack(wonItem);
+                    await animateRouletteTrack();
                 });
             } else {
                 console.error('Roulette overlay or track not found:', {
@@ -4661,7 +4661,7 @@
         }
         
         // Create roulette track with items
-        function createRouletteTrack(items, wonItem) {
+        function createRouletteTrack(items) {
             console.log('=== CREATING ROULETTE TRACK ===');
             const rouletteTrack = document.getElementById('roulette-track');
             if (!rouletteTrack) {
@@ -4736,6 +4736,9 @@
             
             console.log(`✅ Successfully created ${trackItems.length} roulette items with Lottie animations`);
             
+            // 📌 Keep the full list of items for result calculation
+            rouletteTrack.trackItems = trackItems;
+
             // **4. Optional Enhancement — Infinite Scroll Trick**
             // For a truly endless-looking animation, we can duplicate items at the end
             // This allows for smoother visual transitions and prevents visible track boundaries
@@ -4805,7 +4808,7 @@
         }
         
         // Animate the roulette track
-        function animateRouletteTrack(wonItem) {
+        function animateRouletteTrack() {
             return new Promise(resolve => {
                 console.log('=== STARTING ROULETTE ANIMATION ===');
                 const rouletteTrack = document.getElementById('roulette-track');
@@ -4815,6 +4818,13 @@
                     return;
                 }
                 
+                const trackItems = rouletteTrack.trackItems; // Read back stored array
+                if (!trackItems || trackItems.length === 0) {
+                    console.error('Track items not found on rouletteTrack element or is empty!');
+                    resolve();
+                    return;
+                }
+
                 // **1. Animation Configuration Constants**
                 const itemWidth = 130; // 120px width + 10px margin
                 
@@ -4869,7 +4879,23 @@
                     duration: 4,
                     ease: "power3.out",
                     onComplete: () => {
-                        showRouletteResult(wonItem, true);
+                        // Get the X offset after animation
+                        const currentX = gsap.getProperty(rouletteTrack, 'x');
+                        // Compute raw index from X
+                        const rawIndex = (-currentX + containerInnerWidth/2 - itemWidth/2) / itemWidth;
+                        // Round to the nearest item
+                        const centerIndex = Math.round(rawIndex);
+                        // Lookup the actual item
+                        const actualWon = trackItems[centerIndex];
+                        
+                        if (actualWon) {
+                            console.log('Computed winner by centerIndex:', centerIndex, actualWon);
+                            showRouletteResult(actualWon, true);
+                        } else {
+                            console.error('Could not determine winning item from centerIndex:', centerIndex, 'Track items:', trackItems);
+                            // Fallback or error handling if actualWon is undefined
+                            showRouletteResult(trackItems[trackItems.length -1], true); // Show last item as a fallback
+                        }
                         resolve();
                     }
                 });
