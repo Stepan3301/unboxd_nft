@@ -3061,6 +3061,7 @@
             // Labubu Case Open Button (inside the case detail view)
             const openLabubuCaseButton = document.querySelector('.case-detail#labubu-case-detail .open-case-btn');
             if (openLabubuCaseButton) {
+                openLabubuCaseButton.removeEventListener('click', openLabubuCase); // remove old if exists
                 openLabubuCaseButton.addEventListener('click', openLabubuCase);
             } else {
                 console.warn('Open Labubu Case button inside detail view not found for event listener.');
@@ -4817,10 +4818,9 @@
                 // **1. Animation Configuration Constants**
                 const itemWidth = 130; // 120px width + 10px margin
                 
-                // 📌 Measure the actual roulette viewport, not the full window
-                const container = document.getElementById('roulette-overlay') 
-                                || rouletteTrack.parentElement;
-                const containerWidth = container.clientWidth;
+                // Measure the precise roulette viewport width
+                const container = document.querySelector('.roulette-container');
+                const containerInnerWidth = container.clientWidth; // excludes padding
                 
                 // Read the exact same values stored at track creation
                 const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
@@ -4832,7 +4832,7 @@
                     - Winning index: ${winningIndex}
                     - Configured extra spins: ${configuredExtraSpinsCount}
                     - Item width: ${itemWidth}px
-                    - Container width: ${containerWidth}px`);
+                    - Container width: ${containerInnerWidth}px`);
                 
                 // **3. Calculate Safe Animation Distance**
                 // Ensure we never spin past trackItems.length
@@ -4844,7 +4844,8 @@
                 }
                 
                 // **4. Compute Animation Positions**
-                const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+                const centerOffset = (containerInnerWidth - itemWidth) / 2;
+                const targetPosition = -(winningIndex * itemWidth) + centerOffset;
                 const extraSpins = itemWidth * actualExtraSpinsCount;
                 const finalPosition = targetPosition - extraSpins;
                 
@@ -5438,10 +5439,9 @@
                 // **1. Animation Configuration Constants**
                 const itemWidth = 130; // 120px width + 10px margin
                 
-                // 📌 Measure the actual roulette viewport, not the full window
-                const container = document.getElementById('roulette-overlay') 
-                                || rouletteTrack.parentElement;
-                const containerWidth = container.clientWidth;
+                // Measure the precise roulette viewport width
+                const container = document.querySelector('.roulette-container');
+                const containerInnerWidth = container.clientWidth; // excludes padding
                 
                 // Read the exact same values stored at track creation
                 const winningIndex        = parseInt(rouletteTrack.dataset.winningIndex,    10);
@@ -5453,7 +5453,7 @@
                     - Winning index: ${winningIndex}
                     - Configured extra spins: ${configuredExtraSpinsCount}
                     - Item width: ${itemWidth}px
-                    - Container width: ${containerWidth}px`);
+                    - Container width: ${containerInnerWidth}px`);
                 
                 // **3. Calculate Safe Animation Distance**
                 // Ensure we never spin past trackItems.length
@@ -5465,7 +5465,8 @@
                 }
                 
                 // **4. Compute Animation Positions**
-                const targetPosition = -(winningIndex * itemWidth - containerWidth / 2 + itemWidth / 2);
+                const centerOffset = (containerInnerWidth - itemWidth) / 2;
+                const targetPosition = -(winningIndex * itemWidth) + centerOffset;
                 const extraSpins = itemWidth * actualExtraSpinsCount;
                 const finalPosition = targetPosition - extraSpins;
                 
