@@ -61,16 +61,30 @@ async function openLabubuCase() {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        // Define item probabilities for Labubu Case
+        // Define item probabilities for Labubu Case - UPDATED LIST
         const labubuItems = [
-            { name: 'Labubu Common 1', tier: 1, image: 'labubu_common1.png' },
-            { name: 'Labubu Common 2', tier: 1, image: 'labubu_common2.png' },
-            { name: 'Labubu Rare 1', tier: 2, image: 'labubu_rare1.png' },
-            { name: 'Labubu Epic 1', tier: 3, image: 'labubu_epic1.png' }
+            // Assuming Tiers based on file names and some visual cues if any
+            { name: 'Skeleton Labubu', tier: 1, image: 'SkeletonLabubu.png' },
+            { name: 'Candy Labubu', tier: 1, image: 'CandyLabubu.png' },
+            { name: 'Zombie Labubu', tier: 2, image: 'ZombieLabubu.png' },
+            { name: 'New DeepSea Labubu', tier: 2, image: 'NewDeepSeaLabubu.png' },
+            { name: 'Alien Labubu', tier: 3, image: 'AlienLabubu.png' },
+            { name: 'Circus Labubu', tier: 3, image: 'CircusLabubu.png' },
+            { name: 'Grass Labubu', tier: 4, image: 'GrassLabubu.png' },
+            { name: 'Grinch Labubu', tier: 4, image: 'GrinchLabubu.png' },
+            { name: 'Volcanic Labubu', tier: 5, image: 'VolcanicLabubu.png' }
         ];
+        
+        // Adjusted probabilities for 9 items. You should fine-tune these.
+        // Tier 1: ~50%, Tier 2: ~30%, Tier 3: ~15%, Tier 4: ~4%, Tier 5: ~1%
         const labubuProbabilities = isGuaranteedTier3 ? 
-            [0, 0, 0, 1] : // Guaranteed Epic for Labubu
-            [0.6, 0.25, 0.1, 0.05]; // Normal probabilities
+            [0, 0, 0, 0, 0.3, 0.3, 0.2, 0.1, 0.1] : // Example: Guaranteed at least Tier 3 (Alien/Circus) or higher
+            [0.25, 0.25,       // Tier 1 (50%)
+             0.15, 0.15,       // Tier 2 (30%)
+             0.075, 0.075,    // Tier 3 (15%)
+             0.02, 0.02,       // Tier 4 (4%)
+             0.01];            // Tier 5 (1%)
+
 
         // Select winning item
         const winningItem = selectRandomItemByProbability(labubuItems, labubuProbabilities); // from utils.js
@@ -82,6 +96,7 @@ async function openLabubuCase() {
         showCustomDialog('Processing your case...', true);
 
         // Start roulette animation (from roulette.js)
+        // Ensure probabilities array passed to roulette matches the items array length.
         await startEnhancedLabubuRouletteAnimation(labubuItems, labubuProbabilities, winningItem.name, casePrice, 'labubu');
         
         // Hide processing dialog (from uiHandlers.js or utils.js)
