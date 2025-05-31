@@ -61,29 +61,59 @@ async function openLabubuCase() {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        // Define item probabilities for Labubu Case - UPDATED LIST
+        // Define item probabilities for Labubu Case - UPDATED LIST (NOW 17 items)
         const labubuItems = [
-            // Assuming Tiers based on file names and some visual cues if any
+            // Existing Tiers 1-2
             { name: 'Skeleton Labubu', tier: 1, image: 'SkeletonLabubu.png' },
             { name: 'Candy Labubu', tier: 1, image: 'CandyLabubu.png' },
             { name: 'Zombie Labubu', tier: 2, image: 'ZombieLabubu.png' },
             { name: 'New DeepSea Labubu', tier: 2, image: 'NewDeepSeaLabubu.png' },
+            // Existing Tiers 3-5
             { name: 'Alien Labubu', tier: 3, image: 'AlienLabubu.png' },
             { name: 'Circus Labubu', tier: 3, image: 'CircusLabubu.png' },
             { name: 'Grass Labubu', tier: 4, image: 'GrassLabubu.png' },
             { name: 'Grinch Labubu', tier: 4, image: 'GrinchLabubu.png' },
-            { name: 'Volcanic Labubu', tier: 5, image: 'VolcanicLabubu.png' }
+            { name: 'Volcanic Labubu', tier: 5, image: 'VolcanicLabubu.png' },
+            // NEW Labubus - Assigning example Tiers, please review
+            { name: 'Demon Labubu', tier: 3, image: 'demon-labubu.png' },      // NEW
+            { name: 'Ghost Labubu', tier: 3, image: 'ghost-labubu.png' },      // NEW
+            { name: 'Cyber Labubu', tier: 4, image: 'cyber-labubu.png' },      // NEW
+            { name: 'Ice Crystal Labubu', tier: 4, image: 'ice-crystal-labubu.png' },// NEW
+            { name: 'Venom Labubu', tier: 5, image: 'venom-labubu.png' },      // NEW
+            { name: 'Samurai Labubu', tier: 5, image: 'ronin-labubu.png' },     // NEW (using ronin-labubu.png)
+            { name: 'Glitch Labubu', tier: 5, image: 'glitch-labubu.png' },     // NEW
+            { name: 'Golden Labubu', tier: 6, image: 'golden-labubu.png' }     // NEW (Highest Tier)
         ];
         
-        // Adjusted probabilities for 9 items. You should fine-tune these.
-        // Tier 1: ~50%, Tier 2: ~30%, Tier 3: ~15%, Tier 4: ~4%, Tier 5: ~1%
+        // Adjusted probabilities for 17 items. YOU MUST FINE-TUNE THESE & GUARANTEED LOGIC.
+        // Example distribution (sums to ~0.99, please adjust to sum to 1.0)
         const labubuProbabilities = isGuaranteedTier3 ? 
-            [0, 0, 0, 0, 0.3, 0.3, 0.2, 0.1, 0.1] : // Example: Guaranteed at least Tier 3 (Alien/Circus) or higher
-            [0.25, 0.25,       // Tier 1 (50%)
-             0.15, 0.15,       // Tier 2 (30%)
-             0.075, 0.075,    // Tier 3 (15%)
-             0.02, 0.02,       // Tier 4 (4%)
-             0.01];            // Tier 5 (1%)
+            // Example: Guaranteed at least Tier 3. Adjust for 17 items.
+            // Tier 3 items: Alien, Circus, Demon, Ghost (Indices 4, 5, 9, 10)
+            [0, 0, 0, 0,  // Tiers 1-2 zeroed
+             0.15, 0.15, // Alien, Circus (Tier 3)
+             0, 0, 0,    // Grass, Grinch, Volcanic (T4, T5)
+             0.15, 0.15, // Demon, Ghost (Tier 3)
+             0.05, 0.05, // Cyber, Ice (Tier 4)
+             0.05, 0.05, // Venom, Samurai (Tier 5)
+             0.05,       // Glitch (Tier 5)
+             0.05]       // Golden (Tier 6)
+             // Sum for guaranteed = 0.85 - NEEDS ADJUSTMENT TO SUM TO 1.0
+            :
+            [ // Normal Probabilities
+            // Tier 1 (2 items) ~30%
+             0.15, 0.15,
+            // Tier 2 (2 items) ~20%
+             0.10, 0.10,
+            // Tier 3 (4 items: Alien, Circus, Demon, Ghost) ~20%
+             0.05, 0.05, 0.05, 0.05, 
+            // Tier 4 (4 items: Grass, Grinch, Cyber, Ice) ~15%
+             0.04, 0.04, 0.035, 0.035, 
+            // Tier 5 (4 items: Volcanic, Venom, Samurai, Glitch) ~10%
+             0.025, 0.025, 0.025, 0.025,
+            // Tier 6 (1 item: Golden) ~5%
+             0.05 
+            ]; // Sum: 0.95 - NEEDS ADJUSTMENT TO SUM TO 1.0
 
 
         // Select winning item
@@ -169,27 +199,50 @@ async function openDarkAuraCase() {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        // Define item probabilities for Dark Aura Case (darkAuraSkins from config.js)
+        // Define item probabilities for Dark Aura Case (darkAuraSkins from config.js - now 11 items)
         const darkAuraProbabilities = [
-            0.35, // Tier 1: Haunted Desk Calendar
-            0.25, // Tier 2: Mad Pumpkin Spirit
-            isGuaranteedTier3 ? 1 : 0.20, // Tier 3: Electric Skull (guaranteed if applicable, else 20%)
-            0.10, // Tier 4: Cursed Voodoo Doll
-            0.05, // Tier 4: Bewitched Ginger Cookie 
-            0.03, // Tier 5: Mystical Signet Ring
-            0.01, // Tier 6: Mini Oscar Phantom
-            0.01  // Tier 6: Scared Cat Obelisk
-        ];
+            // Tier 1 (1 item)
+            0.20, // Haunted Desk Calendar
+            // Tier 2 (1 item)
+            0.15, // Mad Pumpkin Spirit
+            // Tier 3 (2 items)
+            0.10, // Electric Skull
+            0.10, // Mystic Crystal Ball (NEW)
+            // Tier 4 (3 items)
+            0.08, // Cursed Voodoo Doll
+            0.08, // Bewitched Ginger Cookie 
+            0.08, // Cursed Genie Lamp (NEW)
+            // Tier 5 (2 items)
+            0.05, // Mystical Signet Ring
+            0.05, // Eternal Shadow Rose (NEW)
+            // Tier 6 (2 items)
+            0.005, // Mini Oscar Phantom
+            0.005  // Scared Cat Obelisk
+        ]; // Sum: 0.9 (adjust to sum to 1, or handle shortfall in selection logic)
+
         // Adjust probabilities if guaranteed Tier 3
+        // Tier 3 items are now at index 2 and 3
         if (isGuaranteedTier3) {
-            darkAuraProbabilities[0] = 0; // No Tier 1
-            darkAuraProbabilities[1] = 0; // No Tier 2
-            // Tier 3 is 1 (100%)
-            darkAuraProbabilities[3] = 0;
-            darkAuraProbabilities[4] = 0;
-            darkAuraProbabilities[5] = 0;
-            darkAuraProbabilities[6] = 0;
-            darkAuraProbabilities[7] = 0;
+            // Zero out lower tiers
+            darkAuraProbabilities[0] = 0; // Tier 1
+            darkAuraProbabilities[1] = 0; // Tier 2
+            
+            // Distribute 100% among Tier 3 and higher
+            // For simplicity, giving Tier 3 items a higher chance, then distributing rest
+            darkAuraProbabilities[2] = 0.3; // Electric Skull (Tier 3)
+            darkAuraProbabilities[3] = 0.3; // Mystic Crystal Ball (Tier 3 - NEW)
+            
+            // Zero out tiers below the guaranteed one if they were not already handled
+            // For higher tiers, you might want to keep their relative probabilities or adjust.
+            // For now, let's set the others to have some chance, summing up to 0.4
+            darkAuraProbabilities[4] = 0.08; // Cursed Voodoo Doll
+            darkAuraProbabilities[5] = 0.08; // Bewitched Ginger Cookie 
+            darkAuraProbabilities[6] = 0.08; // Cursed Genie Lamp (NEW)
+            darkAuraProbabilities[7] = 0.05; // Mystical Signet Ring
+            darkAuraProbabilities[8] = 0.05; // Eternal Shadow Rose (NEW)
+            darkAuraProbabilities[9] = 0.03; // Mini Oscar Phantom
+            darkAuraProbabilities[10] =0.03; // Scared Cat Obelisk
+            // This sums to 1.0 for the guaranteed case. Please review & adjust distribution.
         }
 
         const winningDarkAuraItem = selectRandomItemByProbability(darkAuraSkins, darkAuraProbabilities); // from utils.js

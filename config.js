@@ -42,9 +42,12 @@ const darkAuraSkins = [
     { name: 'Haunted Desk Calendar', tier: 1, price: 20, image: 'cleaned-deskcalendar-280571.json', type: 'lottie' },
     { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, image: 'cleaned-madpumpkin-7551.json', type: 'lottie' },
     { name: 'Electric Skull', tier: 3, price: 120, image: 'cleaned-electricskull-8221.json', type: 'lottie' },
+    { name: 'Mystic Crystal Ball', tier: 3, price: 150, image: 'darkaura-cleaned-crystalball-9027.json', type: 'lottie' },
     { name: 'Cursed Voodoo Doll', tier: 4, price: 300, image: 'cleaned-voodoodoll-7970.json', type: 'lottie' },
     { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, image: 'cleaned-gingercookie-20477.json', type: 'lottie' },
+    { name: 'Cursed Genie Lamp', tier: 4, price: 350, image: 'darkaura-cleaned-genielamp-4594.json', type: 'lottie' },
     { name: 'Mystical Signet Ring', tier: 5, price: 750, image: 'cleaned-signetring-14328.json', type: 'lottie' },
+    { name: 'Eternal Shadow Rose', tier: 5, price: 800, image: 'darkaura-cleaned-eternalrose-7069.json', type: 'lottie' },
     { name: 'Mini Oscar Phantom', tier: 6, price: 10000, image: 'cleaned-minioscar-1983.json', type: 'lottie' },
     { name: 'Scared Cat Obelisk', tier: 6, price: 10000, image: 'cleaned-scaredcat-18595.json', type: 'lottie' }
 ];
