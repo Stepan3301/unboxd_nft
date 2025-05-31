@@ -4683,14 +4683,14 @@
                 
                 // Dark Aura case items with their properties
                 const darkAuraItems = [
-                    { name: 'Haunted Desk Calendar', tier: 1, price: 20, lottie: 'LottieAnimations/cleaned-deskcalendar-280571.json', probability: 40 },
-                    { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, lottie: 'LottieAnimations/cleaned-madpumpkin-7551.json', probability: 25 },
-                    { name: 'Electric Skull', tier: 3, price: 120, lottie: 'LottieAnimations/cleaned-electricskull-8221.json', probability: 15 },
-                    { name: 'Cursed Voodoo Doll', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-voodoodoll-7970.json', probability: 10 },
-                    { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, lottie: 'LottieAnimations/cleaned-gingercookie-20477.json', probability: 7 },
-                    { name: 'Mystical Signet Ring', tier: 5, price: 750, lottie: 'LottieAnimations/cleaned-signetring-14328.json', probability: 2 },
-                    { name: 'Mini Oscar Phantom', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-minioscar-1983.json', probability: 0.8 },
-                    { name: 'Scared Cat Obelisk', tier: 6, price: 10000, lottie: 'LottieAnimations/cleaned-scaredcat-18595.json', probability: 0.2 }
+                    { name: 'Haunted Desk Calendar', tier: 1, price: 20, lottie: 'cleaned-deskcalendar-280571.json', probability: 40 },
+                    { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, lottie: 'cleaned-madpumpkin-7551.json', probability: 25 },
+                    { name: 'Electric Skull', tier: 3, price: 120, lottie: 'cleaned-electricskull-8221.json', probability: 15 },
+                    { name: 'Cursed Voodoo Doll', tier: 4, price: 300, lottie: 'cleaned-voodoodoll-7970.json', probability: 10 },
+                    { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, lottie: 'cleaned-gingercookie-20477.json', probability: 7 },
+                    { name: 'Mystical Signet Ring', tier: 5, price: 750, lottie: 'cleaned-signetring-14328.json', probability: 2 },
+                    { name: 'Mini Oscar Phantom', tier: 6, price: 10000, lottie: 'cleaned-minioscar-1983.json', probability: 0.8 },
+                    { name: 'Scared Cat Obelisk', tier: 6, price: 10000, lottie: 'cleaned-scaredcat-18595.json', probability: 0.2 }
                 ];
                 
                 // Select a random item based on probability
@@ -5336,14 +5336,14 @@
 
         // Dark Aura skins data for preloading
         const darkAuraSkins = [
-            { name: 'Haunted Desk Calendar', tier: 1, price: 20, image: 'LottieAnimations/cleaned-deskcalendar-280571.json', type: 'lottie' },
-            { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, image: 'LottieAnimations/cleaned-madpumpkin-7551.json', type: 'lottie' },
-            { name: 'Electric Skull', tier: 3, price: 120, image: 'LottieAnimations/cleaned-electricskull-8221.json', type: 'lottie' },
-            { name: 'Cursed Voodoo Doll', tier: 4, price: 300, image: 'LottieAnimations/cleaned-voodoodoll-7970.json', type: 'lottie' },
-            { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, image: 'LottieAnimations/cleaned-gingercookie-20477.json', type: 'lottie' },
-            { name: 'Mystical Signet Ring', tier: 5, price: 750, image: 'LottieAnimations/cleaned-signetring-14328.json', type: 'lottie' },
-            { name: 'Mini Oscar Phantom', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-minioscar-1983.json', type: 'lottie' },
-            { name: 'Scared Cat Obelisk', tier: 6, price: 10000, image: 'LottieAnimations/cleaned-scaredcat-18595.json', type: 'lottie' }
+            { name: 'Haunted Desk Calendar', tier: 1, price: 20, image: 'cleaned-deskcalendar-280571.json', type: 'lottie' },
+            { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, image: 'cleaned-madpumpkin-7551.json', type: 'lottie' },
+            { name: 'Electric Skull', tier: 3, price: 120, image: 'cleaned-electricskull-8221.json', type: 'lottie' },
+            { name: 'Cursed Voodoo Doll', tier: 4, price: 300, image: 'cleaned-voodoodoll-7970.json', type: 'lottie' },
+            { name: 'Bewitched Ginger Cookie', tier: 4, price: 300, image: 'cleaned-gingercookie-20477.json', type: 'lottie' },
+            { name: 'Mystical Signet Ring', tier: 5, price: 750, image: 'cleaned-signetring-14328.json', type: 'lottie' },
+            { name: 'Mini Oscar Phantom', tier: 6, price: 10000, image: 'cleaned-minioscar-1983.json', type: 'lottie' },
+            { name: 'Scared Cat Obelisk', tier: 6, price: 10000, image: 'cleaned-scaredcat-18595.json', type: 'lottie' }
         ];
 
         // Toast notification function
@@ -5692,6 +5692,23 @@
 
         // Create a proper state manager
         // ... existing code ...
+        // Function to handle image preloading with retries
+        async function preloadImageWithRetry(src, maxRetries = 3, currentAttempt = 1) {
+            try {
+                const response = await fetch(src);
+                if (response.ok) {
+                    return response.url;
+                } else if (currentAttempt < maxRetries) {
+                    console.warn(`Failed to load image, retrying (${currentAttempt}/${maxRetries})`);
+                    return preloadImageWithRetry(src, maxRetries, currentAttempt + 1);
+                } else {
+                    throw new Error(`Failed to load image after ${maxRetries} attempts: ${src}`);
+                }
+            } catch (error) {
+                console.error(`Error preloading image: ${src}`, error);
+                throw error;
+            }
+        }
     </script>
 </body>
 </html>
