@@ -834,7 +834,25 @@
                     </div>
                     </div>
 
-    <!-- Include the external JavaScript file -->
-    <script src="script.js"></script>
+    <!-- Include the external JavaScript files -->
+    <!-- Core configurations and utilities -->
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+
+    <!-- Feature Modules -->
+    <script src="user.js"></script>
+    <script src="activityLog.js"></script>
+    <script src="dailyRewards.js"></script>
+    <script src="inventory.js"></script>
+    <script src="roulette.js"></script>
+    <script src="caseOpening.js"></script>
+    <script src="tonConnect.js"></script>
+    
+    <!-- UI and Application Setup (should be last or among the last) -->
+    <script src="uiHandlers.js"></script>
+    <script src="appSetup.js"></script>
+
+    <!-- Main script.js is now a placeholder and can likely be removed if appSetup.js handles init -->
+    <!-- <script src="script.js"></script> --> 
 </body>
 </html>
