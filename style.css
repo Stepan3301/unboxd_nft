@@ -812,147 +812,244 @@ body {
     100% { transform: translateY(-100vh); opacity: 0; }
 }
 
-/* Bottom Navigation */
-/* Styles for the OLDER bottom nav structure seen in screenshot (.bottom-nav > .nav-btn) */
+/* CSS for the bottom navigation bar */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
-    width: 100%;
-    max-width: 414px;
-    display: flex;
-    justify-content: space-around; /* Distributes space around items */
-    padding: 10px 0; /* Adjusted padding */
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 300;
-}
-
-/* For .nav-btn elements within .bottom-nav */
-.bottom-nav .nav-btn { /* Specificity for items in .bottom-nav */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Center content vertically */
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.7rem;
-    transition: all 0.3s ease;
-    flex: 1; /* Distribute space equally among items */
-    text-align: center; /* Center text */
-    padding: 5px 0; /* Adjust padding if needed */
-}
-
-.bottom-nav .nav-btn i {
-    font-size: 1.2rem;
-    margin-bottom: 3px; /* Slightly reduced margin */
-}
-
-.bottom-nav .nav-btn.active {
-    color: var(--primary);
-}
-
-.bottom-nav .nav-btn.center {
-    background: linear-gradient(45deg, var(--primary), var(--accent));
-    width: 55px; /* Slightly adjusted size */
-    height: 55px;
-    border-radius: 50%;
-    margin-top: -28px; /* Adjust for new height */
-    box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
-    position: relative;
-    border: 3px solid rgba(0, 0, 0, 0.8);
-    /* flex: 1; /* Center button should not take full flex width if others do */
-    flex-grow: 0.8; /* Allow it to take some space but not as much as others if flex:1 is on them */
-    flex-shrink: 0;
-}
-
-.bottom-nav .nav-btn.center i {
-    margin: 0;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.bottom-nav .nav-btn.center span {
-    position: absolute;
-    bottom: -20px; /* Adjust if needed */
-    font-size: 0.65rem;
-    color: white;
-}
-
-
-/* Styles for the NEWER bottom nav structure (.footer-nav > .footer-nav-item) */
-.footer-nav {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 414px; /* Or your container width */
+    width: 90%;
+    max-width: 380px;
     display: flex;
     justify-content: space-around;
-    padding: 10px 0; /* Example padding */
-    background: rgba(0,0,0,0.8); /* Example background */
+    padding: 12px 5px;
+    background: rgba(20, 20, 35, 0.7);
     backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    z-index: 300;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    z-index: 100;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(108, 92, 231, 0.2);
+    clip-path: polygon(
+        5% 0%, 95% 0%, 100% 5%, 
+        100% 95%, 95% 100%, 5% 100%, 
+        0% 95%, 0% 5%
+    );
 }
 
-.footer-nav-item {
-    flex: 1; /* Distribute space equally */
+.nav-btn {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.7rem;
-    cursor: pointer;
-    transition: color 0.3s ease;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.65rem;
+    font-weight: 500;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 60px;
+    height: 60px;
+    margin: 0 2px;
+    z-index: 1;
+    overflow: hidden;
+    cursor: pointer; /* Added for better UX */
 }
 
-.footer-nav-item i {
-    font-size: 1.2rem; /* Adjust as needed */
-    margin-bottom: 4px;
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: -1;
 }
 
-.footer-nav-item span {
-    display: block; /* Ensures span takes its own line if needed */
+.nav-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    transition: all 0.5s ease;
+    opacity: 0;
 }
 
-.footer-nav-item.active {
-    color: var(--primary); /* Example active color */
+.nav-btn i {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
 }
 
-/* Special styling for the Cases tab in the footer nav */
-.footer-nav-item[data-tab="cases-tab"] {
-    position: relative; /* For potential pseudo-elements or icon positioning */
-    /* transform: translateY(-10px); Move it up a bit */ 
-    width: 60px; /* Circle size */
-    height: 60px; /* Circle size */
-    background: linear-gradient(135deg, var(--primary), var(--accent)); /* Gradient background */
-    border-radius: 50%; /* Make it a circle */
-    color: white; /* Icon and text color */
-    margin: 0 5px; /* Add some margin to not touch other items directly if it grows */
-    box-shadow: 0 0 15px rgba(108, 92, 231, 0.5); /* Glow effect */
-    /* flex-grow: 0; Don't let it grow if other items have flex:1 */
-    /* flex-shrink: 0; Don't let it shrink */
-    /* flex-basis: 60px; Explicit size */
+.nav-btn span {
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+    transform: translateY(2px);
 }
 
-.footer-nav-item[data-tab="cases-tab"] i {
-    font-size: 1.5rem; /* Larger icon for the central button */
-    margin-bottom: 2px; /* Adjust spacing if text is very short or hidden */
+.nav-btn.active {
+    color: white;
+    transform: translateY(-5px);
 }
 
-.footer-nav-item[data-tab="cases-tab"] span {
-    font-size: 0.6rem; /* Smaller text or can be hidden if design implies it */
-    /* display: none; /* Optionally hide text if icon is enough */
+.nav-btn.active::before {
+    transform: scale(1);
+    opacity: 1;
 }
 
-.footer-nav-item[data-tab="cases-tab"].active {
-    background: linear-gradient(135deg, var(--accent), var(--primary)); /* Slightly different gradient when active */
-    box-shadow: 0 0 20px rgba(253, 121, 168, 0.7); /* More prominent glow when active */
+.nav-btn.active::after {
+    opacity: 1;
+    bottom: 0;
+    box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.5);
+}
+
+.nav-btn.active i {
+    transform: translateY(-2px) scale(1.2);
+    text-shadow: 0 0 15px currentColor;
+}
+
+.nav-btn.active span {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Color variations for each tab */
+.nav-btn.home.active {
+    color: #00f2ff;
+}
+
+.nav-btn.home.active::after {
+    background: linear-gradient(to right, #00f2ff, #7a00ff);
+}
+
+.nav-btn.inventory.active {
+    color: #00ff9d;
+}
+
+.nav-btn.inventory.active::after {
+    background: linear-gradient(to right, #00ff9d, #00c8ff);
+}
+
+.nav-btn.cases.active {
+    color: #ff00e5;
+}
+
+.nav-btn.cases.active::after {
+    background: linear-gradient(to right, #ff00e5, #ffcc00);
+}
+
+.nav-btn.profile.active {
+    color: #ff7700;
+}
+
+.nav-btn.profile.active::after {
+    background: linear-gradient(to right, #ff7700, #ff0077);
+}
+
+.nav-btn.info.active {
+    color: #00ffff;
+}
+
+.nav-btn.info.active::after {
+    background: linear-gradient(to right, #00ffff, #0066ff);
+}
+
+/* Button backgrounds */
+.nav-btn .btn-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-btn.active .btn-bg {
+    opacity: 0.1;
+}
+
+.nav-btn.home .btn-bg {
+    background: linear-gradient(135deg, #00f2ff20, #7a00ff20);
+}
+
+.nav-btn.inventory .btn-bg {
+    background: linear-gradient(135deg, #00ff9d20, #00c8ff20);
+}
+
+.nav-btn.cases .btn-bg {
+    background: linear-gradient(135deg, #ff00e520, #ffcc0020);
+}
+
+.nav-btn.profile .btn-bg {
+    background: linear-gradient(135deg, #ff770020, #ff007720);
+}
+
+.nav-btn.info .btn-bg {
+    background: linear-gradient(135deg, #00ffff20, #0066ff20);
+}
+
+/* Special styling for the cases button */
+.nav-btn.cases {
+    transform: translateY(-10px);
+}
+
+.nav-btn.cases::before {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1);
+    opacity: 1;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.nav-btn.cases i {
+    font-size: 1.5rem;
+    background: linear-gradient(to right, #ff00e5, #ffcc00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 2px rgba(255, 0, 229, 0.5));
+}
+
+.nav-btn.cases span {
+    opacity: 1;
+}
+
+/* Notification badge */
+.notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: linear-gradient(to right, #ff0077, #ff7700);
+    color: white;
+    font-size: 0.6rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 0, 119, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 /* Profile Section */

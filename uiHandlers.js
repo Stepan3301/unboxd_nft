@@ -1,11 +1,11 @@
 // Function to attach event listeners for UI interactions
 function attachEventListeners() {
     // Tab navigation
-    document.querySelectorAll('.footer-nav-item').forEach(btn => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             console.log('Nav button clicked:', btn.getAttribute('data-tab'));
             
-            const bottomNav = document.querySelector('.footer-nav');
+            const bottomNav = document.querySelector('.bottom-nav');
             // Check if we're in case detail view first and close it
             if (bottomNav && bottomNav.hasAttribute('data-case-detail-open')) {
                 console.log('Closing case detail view from nav click');
@@ -254,50 +254,63 @@ function filterCaseListings(filter) {
 function updateRarityNavVisibility(tabId) {
     const rarityNav = document.getElementById('rarity-nav');
     if (!rarityNav) return;
-    if (tabId === 'shop-tab' || tabId === 'inventory-tab') { // Show for shop or inventory
-        rarityNav.style.display = 'flex'; // Or use a class like .show
+
+    if (tabId === 'inventory-tab') {
+        rarityNav.style.display = 'flex';
     } else {
-        rarityNav.style.display = 'none'; // Or remove the class
+        rarityNav.style.display = 'none';
     }
 }
 
 // Function to activate a tab and update UI
 function activateTab(tabId) {
-    // Remove active class from all nav buttons
-    document.querySelectorAll('.footer-nav-item').forEach(nav => {
-        nav.classList.remove('active');
-    });
-
-    // Add active class to the clicked/target button
-    const targetNavBtn = document.querySelector(`.footer-nav-item[data-tab="${tabId}"]`);
-    if (targetNavBtn) {
-        targetNavBtn.classList.add('active');
-    }
-
-    // Hide all tab content
+    console.log('Activating tab:', tabId);
+    // Deactivate all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
 
-    // Show the selected tab
-    const targetTabContent = document.getElementById(tabId);
-    if (targetTabContent) {
-        targetTabContent.classList.add('active');
-        console.log('Showing tab with ID:', targetTabContent.id);
-        console.log('Showing tab:', tabId);
+    // Deactivate all nav buttons
+    document.querySelectorAll('.nav-btn').forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Activate the selected tab content
+    const selectedTabContent = document.getElementById(tabId);
+    if (selectedTabContent) {
+        selectedTabContent.classList.add('active');
     } else {
-        console.error('Target tab content not found:', tabId);
+        console.error('Selected tab content not found:', tabId);
+        // Fallback to home tab if current tab is invalid
+        document.getElementById('home-tab')?.classList.add('active');
+        document.querySelector('.nav-btn[data-tab="home-tab"]')?.classList.add('active');
+        updateRarityNavVisibility('home-tab');
+        return;
     }
 
-    // Update rarity navigation visibility based on tab
+    // Activate the selected nav button
+    const selectedNavButton = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+    if (selectedNavButton) {
+        selectedNavButton.classList.add('active');
+    } else {
+        console.error('Selected nav button not found for tab:', tabId);
+        // Fallback for button if content was found but button wasn't (should not happen with correct HTML)
+        document.querySelector('.nav-btn[data-tab="home-tab"]')?.classList.add('active');
+    }
+    
+    // Update rarity nav visibility based on the new active tab
     updateRarityNavVisibility(tabId);
+
+    // Scroll to top of the page
+    window.scrollTo(0, 0);
+    console.log(tabId, 'activated.');
 }
 
 // Functions to show/hide case detail views
 function showCaseDetail(caseDetailId) {
     const caseDetailElement = document.getElementById(caseDetailId);
     const mainContent = document.querySelector('.main');
-    const bottomNav = document.querySelector('.footer-nav');
+    const bottomNav = document.querySelector('.bottom-nav');
 
     if (caseDetailElement && mainContent && bottomNav) {
         caseDetailElement.classList.add('active');
@@ -312,7 +325,7 @@ function showCaseDetail(caseDetailId) {
 function hideCaseDetail(caseDetailId) {
     const caseDetailElement = document.getElementById(caseDetailId);
     const mainContent = document.querySelector('.main');
-    const bottomNav = document.querySelector('.footer-nav');
+    const bottomNav = document.querySelector('.bottom-nav');
 
     if (caseDetailElement && mainContent && bottomNav) {
         caseDetailElement.classList.remove('active');
