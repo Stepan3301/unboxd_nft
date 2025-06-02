@@ -37,6 +37,12 @@ function attachEventListeners() {
                 console.log('Home tab selected, updating activity log');
                 updateActivityLogUI(); // CORRECTED: from activityLog.js
             }
+
+            // NEW: Add particle burst for cases tab
+            if (tabId === 'cases-tab') {
+                console.log('Cases tab clicked, creating particle burst.');
+                createParticleBurst(btn); // Pass the clicked button element
+            }
         });
     });
 
@@ -342,6 +348,80 @@ function hideCustomDialog() {
     const dialog = document.getElementById('custom-dialog');
     if (dialog) {
         dialog.classList.remove('active');
+    }
+}
+
+// Function to create NFT particle burst effect
+function createParticleBurst(element) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    // NFT image URL
+    const nftImageUrl = 'princess_pepe.png'; // Updated image path
+    
+    // Number of particles to create
+    const particleCount = 20;
+    
+    // Create particles
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('img');
+        
+        // Set the image source
+        particle.src = nftImageUrl;
+        
+        // Set styles for the particle
+        particle.style.position = 'fixed';
+        particle.style.width = '30px'; // Small size for the NFT
+        particle.style.height = '30px';
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+        particle.style.pointerEvents = 'none';
+        particle.style.zIndex = '1000';
+        particle.style.borderRadius = '4px'; // Slight rounding of corners
+        particle.style.boxShadow = '0 0 8px rgba(108, 92, 231, 0.7)'; // Glow effect
+        
+        // Random initial rotation
+        const rotation = Math.random() * 360;
+        particle.style.transform = `rotate(${rotation}deg)`;
+        
+        // Random movement parameters
+        const angle = Math.random() * Math.PI * 2; // Random direction
+        const velocity = 1.5 + Math.random() * 2.5; // Random speed
+        const rotationSpeed = (Math.random() - 0.5) * 15; // Random rotation speed
+        const lifetime = 800 + Math.random() * 1200; // Random lifetime (800-2000ms)
+        const scale = 0.5 + Math.random() * 0.5; // Random size variation
+        
+        // Apply initial scale
+        particle.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+        
+        document.body.appendChild(particle);
+        
+        let startTime = Date.now();
+        
+        function animateParticle() {
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / lifetime;
+            
+            if (progress >= 1) {
+                particle.remove();
+                return;
+            }
+            
+            const distance = velocity * elapsed * 0.1;
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance - (progress * progress * 40); // Add gravity
+            const currentRotation = rotation + (rotationSpeed * elapsed * 0.1);
+            
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.opacity = 1 - progress;
+            particle.style.transform = `rotate(${currentRotation}deg) scale(${scale * (1 - progress * 0.3)})`;
+            
+            requestAnimationFrame(animateParticle);
+        }
+        
+        requestAnimationFrame(animateParticle);
     }
 }
 
