@@ -10,16 +10,16 @@ async function getUserInventory() {
         }
 
         const params = { p_telegram_id: telegramId };
-        console.log('[InventoryJS] getUserInventory - Params for get_user_inventory_jsonb:', params);
-        const { data: inventory, error } = await supabase.rpc('get_user_inventory_jsonb', params);
+        console.log('[InventoryJS] getUserInventory - Params for get_user_inventory:', params);
+        const { data: inventory, error } = await supabase.rpc('get_user_inventory', params);
 
         if (error) {
-            console.error('[InventoryJS] getUserInventory - ERROR from get_user_inventory_jsonb:', error);
+            console.error('[InventoryJS] getUserInventory - ERROR from get_user_inventory:', error);
             showInventoryError('Could not load your inventory. Please try again.');
             return;
         }
 
-        console.log('[InventoryJS] getUserInventory - SUCCESS from get_user_inventory_jsonb. Raw inventory data:', inventory);
+        console.log('[InventoryJS] getUserInventory - SUCCESS from get_user_inventory. Raw inventory data:', inventory);
         displayInventory(inventory);
 
     } catch (err) {

@@ -70,9 +70,9 @@ async function setupApp() {
         initDailyRewards();
         console.log('[AppSetup] setupApp() - initDailyRewards() finished.');
 
-        console.log('[AppSetup] setupApp() - Step 12: Calling updateActivityLog()...');
-        updateActivityLog();
-        console.log('[AppSetup] setupApp() - updateActivityLog() finished.');
+        console.log('[AppSetup] setupApp() - Step 12: Calling updateActivityLogUI()...');
+        updateActivityLogUI();
+        console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
         
         console.log('[AppSetup] setupApp() - Step 13: Setting initial UI elements (rarity nav, activate tab)...');
         updateRarityNavVisibility('cases-tab');
