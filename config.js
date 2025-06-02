@@ -53,12 +53,26 @@ const darkAuraSkins = [
 ];
 
 // Initialize Supabase Client (Make sure Supabase SDK is loaded before this file)
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const supabase = supabaseClient; // Alias for convenience
+let supabaseClient = null;
+let supabase = null; // Alias for convenience
+
+if (typeof window.supabase !== 'undefined') {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabase = supabaseClient;
+    console.log('[Config] Supabase client initialized.');
+} else {
+    console.error('[Config] Supabase SDK not found. Supabase features will be unavailable.');
+}
 
 // Initialize Telegram WebApp (Make sure Telegram SDK is loaded before this)
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
+let tg = null;
+if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
+    tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+    console.log('[Config] Telegram WebApp initialized.');
+} else {
+    console.error('[Config] Telegram WebApp SDK not found. Telegram integration features will be unavailable.');
+}
 
 console.log('[Config] config.js loaded'); 

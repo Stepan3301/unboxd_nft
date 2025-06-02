@@ -16,12 +16,14 @@ async function initApp() {
 }
 
 // Call initApp when the page loads
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    // DOM is already ready
-    initApp();
-}
+// if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', initApp);
+// } else {
+//     // DOM is already ready
+//     initApp();
+// }
+
+window.addEventListener('load', initApp);
 
 // Initialize and set up the app
 async function setupApp() {
