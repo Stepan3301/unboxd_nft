@@ -171,9 +171,39 @@ async function updateUserStat(statName, increment) { // increment might be unuse
 
         // This function might not call an RPC directly if stats are updated by other RPCs (e.g., add_skin_to_inventory)
         // Its main role here is to refresh the stats display.
-        console.warn('[User] updateUserStat in JS is mainly for refreshing stats. Actual stat updates might be via specific SQL functions.');
-        await getUserStats(); // Refresh stats UI after an action that might change them
-        return true; 
+        // console.warn('[User] updateUserStat in JS is mainly for refreshing stats. Actual stat updates might be via specific SQL functions.');
+        // await getUserStats(); // Refresh stats UI after an action that might change them
+        // return true; 
+
+        let params = {
+            p_telegram_id: telegramId,
+            p_nft_count_change: 0,
+            p_cases_opened_change: 0,
+            p_legendary_count_change: 0
+        };
+
+        if (statName === 'nft_count') {
+            params.p_nft_count_change = increment;
+        } else if (statName === 'cases_opened') {
+            params.p_cases_opened_change = increment;
+        } else if (statName === 'legendary_count') {
+            params.p_legendary_count_change = increment;
+        } else {
+            console.error('[User] Unknown statName for updateUserStat:', statName);
+            return false;
+        }
+
+        const { data, error } = await supabase.rpc('update_user_stats', params);
+
+        if (error) {
+            console.error('[User] Error calling update_user_stats:', error);
+            return false;
+        }
+
+        console.log('[User] update_user_stats successful:', data);
+        await getUserStats(); // Refresh stats display after successful update
+        return data && data.success; // Assuming RPC returns { success: true, ... }
+
     } catch (err) {
         console.error(`[User] Error in updateUserStat (${statName}):`, err);
         return false;

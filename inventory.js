@@ -8,7 +8,7 @@ async function getUserInventory() {
             return;
         }
 
-        const { data: inventory, error } = await supabase.rpc('get_user_inventory', {
+        const { data: inventory, error } = await supabase.rpc('get_user_inventory_jsonb', {
             p_telegram_id: telegramId
         });
 
@@ -183,9 +183,9 @@ async function sellNFT(skinName, tier, uniqueId) {
 }
 
 // Function to add item to user inventory (called after case opening)
-async function addItemToInventoryDB(skinName, tier, skinImage, uniqueId) {
+async function addItemToInventoryDB(skinName, tier, skinImage, skinPrice, uniqueId) {
     try {
-        console.log('[Inventory] Adding item to inventory DB:', { skinName, tier, skinImage, uniqueId });
+        console.log('[Inventory] Adding item to inventory DB:', { skinName, tier, skinImage, skinPrice, uniqueId });
         if (!telegramId) { // telegramId from config.js
             console.error('[Inventory] No Telegram ID, cannot add item to inventory.');
             return { success: false, message: 'User not identified.' };
@@ -194,8 +194,9 @@ async function addItemToInventoryDB(skinName, tier, skinImage, uniqueId) {
         const { data, error } = await supabase.rpc('add_skin_to_inventory', {
             p_telegram_id: telegramId,
             p_skin_name: skinName,
-            p_tier: tier,
+            p_skin_tier: tier,
             p_skin_image: skinImage,
+            p_skin_price: skinPrice,
             p_unique_id: uniqueId
         });
 

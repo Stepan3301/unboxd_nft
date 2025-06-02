@@ -64,25 +64,25 @@ async function openLabubuCase() {
         // Define item probabilities for Labubu Case - UPDATED LIST (NOW 17 items)
         const labubuItems = [
             // Existing Tiers 1-2
-            { name: 'Skeleton Labubu', tier: 1, image: 'SkeletonLabubu.png' },
-            { name: 'Candy Labubu', tier: 1, image: 'CandyLabubu.png' },
-            { name: 'Zombie Labubu', tier: 2, image: 'ZombieLabubu.png' },
-            { name: 'New DeepSea Labubu', tier: 2, image: 'NewDeepSeaLabubu.png' },
+            { name: 'Skeleton Labubu', tier: 1, image: 'SkeletonLabubu.png', price: skinPrices[1] },
+            { name: 'Candy Labubu', tier: 1, image: 'CandyLabubu.png', price: skinPrices[1] },
+            { name: 'Zombie Labubu', tier: 2, image: 'ZombieLabubu.png', price: skinPrices[2] },
+            { name: 'New DeepSea Labubu', tier: 2, image: 'NewDeepSeaLabubu.png', price: skinPrices[2] },
             // Existing Tiers 3-5
-            { name: 'Alien Labubu', tier: 3, image: 'AlienLabubu.png' },
-            { name: 'Circus Labubu', tier: 3, image: 'CircusLabubu.png' },
-            { name: 'Grass Labubu', tier: 4, image: 'GrassLabubu.png' },
-            { name: 'Grinch Labubu', tier: 4, image: 'GrinchLabubu.png' },
-            { name: 'Volcanic Labubu', tier: 5, image: 'VolcanicLabubu.png' },
+            { name: 'Alien Labubu', tier: 3, image: 'AlienLabubu.png', price: skinPrices[3] },
+            { name: 'Circus Labubu', tier: 3, image: 'CircusLabubu.png', price: skinPrices[3] },
+            { name: 'Grass Labubu', tier: 4, image: 'GrassLabubu.png', price: skinPrices[4] },
+            { name: 'Grinch Labubu', tier: 4, image: 'GrinchLabubu.png', price: skinPrices[4] },
+            { name: 'Volcanic Labubu', tier: 5, image: 'VolcanicLabubu.png', price: skinPrices[5] },
             // NEW Labubus - Assigning example Tiers, please review
-            { name: 'Demon Labubu', tier: 3, image: 'demon-labubu.png' },      // NEW
-            { name: 'Ghost Labubu', tier: 3, image: 'ghost-labubu.png' },      // NEW
-            { name: 'Cyber Labubu', tier: 4, image: 'cyber-labubu.png' },      // NEW
-            { name: 'Ice Crystal Labubu', tier: 4, image: 'ice-crystal-labubu.png' },// NEW
-            { name: 'Venom Labubu', tier: 5, image: 'venom-labubu.png' },      // NEW
-            { name: 'Samurai Labubu', tier: 5, image: 'ronin-labubu.png' },     // NEW (using ronin-labubu.png)
-            { name: 'Glitch Labubu', tier: 5, image: 'glitch-labubu.png' },     // NEW
-            { name: 'Golden Labubu', tier: 6, image: 'golden-labubu.png' }     // NEW (Highest Tier)
+            { name: 'Demon Labubu', tier: 3, image: 'demon-labubu.png', price: skinPrices[3] },      // NEW
+            { name: 'Ghost Labubu', tier: 3, image: 'ghost-labubu.png', price: skinPrices[3] },      // NEW
+            { name: 'Cyber Labubu', tier: 4, image: 'cyber-labubu.png', price: skinPrices[4] },      // NEW
+            { name: 'Ice Crystal Labubu', tier: 4, image: 'ice-crystal-labubu.png', price: skinPrices[4] },// NEW
+            { name: 'Venom Labubu', tier: 5, image: 'venom-labubu.png', price: skinPrices[5] },      // NEW
+            { name: 'Samurai Labubu', tier: 5, image: 'ronin-labubu.png', price: skinPrices[5] },     // NEW (using ronin-labubu.png)
+            { name: 'Glitch Labubu', tier: 5, image: 'glitch-labubu.png', price: skinPrices[5] },     // NEW
+            { name: 'Golden Labubu', tier: 6, image: 'golden-labubu.png', price: skinPrices[6] }     // NEW (Highest Tier)
         ];
         
         // Adjusted probabilities for 17 items. YOU MUST FINE-TUNE THESE & GUARANTEED LOGIC.
@@ -134,7 +134,7 @@ async function openLabubuCase() {
 
         // Add item to inventory (from inventory.js)
         const uniqueItemId = generateUUID(); // from utils.js
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, uniqueItemId);
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             // Update balance if addItemResult provides it (e.g. if cost was only confirmed here)
@@ -256,18 +256,20 @@ async function openDarkAuraCase() {
         hideCustomDialog();
 
         // Add item to inventory (from inventory.js)
-        const uniqueItemId = generateUUID(); // from utils.js
-        const addItemResult = await addItemToInventoryDB(winningDarkAuraItem.name, winningDarkAuraItem.tier, winningDarkAuraItem.image, uniqueItemId);
+        const darkAuraUniqueId = generateUUID(); // from utils.js
+        const darkAuraAddItemResult = await addItemToInventoryDB(winningDarkAuraItem.name, winningDarkAuraItem.tier, winningDarkAuraItem.image, winningDarkAuraItem.price, darkAuraUniqueId);
 
-        if (addItemResult.success) {
-            if (typeof addItemResult.new_balance !== 'undefined') {
-                userBalance = parseFloat(addItemResult.new_balance);
+        if (darkAuraAddItemResult.success) {
+            // Update balance if addItemResult provides it
+            if (typeof darkAuraAddItemResult.new_balance !== 'undefined') {
+                userBalance = parseFloat(darkAuraAddItemResult.new_balance);
                 updateBalanceDisplay(); // from user.js
             }
-            console.log('[Case Opening] Item added to Dark Aura inventory successfully.');
+            console.log('[Case Opening] Dark Aura item added to inventory successfully.');
         } else {
-            console.error('[Case Opening] Failed to add Dark Aura item to inventory:', addItemResult.message);
+            console.error('[Case Opening] Failed to add Dark Aura item to inventory:', darkAuraAddItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
+            // Note: Balance was already deducted. Consider refund or manual fix process.
         }
 
         // Show result (from roulette.js)
