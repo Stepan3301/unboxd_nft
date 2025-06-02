@@ -47,8 +47,8 @@
                 
         <!-- Main Content -->
         <div class="main">
-            <!-- Cases Tab -->
-            <div class="tab-content" id="cases-tab">
+            <!-- Home Tab (Previously Cases Tab) -->
+            <div class="tab-content active" id="home-tab">
                 <!-- Daily Reward -->
                 <div class="daily-reward-container">
                     <div class="section-title">
@@ -250,9 +250,93 @@
                     </ul>
                 </div>
             </div>
+        </div>
+
+        <!-- Cases Tab (New placeholder) -->
+        <div class="tab-content" id="cases-tab">
+            <div class="section-title">
+                <i class="fas fa-cubes"></i>
+                Cases
+            </div>
+            <p style="text-align: center; padding: 20px;">
+                Select a case to open from the collections above or special featured cases!
+            </p>
+            <!-- Content for the actual cases could be dynamically loaded or be a duplicate of some parts of the home page if needed -->
+            
+            <!-- Featured Case -->
+            <div class="featured-case">
+                <div class="section-title">
+                    <i class="fas fa-star"></i>
+                    Featured Case
+                </div>
+                <div class="featured-card">
+                    <div class="featured-image">
+                        <img src="DarkAuraCase.png" alt="Dark Aura Case">
+                    </div>
+                    <div class="featured-info">
+                        <div class="featured-name">Dark Aura Case</div>
+                        <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
+                        <div class="featured-stats">
+                            <div class="stat">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Items</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">0.2%</div>
+                                <div class="stat-label">Mythic</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">0.8%</div>
+                                <div class="stat-label">Divine</div>
+                            </div>
+                        </div>
+                        <div class="featured-action">
+                            <div class="featured-price">
+                                <img src="ucoin2.png" alt="UCoin">
+                                3,000
+                            </div>
+                            <button class="featured-btn" data-case="darkaura">
+                                View Items
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Popular Cases -->
+            <div class="section-title">
+                <i class="fas fa-fire"></i>
+                Popular Cases
+            </div>
+            <div class="cases-grid">
+                <div class="case-card labubu">
+                    <div class="case-image">
+                        <img src="LabubuCase.png" alt="Labubu Case">
+                        <div class="case-glow"></div>
+                    </div>
+                    <div class="case-info">
+                        <div class="case-name">Labubu Collection</div>
+                        <div class="case-rarity rare">
+                            <div class="rarity-indicator"></div>
+                            <span class="rarity-text">17 unique skins</span>
+                        </div>
+                        <div class="case-price">
+                            <div class="price">
+                                <i class="fas fa-coins"></i>
+                                100
+                            </div>
+                            <button class="open-btn" data-case="labubu">
+                                View
+                                <i class="fas fa-eye"></i>
+                            </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-        <!-- Case Detail Views -->
+    <!-- Case Detail Views -->
     <!-- Labubu Case Detail -->
     <div class="case-detail" id="labubu-case-detail">
         <div class="case-detail-header">
@@ -696,7 +780,7 @@
 
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <div class="nav-btn active" data-tab="cases-tab">
+            <div class="nav-btn active" data-tab="home-tab">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </div>
@@ -834,13 +918,17 @@
 
     <!-- Footer Navigation -->
     <div class="footer-nav">
-        <div class="footer-nav-item active" data-tab="cases-tab">
+        <div class="footer-nav-item active" data-tab="home-tab">
             <i class="fas fa-box"></i>
-            <span>Cases</span>
+            <span>Home</span>
         </div>
         <div class="footer-nav-item" data-tab="inventory-tab">
             <i class="fas fa-backpack"></i>
             <span>Inventory</span>
+        </div>
+        <div class="footer-nav-item" data-tab="cases-tab">
+            <i class="fas fa-cube"></i>
+            <span>Cases</span>
         </div>
         <div class="footer-nav-item" data-tab="profile-tab">
             <i class="fas fa-user-circle"></i>

@@ -3,9 +3,9 @@ async function initApp() {
     console.log('[AppSetup] Step 0: initApp() called.');
     console.log('=== APP INITIALIZATION SEQUENCE START ===');
     try {
-        console.log('[AppSetup] Step 1: Attempting to initialize TON Connect...');
-        await initializeTonConnect();
-        console.log('[AppSetup] Step 2: TON Connect initialization finished (or attempted).');
+        console.log('[AppSetup] Step 1: Starting TON Connect initialization (non-blocking)...');
+        initializeTonConnect(); // No longer awaiting this
+        console.log('[AppSetup] Step 2: TON Connect initialization started in background.');
         
         console.log('[AppSetup] Step 3: Attempting to run main setupApp()...');
         await setupApp();
@@ -83,8 +83,8 @@ async function setupApp() {
         console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
         
         console.log('[AppSetup] setupApp() - Step 16: Setting initial UI elements (rarity nav, activate tab)...');
-        updateRarityNavVisibility('cases-tab');
-        activateTab('cases-tab');
+        updateRarityNavVisibility('home-tab');
+        activateTab('home-tab');
         console.log('[AppSetup] setupApp() - Initial UI elements set.');
         
         console.log('[AppSetup] setupApp() - Step 17: Attaching event listeners...');

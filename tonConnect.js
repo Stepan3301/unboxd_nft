@@ -2,17 +2,17 @@
 async function initializeTonConnect() {
     console.log('[TON Connect] Attempting to initialize TON Connect UI...');
     
-    // Wait for TonConnectUI to be defined, with a timeout
-    const startTime = Date.now();
-    const timeout = 5000; // 5 seconds timeout
+    // Wait for TonConnectUI to be defined, with a timeout - REMOVED TIMEOUT LOGIC
+    // const startTime = Date.now();
+    // const timeout = 5000; // 5 seconds timeout
 
-    while (typeof TonConnectUI === 'undefined' && (Date.now() - startTime) < timeout) {
-        console.log('[TON Connect] TonConnectUI not yet defined, waiting...');
-        await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms before retrying
-    }
+    // while (typeof TonConnectUI === 'undefined' && (Date.now() - startTime) < timeout) {
+    //     console.log('[TON Connect] TonConnectUI not yet defined, waiting...');
+    //     await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms before retrying
+    // }
 
     if (typeof TonConnectUI === 'undefined') {
-        console.error('[TON Connect] SDK SCRIPT NOT LOADED: TonConnectUI is still not defined after timeout. Ensure SDK script is loaded before tonConnect.js.');
+        console.error('[TON Connect] SDK SCRIPT NOT LOADED: TonConnectUI is not defined. Ensure SDK script is loaded before tonConnect.js. Features requiring TON Connect may not work until it loads.');
         // alert('TON Wallet connection service failed to load. Please try refreshing.'); // Optional: inform user
         return; // Stop initialization if SDK is not found
     }
