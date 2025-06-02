@@ -41,9 +41,14 @@ async function setupApp() {
             // telegramId = '123456789'; // Example mock ID
         }
         
+        // Populate global user name variables from config.js BEFORE calling registerUserAndGetBalance
+        userFirstName = user.first_name || 'User'; 
+        userLastName = user.last_name || '';
+        userName = user.username ? `@${user.username}` : (userFirstName + (userLastName ? ` ${userLastName}` : '')).trim();
+        userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300'; // Though not directly used by registerUserAndGetBalance, good to set it here.
+        
         // Debug: Log Telegram user data
-        console.log('Telegram user data:', user);
-        console.log('Telegram ID:', telegramId);
+        console.log('Telegram user data prepared:', { telegramId, userName, userFirstName, userLastName, userPhotoUrl });
         
         // Register user and get balance (user.js - needs telegramId, userName, userFirstName, userLastName from config.js)
         await registerUserAndGetBalance(); 

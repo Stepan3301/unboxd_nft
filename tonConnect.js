@@ -1,16 +1,28 @@
 // Initialize TON Connect when the script loads
 async function initializeTonConnect() {
-    console.log('[TON Connect] Starting initialization...');
+    console.log('[TON Connect] Starting initialization attempt...');
     
+    // Wait for TonConnectUI to be defined, with a timeout
+    const startTime = Date.now();
+    const timeout = 5000; // 5 seconds timeout
+
+    while (typeof TonConnectUI === 'undefined' && (Date.now() - startTime) < timeout) {
+        console.log('[TON Connect] TonConnectUI not yet defined, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms before retrying
+    }
+
+    if (typeof TonConnectUI === 'undefined') {
+        console.error('[TON Connect] TonConnectUI is still not defined after timeout. Make sure the SDK script is loaded correctly before this script.');
+        // alert('TON Wallet connection service failed to load. Please try refreshing.'); // Optional: inform user
+        return; // Stop initialization if SDK is not found
+    }
+
+    console.log('[TON Connect] TonConnectUI found. Proceeding with initialization.');
+
     try {
-        if (typeof TonConnectUI === 'undefined') {
-            console.error('[TON Connect] TonConnectUI is not defined. Make sure the SDK is loaded.');
-            return;
-        }
-        
         // tonConnectUI is a global variable from config.js
         tonConnectUI = new TonConnectUI({
-            manifestUrl: 'https://yourdomain.com/tonconnect-manifest.json', // Replace with your actual manifest URL
+            manifestUrl: 'https://stepan3301.github.io/unboxd_nft/tonconnect-manifest.json', // Updated to your GitHub Pages URL
             buttonRootId: 'ton-connect-button' // Optional: if you have a dedicated root for the button
         });
         
@@ -40,7 +52,8 @@ async function initializeTonConnect() {
         
         console.log('[TON Connect] Initialization complete');
     } catch (error) {
-        console.error('[TON Connect] Initialization error:', error);
+        console.error('[TON Connect] Initialization error:', error); // This will catch errors from `new TonConnectUI`
+        // alert('Error initializing TON Wallet connection. Some features might be unavailable.'); // Optional
     }
 }
 
