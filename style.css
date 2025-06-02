@@ -1511,7 +1511,8 @@ body {
 
 /* Case Detail View */
 .case-detail {
-    display: none;
+    display: flex;
+    flex-direction: column;
     position: fixed;
     top: 0;
     left: 50%;
@@ -1521,8 +1522,7 @@ body {
     height: 100%;
     z-index: 200;
     background: rgba(20, 20, 35, 0.9);
-    overflow-y: auto;
-    padding-bottom: var(--tab-height);
+    padding-bottom: 0;
 }
 
 .case-detail.active {
@@ -1567,6 +1567,8 @@ body {
 .case-detail .featured-card {
     margin-top: 0;
     border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 /* General Modal Styles */
@@ -2105,4 +2107,54 @@ body {
     background-color: var(--primary);
     color: white;
     box-shadow: 0 0 10px var(--primary);
+}
+
+/* Styles for the items grid within case detail */
+.case-detail-skins-grid {
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Specific styling for the section title within case detail */
+.case-items-title {
+    padding: 20px 20px 10px 20px;
+    margin-bottom: 0;
+}
+
+/* Styles for the new action panel in case detail */
+.case-detail-action-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 15;
+    backdrop-filter: blur(5px);
+}
+
+.case-detail-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+}
+
+.case-detail-price img {
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
+}
+
+.case-detail-action-panel .open-case-btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+    flex-shrink: 0;
+    min-width: 150px;
 } 

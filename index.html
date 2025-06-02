@@ -269,40 +269,33 @@
                 </div>
                 <div class="case-detail-title">Dark Aura Case Items (13 Total)</div>
             </div>
-            <div class="featured-card"> <!-- Re-using featured-card styling for consistency -->
+            <div class="featured-card"> <!-- Main case info card -->
                 <div class="featured-image">
                     <img src="DarkAuraCase.png" alt="Dark Aura Case">
                 </div>
                 <div class="featured-info">
                     <div class="featured-name">Dark Aura Case</div>
                     <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers.</div>
-                    <!-- Item counts/rarity can be dynamic or simplified here -->
                 </div>
-                <div class="featured-action">
-                     <div class="featured-price">
-                        <img src="ucoin2.png" alt="UCoin">
-                        3,000
-                    </div>
-                    <button class="open-case-btn btn" data-case="darkaura">
-                        <i class="fas fa-box-open"></i> Open Case
-                    </button>
-                </div>
+                <!-- Removed featured-action from here -->
             </div>
-            <div class="section-title" style="padding: 20px 20px 0 20px;">
+            
+            <div class="section-title case-items-title"> <!-- Added class for specific styling -->
                 <i class="fas fa-list-ul"></i> Items in this Case
             </div>
-            <div class="skins-grid" id="darkaura-skins-grid" style="padding: 20px;">
+            <div class="skins-grid case-detail-skins-grid" id="darkaura-skins-grid">
                 <!-- Dark Aura skins will be populated by JavaScript -->
-                <!-- Example Structure (repeated by JS):
-                <div class="skin-card tier-1">
-                    <div class="skin-image">
-                        <lottie-player class="static-lottie" src="lottie/darkaura/cleaned-deskcalendar-280571.json" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
-                    </div>
-                    <div class="skin-info">
-                        <div class="skin-name">Haunted Desk Calendar</div>
-                    </div>
+            </div>
+
+            <!-- New Action Panel for Price and Open Button -->
+            <div class="case-detail-action-panel">
+                <div class="case-detail-price">
+                    <img src="ucoin2.png" alt="UCoin">
+                    3,000
                 </div>
-                -->
+                <button class="open-case-btn btn" data-case="darkaura">
+                    <i class="fas fa-box-open"></i> Open Case
+                </button>
             </div>
         </div>
 
@@ -314,7 +307,7 @@
                 </div>
                 <div class="case-detail-title">Labubu Collection (17 Total)</div>
             </div>
-             <div class="featured-card">
+            <div class="featured-card">
                 <div class="featured-image">
                     <img src="LabubuCase.png" alt="Labubu Case">
                 </div>
@@ -322,21 +315,25 @@
                     <div class="featured-name">Labubu Collection</div>
                     <div class="featured-desc">A collection of 17 unique Labubu character skins.</div>
                 </div>
-                <div class="featured-action">
-                    <div class="featured-price">
-                        <img src="ucoin2.png" alt="UCoin">
-                        100
-                    </div>
-                    <button class="open-case-btn btn" data-case="labubu">
-                        <i class="fas fa-box-open"></i> Open Case
-                    </button>
-                </div>
+                <!-- Removed featured-action from here -->
             </div>
-            <div class="section-title" style="padding: 20px 20px 0 20px;">
+
+            <div class="section-title case-items-title">
                 <i class="fas fa-list-ul"></i> Skins in this Collection
             </div>
-            <div class="skins-grid" id="labubu-skins-grid" style="padding: 20px;">
+            <div class="skins-grid case-detail-skins-grid" id="labubu-skins-grid">
                 <!-- Labubu skins will be populated by JavaScript -->
+            </div>
+
+            <!-- New Action Panel for Price and Open Button -->
+            <div class="case-detail-action-panel">
+                <div class="case-detail-price">
+                    <img src="ucoin2.png" alt="UCoin">
+                    100
+                </div>
+                <button class="open-case-btn btn" data-case="labubu">
+                    <i class="fas fa-box-open"></i> Open Case
+                </button>
             </div>
         </div>
         <!-- End Case Detail Views -->
