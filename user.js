@@ -1,41 +1,46 @@
 // Register user in Supabase and get their balance
 async function registerUserAndGetBalance() {
+    console.log('[UserJS] registerUserAndGetBalance() called.');
     try {
-        if (!telegramId) { // telegramId from config.js
-            console.error('No Telegram ID available for registration');
+        if (!telegramId) {
+            console.error('[UserJS] registerUserAndGetBalance - FAILED: No Telegram ID available.');
             // Consider using showToast or a similar UI notification if available
             alert('Unable to identify user. Please restart the app.');
             return;
         }
         
-        console.log('Attempting to register user with ID:', telegramId);
+        console.log('[UserJS] registerUserAndGetBalance - Attempting to register user with ID:', telegramId);
         
         // Uses global userName, userFirstName, userLastName from config.js if available
-        const { data: userData, error: userError } = await supabase.rpc('add_user_with_balance', {
+        const addUserParams = {
             p_telegram_id: telegramId,
             p_username: userName || '',
             p_first_name: userFirstName || '',
             p_last_name: userLastName || ''
-        });
+        };
+        console.log('[UserJS] registerUserAndGetBalance - Params for add_user_with_balance:', addUserParams);
+        
+        const { data: userData, error: userError } = await supabase.rpc('add_user_with_balance', addUserParams);
         
         if (userError) {
-            console.error('Error registering user:', userError);
+            console.error('[UserJS] registerUserAndGetBalance - ERROR from add_user_with_balance:', userError);
             alert('Error connecting to database (user registration). Please try again later.');
             return;
         }
+        console.log('[UserJS] registerUserAndGetBalance - SUCCESS from add_user_with_balance. DB User ID:', userData);
         
-        console.log('User registered (or updated) successfully, user ID from DB:', userData);
-        
-        // Get user balance using the revised get_balance function
-        const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', {
-            p_telegram_id: telegramId
-        });
+        console.log('[UserJS] registerUserAndGetBalance - Attempting to get balance for telegram ID:', telegramId);
+        const getBalanceParams = { p_telegram_id: telegramId };
+        console.log('[UserJS] registerUserAndGetBalance - Params for get_balance:', getBalanceParams);
+
+        const { data: balanceData, error: balanceError } = await supabase.rpc('get_balance', getBalanceParams);
         
         if (balanceError) {
-            console.error('Error getting balance after registration:', balanceError);
+            console.error('[UserJS] registerUserAndGetBalance - ERROR from get_balance:', balanceError);
             userBalance = 0; // userBalance is global from config.js
         } else {
             userBalance = parseFloat(balanceData) || 0;
+            console.log('[UserJS] registerUserAndGetBalance - SUCCESS from get_balance. Raw balanceData:', balanceData);
         }
         
         updateBalanceDisplay(); // Update UI with the new balance
@@ -130,23 +135,23 @@ async function updateUserData() {
 
 // Function to get user balance from database and update UI
 async function getUserBalance() {
+    console.log('[UserJS] getUserBalance() called for telegramId:', telegramId);
     try {
-        console.log('[User] Getting user balance');
-        
         if (!telegramId) {
-            console.error('[User] No telegram ID available for getting user balance');
+            console.error('[UserJS] getUserBalance - FAILED: No telegram ID.');
             return 0; // Return 0 or handle as appropriate
         }
         
-        const { data, error } = await supabase.rpc('get_balance', {
-            p_telegram_id: telegramId
-        });
+        const params = { p_telegram_id: telegramId };
+        console.log('[UserJS] getUserBalance - Params for get_balance:', params);
+        const { data, error } = await supabase.rpc('get_balance', params);
         
         if (error) {
-            console.error('[User] Error getting user balance from DB:', error);
+            console.error('[UserJS] getUserBalance - ERROR from get_balance:', error);
             userBalance = 0; // Default to 0 on error
         } else {
             userBalance = parseFloat(data) || 0;
+            console.log('[UserJS] getUserBalance - SUCCESS from get_balance. Raw data:', data, 'Parsed balance:', userBalance);
         }
         updateBalanceDisplay(); // Update all UI elements
         console.log('[User] Current balance from getUserBalance:', userBalance);
@@ -212,26 +217,24 @@ async function updateUserStat(statName, increment) { // increment might be unuse
 
 // Function to get user stats from database and update UI
 async function getUserStats() {
+    console.log('[UserJS] getUserStats() called for telegramId:', telegramId);
     try {
-        console.log('[User] Getting user stats');
-        
         if (!telegramId) {
-            console.error('[User] No telegram ID available for getting user stats');
+            console.error('[UserJS] getUserStats - FAILED: No telegram ID.');
             return null;
         }
         
-        const { data, error } = await supabase.rpc('get_user_stats', {
-            p_telegram_id: telegramId
-        });
+        const params = { p_telegram_id: telegramId };
+        console.log('[UserJS] getUserStats - Params for get_user_stats:', params);
+        const { data, error } = await supabase.rpc('get_user_stats', params);
         
         if (error) {
-            console.error('[User] Error getting user stats from DB:', error);
-            // Set UI to defaults on error
+            console.error('[UserJS] getUserStats - ERROR from get_user_stats:', error);
             updateStatsUI(null);
             return null;
         }
         
-        console.log('[User] User stats retrieved (raw data from RPC):', data);
+        console.log('[UserJS] getUserStats - SUCCESS from get_user_stats. Raw data:', data);
         
         let userStatsData = null;
         if (data && data.length > 0) {
@@ -299,4 +302,4 @@ function updateStatsUI(statsData) {
     }
 }
 
-console.log('[User] user.js loaded'); 
+console.log('[UserJS] user.js script finished loading.'); 

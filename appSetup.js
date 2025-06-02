@@ -1,16 +1,19 @@
 // Initialize the app
 async function initApp() {
-    console.log('=== INITIALIZING APP ===');
+    console.log('[AppSetup] Step 0: initApp() called.');
+    console.log('=== APP INITIALIZATION SEQUENCE START ===');
     try {
-        // Initialize TON Connect first (from tonConnect.js)
+        console.log('[AppSetup] Step 1: Attempting to initialize TON Connect...');
         await initializeTonConnect();
+        console.log('[AppSetup] Step 2: TON Connect initialization finished (or attempted).');
         
-        // Setup the app (main logic of this function)
+        console.log('[AppSetup] Step 3: Attempting to run main setupApp()...');
         await setupApp();
+        console.log('[AppSetup] Step 4: Main setupApp() finished.');
         
-        console.log('App initialization completed');
+        console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
     } catch (error) {
-        console.error('Failed to initialize app:', error);
+        console.error('[AppSetup] CRITICAL ERROR in initApp():', error);
         alert('Failed to initialize the app. Please refresh and try again.');
     }
 }
@@ -28,71 +31,72 @@ window.addEventListener('load', initApp);
 // Initialize and set up the app
 async function setupApp() {
     try {
-        console.log('Setting up app...');
-        console.log('Telegram WebApp instance (from config.js):', tg);
-        console.log('Telegram WebApp initDataUnsafe:', tg.initDataUnsafe);
+        console.log('[AppSetup] setupApp() - Step 5: Starting main application setup...');
+        console.log('[AppSetup] setupApp() - Telegram WebApp SDK instance from config.js (tg):', tg);
+        console.log('[AppSetup] setupApp() - Telegram WebApp initDataUnsafe from tg:', tg ? tg.initDataUnsafe : 'tg is null');
         
-        // Get user data from Telegram (uses tg from config.js)
-        const user = tg.initDataUnsafe?.user || {};
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-            telegramId = tg.initDataUnsafe.user.id; // telegramId is global from config.js
-            console.log('Successfully retrieved telegram ID:', telegramId);
+        console.log('[AppSetup] setupApp() - Step 6: Preparing Telegram user data...');
+        const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : {};
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            telegramId = tg.initDataUnsafe.user.id; 
+            console.log('[AppSetup] setupApp() - Successfully retrieved telegram ID:', telegramId);
         } else {
-            console.warn('[Desktop Test Mode] Could not retrieve real telegram ID from initDataUnsafe. Proceeding with limited functionality for testing.');
-            // For desktop testing, you might want to assign a mock telegramId
-            // telegramId = '123456789'; // Example mock ID
+            console.warn('[AppSetup] setupApp() - Could not retrieve real telegram ID. User object from TG:', user);
         }
         
-        // Populate global user name variables from config.js BEFORE calling registerUserAndGetBalance
         userFirstName = user.first_name || 'User'; 
         userLastName = user.last_name || '';
         userName = user.username ? `@${user.username}` : (userFirstName + (userLastName ? ` ${userLastName}` : '')).trim();
-        userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300'; // Though not directly used by registerUserAndGetBalance, good to set it here.
+        userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+        console.log('[AppSetup] setupApp() - Telegram user data prepared:', { telegramId, userName, userFirstName, userLastName, userPhotoUrl });
         
-        // Debug: Log Telegram user data
-        console.log('Telegram user data prepared:', { telegramId, userName, userFirstName, userLastName, userPhotoUrl });
-        
-        // Register user and get balance (user.js - needs telegramId, userName, userFirstName, userLastName from config.js)
+        console.log('[AppSetup] setupApp() - Step 7: Calling registerUserAndGetBalance()...');
         await registerUserAndGetBalance(); 
-        console.log('User registered and balance retrieved (userBalance in config.js):', userBalance);
+        console.log('[AppSetup] setupApp() - registerUserAndGetBalance() finished. Current userBalance (from config.js):', userBalance);
         
-        // Get user stats (user.js)
+        console.log('[AppSetup] setupApp() - Step 8: Calling getUserStats()...');
         const stats = await getUserStats();
-        console.log('User stats retrieved:', stats);
+        console.log('[AppSetup] setupApp() - getUserStats() finished. Stats retrieved:', stats);
         
-        // Get user inventory (inventory.js)
+        console.log('[AppSetup] setupApp() - Step 9: Calling getUserInventory()...');
         await getUserInventory();
+        console.log('[AppSetup] setupApp() - getUserInventory() finished.');
         
-        // Update user data in UI (user.js - populates profile tab)
+        console.log('[AppSetup] setupApp() - Step 10: Calling updateUserData()...');
         await updateUserData();
+        console.log('[AppSetup] setupApp() - updateUserData() finished.');
         
-        // Initialize daily rewards (dailyRewards.js)
+        console.log('[AppSetup] setupApp() - Step 11: Calling initDailyRewards()...');
         initDailyRewards();
+        console.log('[AppSetup] setupApp() - initDailyRewards() finished.');
 
-        // Update activity log (activityLog.js)
+        console.log('[AppSetup] setupApp() - Step 12: Calling updateActivityLog()...');
         updateActivityLog();
+        console.log('[AppSetup] setupApp() - updateActivityLog() finished.');
         
-        // Set initial rarity nav visibility (uiHandlers.js)
+        console.log('[AppSetup] setupApp() - Step 13: Setting initial UI elements (rarity nav, activate tab)...');
         updateRarityNavVisibility('cases-tab');
+        activateTab('cases-tab');
+        console.log('[AppSetup] setupApp() - Initial UI elements set.');
         
-        // Make the first tab active (uiHandlers.js)
-        activateTab('cases-tab'); // Assuming activateTab is in uiHandlers.js
-        
-        console.log('App setup completed successfully');
-        
-        // Attach tab navigation event listeners (uiHandlers.js)
+        console.log('[AppSetup] setupApp() - Step 14: Attaching event listeners...');
         attachEventListeners();
+        console.log('[AppSetup] setupApp() - Event listeners attached.');
         
-        // Preload Dark Aura Lottie animations for better performance (roulette.js or caseOpening.js)
+        console.log('[AppSetup] setupApp() - Step 15: Preloading Lottie animations...');
         preloadLottieAnimations().catch(error => {
-            console.warn('[App Setup] Failed to preload Lottie animations:', error);
+            console.warn('[AppSetup] setupApp() - WARNING: Failed to preload Lottie animations:', error);
         });
+        console.log('[AppSetup] setupApp() - Preloading Lottie animations initiated.');
 
-        // Load case opening data from local storage (caseOpening.js)
+        console.log('[AppSetup] setupApp() - Step 16: Loading case opening data...');
         loadCaseOpeningData();
+        console.log('[AppSetup] setupApp() - Case opening data loaded.');
+
+        console.log('[AppSetup] setupApp() - SUCCESSFULLY COMPLETED MAIN APPLICATION SETUP.');
 
     } catch (error) {
-        console.error('Error in setupApp:', error);
+        console.error('[AppSetup] setupApp() - CRITICAL ERROR during main application setup:', error);
         alert('Error setting up the app. Please try again later.');
     }
 }
@@ -110,4 +114,4 @@ async function setupApp() {
 // }
 // startApp(); // Call was also removed.
 
-console.log('[App Setup] appSetup.js loaded'); 
+console.log('[AppSetup] appSetup.js script finished loading.'); 

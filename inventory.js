@@ -1,24 +1,25 @@
 // Function to get user inventory from database
 async function getUserInventory() {
+    console.log('[InventoryJS] getUserInventory() called.');
     try {
-        console.log('[Inventory] Fetching user inventory for telegramId:', telegramId);
+        console.log('[InventoryJS] Fetching user inventory for telegramId:', telegramId);
         if (!telegramId) { // telegramId from config.js
-            console.error('[Inventory] No telegram ID for inventory retrieval.');
+            console.error('[InventoryJS] getUserInventory - FAILED: No telegram ID.');
             showInventoryError('Unable to load inventory. Please log in again.');
             return;
         }
 
-        const { data: inventory, error } = await supabase.rpc('get_user_inventory_jsonb', {
-            p_telegram_id: telegramId
-        });
+        const params = { p_telegram_id: telegramId };
+        console.log('[InventoryJS] getUserInventory - Params for get_user_inventory_jsonb:', params);
+        const { data: inventory, error } = await supabase.rpc('get_user_inventory_jsonb', params);
 
         if (error) {
-            console.error('[Inventory] Error fetching user inventory from DB:', error);
+            console.error('[InventoryJS] getUserInventory - ERROR from get_user_inventory_jsonb:', error);
             showInventoryError('Could not load your inventory. Please try again.');
             return;
         }
 
-        console.log('[Inventory] User inventory retrieved:', inventory);
+        console.log('[InventoryJS] getUserInventory - SUCCESS from get_user_inventory_jsonb. Raw inventory data:', inventory);
         displayInventory(inventory);
 
     } catch (err) {
@@ -251,4 +252,4 @@ async function addItemToInventoryDB(skinName, tier, skinImage, skinPrice, unique
     }
 }
 
-console.log('[Inventory] inventory.js loaded'); 
+console.log('[InventoryJS] inventory.js script finished loading.'); 
