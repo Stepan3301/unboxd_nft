@@ -58,7 +58,7 @@ async function preloadLottieAnimations() {
     for (const skin of darkAuraSkins) {
         if (skin.type === 'lottie' && skin.image) {
             try {
-                const response = await fetch(`lottie/${skin.image}`);
+                const response = await fetch(`${skin.image}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch Lottie: ${skin.image}, status: ${response.status}`);
                 }
@@ -162,7 +162,7 @@ async function startEnhancedDarkAuraRouletteAnimation(items, probabilities, winn
                 console.error('[Roulette] Winning Lottie animation not preloaded:', currentResultSkin.image);
                 // Attempt to fetch it now
                 try {
-                    const response = await fetch(`lottie/${currentResultSkin.image}`);
+                    const response = await fetch(`${currentResultSkin.image}`);
                     if (!response.ok) throw new Error('Fetch failed');
                     lottieAnimations[currentResultSkin.image] = await response.json();
                     console.log('[Roulette] Fetched missing Lottie on demand:', currentResultSkin.image);
@@ -255,26 +255,25 @@ function showRouletteResult(item, caseType) {
     resultItemName.textContent = item.name;
     resultItemTier.textContent = `Tier ${item.tier}`;
     resultItemTier.className = `result-tier tier-${item.tier}`;
-    resultItemImageContainer.innerHTML = ''; // Clear previous image/lottie
+    resultItemImageContainer.innerHTML = ''; // Clear previous
 
     if (item.type === 'lottie' && item.image && lottieAnimations[item.image]) {
-        const lottiePlayer = document.createElement('lottie-player');
-        lottiePlayer.setAttribute('background', 'transparent');
-        lottiePlayer.setAttribute('speed', '1');
-        lottiePlayer.style.width = '150px';
-        lottiePlayer.style.height = '150px';
-        lottiePlayer.loop = true;
-        lottiePlayer.autoplay = true;
-        lottiePlayer.setAnimationData(lottieAnimations[item.image]);
-        resultItemImageContainer.appendChild(lottiePlayer);
-        rouletteStateManager.setActiveRoulette(`${caseType}_result`, lottiePlayer); 
-    } else if (item.image) {
-        const img = document.createElement('img');
-        img.src = item.type === 'lottie' ? `lottie/${item.image.replace('.json', '.png')}` : `images/${item.image}`; // Fallback for Lottie if data missing
-        img.alt = item.name;
-        img.style.maxWidth = '150px';
-        img.style.maxHeight = '150px';
-        resultItemImageContainer.appendChild(img);
+        const player = document.createElement('lottie-player');
+        player.autoplay = true;
+        player.loop = true;
+        player.mode = "normal";
+        player.setAnimationData(lottieAnimations[item.image]); 
+        player.style.width = '120px'; // Or your preferred size
+        player.style.height = '120px'; // Or your preferred size
+        resultItemImageContainer.appendChild(player);
+        rouletteStateManager.setActiveRoulette(caseType + '_result', player);
+    } else if (item.type === 'image' && item.image) {
+        resultItemImageContainer.innerHTML = `<img src="${item.image}" alt="${item.name}" style="max-width: 100%; max-height: 120px;">`; // REMOVED 'images/' prefix
+    } else if (item.image) { // Fallback for items without a 'type' but with an image (assume image)
+        // This case might occur if item.type is not explicitly 'image' but an image filename is provided
+        resultItemImageContainer.innerHTML = `<img src="${item.image}" alt="${item.name}" style="max-width: 100%; max-height: 120px;">`; // REMOVED 'images/' prefix
+    } else {
+        resultItemImageContainer.innerHTML = '<p>Image not available</p>'; // Fallback if no image or Lottie data
     }
 
     resultScreen.classList.add('active');

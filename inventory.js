@@ -67,7 +67,7 @@ function displayInventory(inventory) {
             }
             imageElement = `
                 <lottie-player 
-                    src="lottie/${lottieFileName}" 
+                    src="${lottieFileName}" 
                     background="transparent" 
                     speed="1" 
                     style="width: 100%; height: 120px;" 
@@ -76,7 +76,7 @@ function displayInventory(inventory) {
                 </lottie-player>
             `;
         } else {
-            imageElement = `<img src="images/${item.skin_image || 'placeholder.png'}" alt="${item.skin_name}">`;
+            imageElement = `<img src="${item.skin_image || 'placeholder.png'}" alt="${item.skin_name}">`;
         }
 
         itemCard.innerHTML = `
