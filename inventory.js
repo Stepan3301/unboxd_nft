@@ -44,8 +44,8 @@ function displayInventory(inventory) {
 
     // Sort inventory: by tier (desc), then by name (asc)
     inventory.sort((a, b) => {
-        if (a.tier !== b.tier) {
-            return b.tier - a.tier; // Higher tier first
+        if (a.skin_tier !== b.skin_tier) {
+            return b.skin_tier - a.skin_tier; // Higher tier first
         }
         return a.skin_name.localeCompare(b.skin_name);
     });
@@ -53,17 +53,21 @@ function displayInventory(inventory) {
     inventory.forEach(item => {
         const itemCard = document.createElement('div');
         itemCard.className = 'inventory-item-card';
-        itemCard.dataset.tier = item.tier;
+        itemCard.dataset.tier = item.skin_tier;
         itemCard.dataset.uniqueId = item.unique_id; // Store unique_id for selling
 
-        const itemPrice = skinPrices[item.tier] || 0; // skinPrices from config.js
+        const itemPrice = skinPrices[item.skin_tier] || 0; // skinPrices from config.js
 
         // Check if the item image is a Lottie file or a static image
         let imageElement;
         if (item.skin_image && item.skin_image.endsWith('.json')) {
+            let lottieFileName = item.skin_image;
+            if (lottieFileName.startsWith('LottieAnimations/')) {
+                lottieFileName = lottieFileName.substring('LottieAnimations/'.length);
+            }
             imageElement = `
                 <lottie-player 
-                    src="lottie/${item.skin_image}" 
+                    src="lottie/${lottieFileName}" 
                     background="transparent" 
                     speed="1" 
                     style="width: 100%; height: 120px;" 
@@ -81,12 +85,12 @@ function displayInventory(inventory) {
             </div>
             <div class="item-info">
                 <h3>${item.skin_name}</h3>
-                <p class="item-tier tier-${item.tier}">Tier ${item.tier}</p>
+                <p class="item-tier tier-${item.skin_tier}">Tier ${item.skin_tier}</p>
                 <p class="item-price">
                     <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; vertical-align: middle;">
                     ${itemPrice.toLocaleString()}
                 </p>
-                <button class="sell-btn" data-skin-name="${item.skin_name}" data-tier="${item.tier}" data-unique-id="${item.unique_id}">Sell</button>
+                <button class="sell-btn" data-skin-name="${item.skin_name}" data-tier="${item.skin_tier}" data-unique-id="${item.unique_id}">Sell</button>
             </div>
         `;
         inventoryGrid.appendChild(itemCard);
