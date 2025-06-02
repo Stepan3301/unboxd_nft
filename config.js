@@ -1,7 +1,6 @@
 // Supabase configuration
-const SUPABASE_URL = 'https://qkuqlxwqblmegyhrdwgm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdXFseHdxYmxtZWd5aHJkd2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg4NDc1NjcsImV4cCI6MjA0NDQyMzU2N30.x-9N3O1g0qT88GvSy-LHlOXczGt9vQUCT2vU0u0x4ZM';
-
+const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
 // Global Variables (Review Scope as we modularize)
 let userBalance = 0;
 let dailyStreak = 0; // This might be part of dailyRewards.js state

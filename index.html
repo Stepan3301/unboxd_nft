@@ -834,25 +834,118 @@
                     </div>
                     </div>
 
-    <!-- Include the external JavaScript files -->
-    <!-- Core configurations and utilities -->
-    <script src="config.js"></script>
-    <script src="utils.js"></script>
+    <!-- Modals -->
+    <!-- Lottie Roulette Modal -->
+    <div id="lottie-roulette-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="roulette-modal-title">Opening Case...</h2>
+            <div id="lottie-animation-container"></div>
+            <div id="lottie-prize-display"></div>
+            <div id="lottie-error-display"></div>
+            <div class="modal-actions">
+                <button id="claim-lottie-prize-btn" class="btn" style="display: none;">Claim Prize</button>
+                <button id="close-lottie-modal-btn" class="btn secondary-btn">Close</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Feature Modules -->
-    <script src="user.js"></script>
-    <script src="activityLog.js"></script>
-    <script src="dailyRewards.js"></script>
-    <script src="inventory.js"></script>
-    <script src="roulette.js"></script>
-    <script src="caseOpening.js"></script>
-    <script src="tonConnect.js"></script>
-    
-    <!-- UI and Application Setup (should be last or among the last) -->
-    <script src="uiHandlers.js"></script>
-    <script src="appSetup.js"></script>
+    <!-- Other Modals (Not Enough Balance, Custom Dialog, etc.) -->
+    <div id="not-enough-balance-dialog" class="modal simple-dialog">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <i class="fas fa-exclamation-triangle dialog-icon error"></i>
+            <h2>Not Enough UCoins</h2>
+            <p>You do not have enough UCoins to perform this action. Please buy more or earn them through daily rewards.</p>
+            <button class="btn" id="buy-ucoins-from-dialog-btn">Buy UCoins</button>
+            <button class="btn secondary-btn" id="close-not-enough-balance-btn">Close</button>
+        </div>
+    </div>
 
-    <!-- Main script.js is now a placeholder and can likely be removed if appSetup.js handles init -->
-    <!-- <script src="script.js"></script> --> 
+    <div id="custom-dialog" class="modal simple-dialog">
+        <div class="modal-content">
+            <span class="close-btn" style="display: none;">&times;</span> <!-- Hide close for processing -->
+            <i class="fas fa-info-circle dialog-icon info"></i> <!-- Default icon -->
+            <h2 id="custom-dialog-title">Notification</h2>
+            <p id="custom-dialog-message">Processing...</p>
+            <div id="custom-dialog-lottie-container" style="width: 100px; height: 100px; margin: 10px auto;"></div>
+            <button class_="btn" id="custom-dialog-ok-btn" style="display: none;">OK</button>
+        </div>
+    </div>
+
+    <div id="daily-reward-dialog" class="modal simple-dialog">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <i class="fas fa-gift dialog-icon success"></i>
+            <h2>Daily Reward Claimed!</h2>
+            <p>You have received 1,000 UCoins! Come back tomorrow for more.</p>
+            <button class="btn" id="daily-reward-dialog-btn">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Buy UCoins Modal -->
+    <div id="buy-ucoins-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Buy UCoins</h2>
+            <p>Connect your TON Wallet to purchase UCoins.</p>
+            <div id="ucoin-connect-prompt" style="display: block; text-align: center; margin: 20px 0;">
+                <p>Please connect your TON wallet first.</p>
+                <button class="btn" id="ucoin-modal-connect-wallet-btn" style="margin-top: 10px;">Connect Wallet</button>
+            </div>
+            <div id="ucoin-packages-list" style="display: none;">
+                <div class="ucoin-package">
+                    <span>💰 5,000 UCoins</span>
+                    <span>💎 1 TON</span>
+                    <button class="btn buy-ucoin-btn" data-ucoins="5000" data-ton="1">Buy</button>
+                </div>
+                <div class="ucoin-package">
+                    <span>💰 12,000 UCoins</span>
+                    <span>💎 2 TON</span>
+                    <button class="btn buy-ucoin-btn" data-ucoins="12000" data-ton="2">Buy</button>
+                </div>
+                <div class="ucoin-package">
+                    <span>💰 30,000 UCoins</span>
+                    <span>💎 5 TON</span>
+                    <button class="btn buy-ucoin-btn" data-ucoins="30000" data-ton="5">Buy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <div class="footer-nav">
+        <div class="footer-nav-item active" data-tab="cases-tab">
+            <i class="fas fa-box"></i>
+            <span>Cases</span>
+        </div>
+        <div class="footer-nav-item" data-tab="inventory-tab">
+            <i class="fas fa-backpack"></i>
+            <span>Collection</span>
+        </div>
+        <div class="footer-nav-item" data-tab="profile-tab">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+        </div>
+        <div class="footer-nav-item" data-tab="info-tab">
+            <i class="fas fa-info-circle"></i>
+            <span>Info</span>
+        </div>
+    </div>
+
+    <!-- JavaScript files -->
+    <!-- <script src="script.js"></script> --> <!-- Placeholder, commented out -->
+    <script src="config.js" defer></script>
+    <script src="utils.js" defer></script>
+    <script src="tonConnect.js" defer></script>
+    <script src="user.js" defer></script>
+    <script src="dailyRewards.js" defer></script>
+    <script src="activityLog.js" defer></script>
+    <script src="inventory.js" defer></script>
+    <script src="caseOpening.js" defer></script>
+    <script src="roulette.js" defer></script>
+    <script src="uiHandlers.js" defer></script>
+    <script src="appSetup.js" defer></script>
+
 </body>
 </html>
