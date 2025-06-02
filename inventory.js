@@ -90,14 +90,14 @@ function displayInventory(inventory) {
                     <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; vertical-align: middle;">
                     ${itemPrice.toLocaleString()}
                 </p>
-                <button class="sell-btn" data-skin-name="${item.skin_name}" data-tier="${item.skin_tier}" data-unique-id="${item.unique_id}">Sell</button>
+                <button class="inventory-sell-btn" data-skin-name="${item.skin_name}" data-tier="${item.skin_tier}" data-unique-id="${item.unique_id}">Sell</button>
             </div>
         `;
         inventoryGrid.appendChild(itemCard);
     });
 
     // Add event listeners to new sell buttons
-    inventoryGrid.querySelectorAll('.sell-btn').forEach(button => {
+    inventoryGrid.querySelectorAll('.inventory-sell-btn').forEach(button => {
         button.addEventListener('click', async function() {
             const skinName = this.dataset.skinName;
             const tier = parseInt(this.dataset.tier);
