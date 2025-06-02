@@ -144,35 +144,65 @@ async function sellNFT(skinName, tier, uniqueId) {
             return false;
         }
 
-        const { data, error } = await supabase.rpc('sell_skin', {
+        // Step 1: Remove the skin from inventory
+        const { data: removalSuccess, error: removalError } = await supabase.rpc('remove_skin_from_inventory', {
             p_telegram_id: telegramId,
             p_unique_id: uniqueId 
         });
 
-        if (error) {
-            console.error('[Inventory] Error selling NFT in DB:', error);
-            showToast('Error selling item. Please try again later.', 'error');
+        if (removalError) {
+            console.error('[Inventory] Error removing NFT from DB:', removalError);
+            showToast('Error selling item (step 1). Please try again later.', 'error');
             return false;
         }
 
-        if (!data.success) {
-            console.warn('[Inventory] Sell NFT failed:', data.message);
-            showToast(data.message || 'Could not sell item.', 'warning');
+        if (!removalSuccess) {
+            console.warn('[Inventory] Sell NFT failed: Could not remove item from inventory.');
+            showToast('Could not remove item. It might have been already sold or removed.', 'warning');
+            await getUserInventory(); // Refresh inventory to reflect actual state
             return false;
         }
 
-        console.log('[Inventory] NFT sold successfully:', data);
-        showToast(`${skinName} sold for ${skinPrices[tier]} UCoins!`, 'success'); // skinPrices from config.js
+        console.log('[Inventory] NFT removed from inventory successfully.');
+
+        // Step 2: Add coins to user for the sold skin
+        const sellPrice = skinPrices[tier] || 0; // skinPrices from config.js
+        if (sellPrice <= 0) {
+            console.warn('[Inventory] Sell price is zero or invalid for tier:', tier, '- item removed but no coins added.');
+            // Item is removed, refresh inventory and stats
+            await getUserInventory();
+            await getUserStats(); // remove_skin_from_inventory updated stats in DB, refresh UI
+            showToast(`${skinName} removed. No coins awarded for this item.`, 'info');
+            return true; // Technically removal was a success
+        }
+
+        const { data: newBalance, error: addCoinsError } = await supabase.rpc('add_coins_to_user', {
+            p_telegram_id: telegramId,
+            p_amount: sellPrice
+        });
+
+        if (addCoinsError) {
+            console.error('[Inventory] Error adding coins to user after selling NFT:', addCoinsError);
+            showToast('Item sold, but error updating balance. Please contact support.', 'error');
+            // Item is removed, refresh inventory and stats despite balance error
+            await getUserInventory();
+            await getUserStats(); // remove_skin_from_inventory updated stats in DB, refresh UI
+            return false; // Indicate that the full operation had issues
+        }
+
+        console.log('[Inventory] NFT sold and coins added successfully. New balance:', newBalance);
+        showToast(`${skinName} sold for ${sellPrice.toLocaleString()} UCoins!`, 'success');
         
         // Update balance (userBalance from config.js, updateUserBalance from user.js)
-        userBalance = parseFloat(data.new_balance);
+        userBalance = parseFloat(newBalance);
         updateBalanceDisplay(); // from user.js
         
-        // Refresh inventory and stats (getUserInventory from this file, updateUserStat from user.js)
+        // Refresh inventory and stats (getUserInventory from this file, getUserStats from user.js)
+        // remove_skin_from_inventory SQL function already updates nft_count and legendary_count
         await getUserInventory(); 
-        await updateUserStat('nft_count', -1); 
+        await getUserStats(); // This will refresh the UI with the stats updated by the DB
         
-        addActivity('sale', { skinName: skinName, price: skinPrices[tier] }); // addActivity from activityLog.js
+        addActivity('sale', { skinName: skinName, price: sellPrice }); // addActivity from activityLog.js
         return true;
 
     } catch (err) {
