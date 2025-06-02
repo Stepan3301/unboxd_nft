@@ -32,10 +32,18 @@ window.addEventListener('load', initApp);
 async function setupApp() {
     try {
         console.log('[AppSetup] setupApp() - Step 5: Starting main application setup...');
+        console.log('[AppSetup] setupApp() - Step 6: Displaying loading state (if any)...');
+        // showLoadingState(); // Example if you have a visual loader
+
+        console.log('[AppSetup] setupApp() - Step 7: Preloading Lottie animations (non-blocking)...');
+        preloadLottieAnimations(); // FROM ROULETTE.JS - Call without await
+        console.log('[AppSetup] setupApp() - Lottie preloading initiated in background.');
+
+        console.log('[AppSetup] setupApp() - Step 8: Initializing Telegram User Data...');
         console.log('[AppSetup] setupApp() - Telegram WebApp SDK instance from config.js (tg):', tg);
         console.log('[AppSetup] setupApp() - Telegram WebApp initDataUnsafe from tg:', tg ? tg.initDataUnsafe : 'tg is null');
         
-        console.log('[AppSetup] setupApp() - Step 6: Preparing Telegram user data...');
+        console.log('[AppSetup] setupApp() - Step 9: Preparing Telegram user data...');
         const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : {};
         if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
             telegramId = tg.initDataUnsafe.user.id; 
@@ -50,46 +58,40 @@ async function setupApp() {
         userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
         console.log('[AppSetup] setupApp() - Telegram user data prepared:', { telegramId, userName, userFirstName, userLastName, userPhotoUrl });
         
-        console.log('[AppSetup] setupApp() - Step 7: Calling registerUserAndGetBalance()...');
+        console.log('[AppSetup] setupApp() - Step 10: Calling registerUserAndGetBalance()...');
         await registerUserAndGetBalance(); 
         console.log('[AppSetup] setupApp() - registerUserAndGetBalance() finished. Current userBalance (from config.js):', userBalance);
         
-        console.log('[AppSetup] setupApp() - Step 8: Calling getUserStats()...');
+        console.log('[AppSetup] setupApp() - Step 11: Calling getUserStats()...');
         const stats = await getUserStats();
         console.log('[AppSetup] setupApp() - getUserStats() finished. Stats retrieved:', stats);
         
-        console.log('[AppSetup] setupApp() - Step 9: Calling getUserInventory()...');
+        console.log('[AppSetup] setupApp() - Step 12: Calling getUserInventory()...');
         await getUserInventory();
         console.log('[AppSetup] setupApp() - getUserInventory() finished.');
         
-        console.log('[AppSetup] setupApp() - Step 10: Calling updateUserData()...');
+        console.log('[AppSetup] setupApp() - Step 13: Calling updateUserData()...');
         await updateUserData();
         console.log('[AppSetup] setupApp() - updateUserData() finished.');
         
-        console.log('[AppSetup] setupApp() - Step 11: Calling initDailyRewards()...');
+        console.log('[AppSetup] setupApp() - Step 14: Calling initDailyRewards()...');
         initDailyRewards();
         console.log('[AppSetup] setupApp() - initDailyRewards() finished.');
 
-        console.log('[AppSetup] setupApp() - Step 12: Calling updateActivityLogUI()...');
+        console.log('[AppSetup] setupApp() - Step 15: Calling updateActivityLogUI()...');
         updateActivityLogUI();
         console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
         
-        console.log('[AppSetup] setupApp() - Step 13: Setting initial UI elements (rarity nav, activate tab)...');
+        console.log('[AppSetup] setupApp() - Step 16: Setting initial UI elements (rarity nav, activate tab)...');
         updateRarityNavVisibility('cases-tab');
         activateTab('cases-tab');
         console.log('[AppSetup] setupApp() - Initial UI elements set.');
         
-        console.log('[AppSetup] setupApp() - Step 14: Attaching event listeners...');
+        console.log('[AppSetup] setupApp() - Step 17: Attaching event listeners...');
         attachEventListeners();
         console.log('[AppSetup] setupApp() - Event listeners attached.');
         
-        console.log('[AppSetup] setupApp() - Step 15: Preloading Lottie animations...');
-        preloadLottieAnimations().catch(error => {
-            console.warn('[AppSetup] setupApp() - WARNING: Failed to preload Lottie animations:', error);
-        });
-        console.log('[AppSetup] setupApp() - Preloading Lottie animations initiated.');
-
-        console.log('[AppSetup] setupApp() - Step 16: Loading case opening data...');
+        console.log('[AppSetup] setupApp() - Step 18: Loading case opening data...');
         loadCaseOpeningData();
         console.log('[AppSetup] setupApp() - Case opening data loaded.');
 

@@ -121,6 +121,14 @@ body {
 
 .nav {
     display: none; /* Hide by default */
+    /* Added aggressive hiding for when it's not supposed to be shown */
+    visibility: hidden;
+    opacity: 0;
+    font-size: 0;
+    line-height: 0;
+    height: 0;
+    overflow: hidden;
+    /* End of aggressive hiding */
     justify-content: space-around;
     padding: 15px 0;
     background: rgba(0, 0, 0, 0.3);
@@ -131,6 +139,13 @@ body {
 
 .nav.show {
     display: flex; /* Show when .show class is added */
+    /* Reset aggressive hiding when shown */
+    visibility: visible;
+    opacity: 1;
+    font-size: inherit; /* Or specific size if needed */
+    line-height: normal; /* Or specific value */
+    height: auto;
+    overflow: visible;
 }
 
 .nav-item {
@@ -798,6 +813,7 @@ body {
 }
 
 /* Bottom Navigation */
+/* Styles for the OLDER bottom nav structure seen in screenshot (.bottom-nav > .nav-btn) */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -806,72 +822,106 @@ body {
     width: 100%;
     max-width: 414px;
     display: flex;
-    justify-content: space-around;
-    padding: 15px 0;
+    justify-content: space-around; /* Distributes space around items */
+    padding: 10px 0; /* Adjusted padding */
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 300; /* Higher than case-detail */
+    z-index: 300;
 }
 
-.nav-btn {
+/* For .nav-btn elements within .bottom-nav */
+.bottom-nav .nav-btn { /* Specificity for items in .bottom-nav */
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* Center content vertically */
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.7rem;
     transition: all 0.3s ease;
+    flex: 1; /* Distribute space equally among items */
+    text-align: center; /* Center text */
+    padding: 5px 0; /* Adjust padding if needed */
 }
 
-.nav-btn i {
+.bottom-nav .nav-btn i {
     font-size: 1.2rem;
-    margin-bottom: 5px;
+    margin-bottom: 3px; /* Slightly reduced margin */
 }
 
-.nav-btn.active {
+.bottom-nav .nav-btn.active {
     color: var(--primary);
 }
 
-.nav-btn.center {
+.bottom-nav .nav-btn.center {
     background: linear-gradient(45deg, var(--primary), var(--accent));
-    width: 50px;
-    height: 50px;
+    width: 55px; /* Slightly adjusted size */
+    height: 55px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: -25px;
+    margin-top: -28px; /* Adjust for new height */
     box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
     position: relative;
     border: 3px solid rgba(0, 0, 0, 0.8);
+    /* flex: 1; /* Center button should not take full flex width if others do */
+    flex-grow: 0.8; /* Allow it to take some space but not as much as others if flex:1 is on them */
+    flex-shrink: 0;
 }
 
-.nav-btn.center i {
+.bottom-nav .nav-btn.center i {
     margin: 0;
     font-size: 1.5rem;
     color: white;
 }
 
-.nav-btn.center span {
+.bottom-nav .nav-btn.center span {
     position: absolute;
-    bottom: -25px;
+    bottom: -20px; /* Adjust if needed */
+    font-size: 0.65rem;
     color: white;
 }
 
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: var(--accent);
-    color: white;
-    font-size: 0.6rem;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
+
+/* Styles for the NEWER bottom nav structure (.footer-nav > .footer-nav-item) */
+.footer-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px; /* Or your container width */
     display: flex;
+    justify-content: space-around;
+    padding: 10px 0; /* Example padding */
+    background: rgba(0,0,0,0.8); /* Example background */
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 300;
+}
+
+.footer-nav-item {
+    flex: 1; /* Distribute space equally */
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.footer-nav-item i {
+    font-size: 1.2rem; /* Adjust as needed */
+    margin-bottom: 4px;
+}
+
+.footer-nav-item span {
+    display: block; /* Ensures span takes its own line if needed */
+}
+
+.footer-nav-item.active {
+    color: var(--primary); /* Example active color */
 }
 
 /* Profile Section */
