@@ -379,7 +379,6 @@ function createParticleBurst(element) {
         particle.style.pointerEvents = 'none';
         particle.style.zIndex = '1000';
         particle.style.borderRadius = '4px'; // Slight rounding of corners
-        particle.style.boxShadow = '0 0 8px rgba(108, 92, 231, 0.7)'; // Glow effect
         
         // Random initial rotation
         const rotation = Math.random() * 360;
