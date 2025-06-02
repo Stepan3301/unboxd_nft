@@ -312,6 +312,90 @@ function activateTab(tabId) {
     console.log(tabId, 'activated.');
 }
 
+// NEW FUNCTION to display items in the case detail view
+function displayCaseItems(caseId) {
+    let itemsArray;
+    let targetGridId;
+    let itemBasePath = ''; // Base path for images/lotties
+    let itemType = 'image'; // Default to image
+
+    console.log('[UI Handlers] Displaying items for caseId:', caseId);
+
+    if (caseId === 'darkaura') { // Changed to match baseCaseId
+        if (typeof window.darkAuraSkins === 'undefined' || typeof window.skinPrices === 'undefined') {
+            console.error('[UI Handlers] darkAuraSkins array or skinPrices is not defined globally. Cannot display items.');
+            itemsArray = []; // Fallback to empty if not found
+        } else {
+            itemsArray = window.darkAuraSkins;
+        }
+        targetGridId = 'darkaura-skins-grid';
+        itemBasePath = 'lottie/darkaura/';
+        itemType = 'lottie';
+    } else if (caseId === 'labubu') { // Changed to match baseCaseId
+        if (typeof window.labubuItems === 'undefined' || typeof window.skinPrices === 'undefined') {
+            console.error('[UI Handlers] labubuItems array or skinPrices is not defined globally. Cannot display items.');
+            itemsArray = []; // Fallback to empty if not found
+        } else {
+            itemsArray = window.labubuItems;
+        }
+        targetGridId = 'labubu-skins-grid';
+        itemBasePath = ''; // Assuming Labubu images are in root or paths are full in data
+                           // If they are in 'lottie/labubu/', this should be 'lottie/labubu/'
+                           // For now, let's assume root or full path.
+    } else {
+        console.error('[UI Handlers] Unknown caseId for displayCaseItems:', caseId);
+        return;
+    }
+
+    const grid = document.getElementById(targetGridId);
+    if (!grid) {
+        console.error('[UI Handlers] Target grid #' + targetGridId + ' not found.');
+        return;
+    }
+
+    grid.innerHTML = ''; // Clear previous items
+
+    if (!itemsArray || itemsArray.length === 0) {
+        grid.innerHTML = '<p class="empty-inventory-message" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No items to display for this case.</p>';
+        console.warn('[UI Handlers] No items found for case:', caseId);
+        return;
+    }
+
+    itemsArray.forEach(item => {
+        const card = document.createElement('div');
+        // Using inventory-item-card structure for consistency if possible, or skin-card
+        card.className = `inventory-item-card tier-${item.tier}`; // Or skin-card if preferred
+
+        let imageElementHTML = '';
+        if (itemType === 'lottie' && item.lottie) {
+            // Lottie files are expected to be in a subfolder like 'lottie/darkaura/'
+            const lottieSrc = itemBasePath + item.lottie;
+            imageElementHTML = `
+                <div class="item-image-container">
+                    <lottie-player class="static-lottie" src="${lottieSrc}" background="transparent" speed="1" loop autoplay></lottie-player>
+                </div>`;
+        } else if (itemType === 'image' && item.image) {
+            // Image paths: if itemBasePath is set, prepend it. Otherwise, use item.image directly.
+            const imgSrc = itemBasePath ? itemBasePath + item.image : item.image;
+            imageElementHTML = `
+                <div class="item-image-container">
+                    <img src="${imgSrc}" alt="${item.name}">
+                </div>`;
+        }
+
+        card.innerHTML = `
+            ${imageElementHTML}
+            <div class="item-info">
+                <h3>${item.name}</h3>
+                <div class="item-tier rarity-text tier-${item.tier}" style="text-transform: capitalize;">Tier ${item.tier}</div>
+                ${'' /* Price is not typically shown on each item card in a "possible drops" list */}
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+    console.log('[UI Handlers] Displayed ' + itemsArray.length + ' items in ' + targetGridId);
+}
+
 // Functions to show/hide case detail views
 function showCaseDetail(caseDetailId) {
     const caseDetailElement = document.getElementById(caseDetailId);
@@ -319,12 +403,22 @@ function showCaseDetail(caseDetailId) {
     const bottomNav = document.querySelector('.bottom-nav');
 
     if (caseDetailElement && mainContent && bottomNav) {
+        // Hide all other case-detail views first
+        document.querySelectorAll('.case-detail').forEach(cd => {
+            if (cd.id !== caseDetailId) {
+                cd.classList.remove('active');
+            }
+        });
+
         caseDetailElement.classList.add('active');
         mainContent.style.display = 'none'; // Hide main content
         bottomNav.setAttribute('data-case-detail-open', 'true');
-        console.log(`Showing case detail: ${caseDetailId}`);
+        console.log('Showing case detail: ' + caseDetailId);
+        
+        const baseCaseId = caseDetailId.replace('-case-detail', '');
+        displayCaseItems(baseCaseId); // Call to display items
     } else {
-        console.error(`Elements for showing case detail ${caseDetailId} not found.`);
+        console.error('Elements for showing case detail ' + caseDetailId + ' not found.');
     }
 }
 

@@ -1511,8 +1511,8 @@ body {
 
 /* Case Detail View */
 .case-detail {
-    display: flex;
-    flex-direction: column;
+    display: none; /* Hide by default */
+    flex-direction: column; /* Stack header, content, action panel vertically */
     position: fixed;
     top: 0;
     left: 50%;
@@ -1526,7 +1526,7 @@ body {
 }
 
 .case-detail.active {
-    display: block;
+    display: flex; /* Show as a flex container when active */
 }
 
 .case-detail-header {
