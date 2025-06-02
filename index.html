@@ -180,9 +180,9 @@
             <div class="tab-content" id="inventory-tab">
                 <div class="section-title">
                     <i class="fas fa-backpack"></i>
-                    Your Collection
+                    Your Inventory
                     </div>
-                <div class="skins-grid" id="user-collection">
+                <div class="skins-grid" id="inventory-grid">
                     <!-- User's NFTs will be populated here -->
                 </div>
             </div>
@@ -701,7 +701,7 @@
             </div>
             <div class="nav-btn" data-tab="inventory-tab">
                 <i class="fas fa-layer-group"></i>
-                <span>Collection</span>
+                <span>Inventory</span>
             </div>
             <div class="nav-btn center" data-tab="cases-tab">
                 <i class="fas fa-cube"></i>
@@ -751,88 +751,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Daily Reward Dialog -->
-    <div class="custom-dialog" id="daily-reward-dialog">
-        <div class="dialog-content">
-            <div class="dialog-icon">
-                <i class="fas fa-gift"></i>
-            </div>
-            <div class="dialog-title">Reward Claimed!</div>
-            <div class="dialog-message">You received 1,000 UCoins!</div>
-            <button class="dialog-btn" id="daily-reward-dialog-btn">Awesome!</button>
-        </div>
-    </div>
-
-    <!-- Custom Dialog -->
-    <div class="custom-dialog" id="custom-dialog">
-        <div class="dialog-content">
-            <div class="dialog-icon">
-                <i class="fas fa-star"></i>
-            </div>
-            <div class="dialog-title" id="dialog-title">Success!</div>
-            <div class="dialog-message" id="dialog-message">Operation completed successfully!</div>
-            <button class="dialog-btn" id="dialog-btn">OK</button>
-        </div>
-    </div>
-
-    <!-- Not Enough Balance Dialog -->
-    <div class="not-enough-balance-dialog" id="not-enough-balance-dialog">
-        <div class="not-enough-balance-content">
-            <div class="not-enough-balance-icon">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div class="not-enough-balance-title">Insufficient Balance</div>
-            <div class="not-enough-balance-message">You don't have enough UCoins to open this case. Claim your daily reward or sell some NFTs to earn more!</div>
-            <button class="not-enough-balance-btn" id="not-enough-balance-btn">Got it</button>
-        </div>
-    </div>
-
-    <!-- Buy UCoins Modal -->
-    <div class="buy-ucoins-modal" id="buy-ucoins-modal">
-        <div class="buy-ucoins-modal-content">
-            <div class="buy-ucoins-modal-title">Buy UCoins</div>
-            <button class="buy-ucoins-modal-close-btn" id="buy-ucoins-modal-close-btn">&times;</button>
-
-            <ul class="ucoin-packages-list" id="ucoin-packages-list">
-                 <li class="ucoin-package-item">
-                    <div class="ucoin-package-info">
-                        <div class="ucoin-package-amount">
-                            <img src="ucoin2.png" alt="UCoin">
-                            1,000 UCoins
-                    </div>
-                        <div class="ucoin-package-price">0.5 TON</div>
-                    </div>
-                    <button class="ucoin-package-buy-btn" data-ucoins="1000" data-ton="0.5">Buy</button>
-                </li>
-                <li class="ucoin-package-item">
-                    <div class="ucoin-package-info">
-                        <div class="ucoin-package-amount">
-                            <img src="ucoin2.png" alt="UCoin">
-                            5,000 UCoins
-                    </div>
-                        <div class="ucoin-package-price">2.0 TON</div>
-                    </div>
-                    <button class="ucoin-package-buy-btn" data-ucoins="5000" data-ton="2.0">Buy</button>
-                </li>
-                <li class="ucoin-package-item">
-                    <div class="ucoin-package-info">
-                        <div class="ucoin-package-amount">
-                            <img src="ucoin2.png" alt="UCoin">
-                            25,000 UCoins
-                    </div>
-                        <div class="ucoin-package-price">8.0 TON</div>
-                    </div>
-                    <button class="ucoin-package-buy-btn" data-ucoins="25000" data-ton="8.0">Buy</button>
-                </li>
-            </ul>
-            
-            <div class="ucoin-connect-prompt" id="ucoin-connect-prompt" style="display: none;">
-                <p>Please connect your TON wallet to purchase UCoins.</p>
-                <button class="btn" id="ucoin-modal-connect-wallet-btn">Connect Wallet</button>
-                    </div>
-                    </div>
-                    </div>
 
     <!-- Modals -->
     <!-- Lottie Roulette Modal -->
@@ -921,7 +839,7 @@
         </div>
         <div class="footer-nav-item" data-tab="inventory-tab">
             <i class="fas fa-backpack"></i>
-            <span>Collection</span>
+            <span>Inventory</span>
         </div>
         <div class="footer-nav-item" data-tab="profile-tab">
             <i class="fas fa-user-circle"></i>

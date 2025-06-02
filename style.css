@@ -1293,15 +1293,116 @@ body {
 }
 
 .case-detail-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
 .case-detail .featured-card {
     margin-top: 0;
     border-radius: 0;
 }
+
+/* General Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000; /* High z-index to appear on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if content is too long */
+    background-color: rgba(0, 0, 0, 0.6); /* Black background with opacity */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    backdrop-filter: blur(5px); /* Optional: blur background */
+}
+
+.modal.active {
+    display: flex; /* Show when active */
+}
+
+.modal-content {
+    background-color: #2c3e50; /* Darker background for modal content */
+    margin: auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 85%;
+    max-width: 400px; /* Max width for modals */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    position: relative; /* For positioning close button */
+    animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal .close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    transition: color 0.2s ease-in-out;
+}
+
+.modal .close-btn:hover,
+.modal .close-btn:focus {
+    color: #fd79a8; /* Accent color on hover */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ecf0f1; /* Light text for headings */
+}
+
+.modal p {
+    margin-bottom: 20px;
+    color: #bdc3c7; /* Slightly darker text for paragraphs */
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.modal .btn {
+    margin-top: 10px;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+.modal .btn.secondary-btn {
+    background-color: transparent;
+    border: 1px solid #7f8c8d;
+    color: #7f8c8d;
+}
+
+.modal .btn.secondary-btn:hover {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+/* Styles for simple dialog icons */
+.modal .dialog-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+.modal .dialog-icon.success { color: #2ecc71; }
+.modal .dialog-icon.error { color: #e74c3c; }
+.modal .dialog-icon.info { color: #3498db; }
+.modal .dialog-icon.warning { color: #f39c12; }
 
 /* Custom Dialog Styles */
 .custom-dialog {
