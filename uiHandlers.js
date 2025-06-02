@@ -35,7 +35,7 @@ function attachEventListeners() {
             
             if (tabId === 'cases-tab') {
                 console.log('Home tab selected, updating activity log');
-                updateActivityLog(); // from activityLog.js
+                updateActivityLogUI(); // CORRECTED: from activityLog.js
             }
         });
     });
@@ -231,6 +231,7 @@ function activateTab(tabId) {
     const targetTabContent = document.getElementById(tabId);
     if (targetTabContent) {
         targetTabContent.classList.add('active');
+        console.log('Showing tab with ID:', targetTabContent.id);
         console.log('Showing tab:', tabId);
     } else {
         console.error('Target tab content not found:', tabId);

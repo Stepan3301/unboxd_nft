@@ -41,6 +41,7 @@ const skinPrices = {
 const darkAuraSkins = [
     { name: 'Haunted Desk Calendar', tier: 1, price: 20, image: 'cleaned-deskcalendar-280571.json', type: 'lottie' },
     { name: 'Mad Pumpkin Spirit', tier: 2, price: 50, image: 'cleaned-madpumpkin-7551.json', type: 'lottie' },
+    { name: 'Cursed Lootbag', tier: 2, price: 60, image: 'darkaura-cleaned-lootbag-7239.json', type: 'lottie' },
     { name: 'Electric Skull', tier: 3, price: 120, image: 'cleaned-electricskull-8221.json', type: 'lottie' },
     { name: 'Mystic Crystal Ball', tier: 3, price: 150, image: 'darkaura-cleaned-crystalball-9027.json', type: 'lottie' },
     { name: 'Cursed Voodoo Doll', tier: 4, price: 300, image: 'cleaned-voodoodoll-7970.json', type: 'lottie' },

@@ -199,26 +199,23 @@ async function openDarkAuraCase() {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        // Define item probabilities for Dark Aura Case (darkAuraSkins from config.js - now 11 items)
+        // Define item probabilities for Dark Aura Case - UPDATED FOR 12 items
+        // IMPORTANT: REVIEW AND ADJUST THESE PROBABILITIES TO SUM TO 1.0
         const darkAuraProbabilities = [
-            // Tier 1 (1 item)
-            0.20, // Haunted Desk Calendar
-            // Tier 2 (1 item)
-            0.15, // Mad Pumpkin Spirit
-            // Tier 3 (2 items)
-            0.10, // Electric Skull
-            0.10, // Mystic Crystal Ball (NEW)
-            // Tier 4 (3 items)
-            0.08, // Cursed Voodoo Doll
-            0.08, // Bewitched Ginger Cookie 
-            0.08, // Cursed Genie Lamp (NEW)
-            // Tier 5 (2 items)
-            0.05, // Mystical Signet Ring
-            0.05, // Eternal Shadow Rose (NEW)
-            // Tier 6 (2 items)
-            0.005, // Mini Oscar Phantom
-            0.005  // Scared Cat Obelisk
-        ]; // Sum: 0.9 (adjust to sum to 1, or handle shortfall in selection logic)
+            0.20, // Haunted Desk Calendar (Tier 1)
+            0.15, // Mad Pumpkin Spirit (Tier 2)
+            0.15, // Cursed Lootbag (Tier 2) - NEW, placeholder probability
+            0.12, // Electric Skull (Tier 3)
+            0.10, // Mystic Crystal Ball (Tier 3)
+            0.08, // Cursed Voodoo Doll (Tier 4)
+            0.07, // Bewitched Ginger Cookie (Tier 4)
+            0.06, // Cursed Genie Lamp (Tier 4)
+            0.03, // Mystical Signet Ring (Tier 5)
+            0.02, // Eternal Shadow Rose (Tier 5)
+            0.01, // Mini Oscar Phantom (Tier 6)
+            0.01  // Scared Cat Obelisk (Tier 6)
+            // Current Sum = 1.00 - but ensure this is the desired distribution
+        ];
 
         // Adjust probabilities if guaranteed Tier 3
         // Tier 3 items are now at index 2 and 3
