@@ -924,6 +924,37 @@ body {
     color: var(--primary); /* Example active color */
 }
 
+/* Special styling for the Cases tab in the footer nav */
+.footer-nav-item[data-tab="cases-tab"] {
+    position: relative; /* For potential pseudo-elements or icon positioning */
+    /* transform: translateY(-10px); Move it up a bit */ 
+    width: 60px; /* Circle size */
+    height: 60px; /* Circle size */
+    background: linear-gradient(135deg, var(--primary), var(--accent)); /* Gradient background */
+    border-radius: 50%; /* Make it a circle */
+    color: white; /* Icon and text color */
+    margin: 0 5px; /* Add some margin to not touch other items directly if it grows */
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.5); /* Glow effect */
+    /* flex-grow: 0; Don't let it grow if other items have flex:1 */
+    /* flex-shrink: 0; Don't let it shrink */
+    /* flex-basis: 60px; Explicit size */
+}
+
+.footer-nav-item[data-tab="cases-tab"] i {
+    font-size: 1.5rem; /* Larger icon for the central button */
+    margin-bottom: 2px; /* Adjust spacing if text is very short or hidden */
+}
+
+.footer-nav-item[data-tab="cases-tab"] span {
+    font-size: 0.6rem; /* Smaller text or can be hidden if design implies it */
+    /* display: none; /* Optionally hide text if icon is enough */
+}
+
+.footer-nav-item[data-tab="cases-tab"].active {
+    background: linear-gradient(135deg, var(--accent), var(--primary)); /* Slightly different gradient when active */
+    box-shadow: 0 0 20px rgba(253, 121, 168, 0.7); /* More prominent glow when active */
+}
+
 /* Profile Section */
 .profile-section {
     background: rgba(0, 0, 0, 0.2);
@@ -1940,4 +1971,41 @@ body {
     margin-bottom: 15px;
 }
 
-/* Using existing .btn class for styling the new connect button */ 
+/* Using existing .btn class for styling the new connect button */
+
+/* Styles for the Cases Sub-Navigation */
+.cases-sub-nav {
+    display: flex;
+    justify-content: space-around;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px 5px;
+    border-radius: 25px; /* Pill shape */
+    margin: 10px auto 20px;
+    width: fit-content;
+    max-width: 90%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cases-sub-nav-item {
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px; /* Pill shape for items */
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin: 0 3px;
+}
+
+.cases-sub-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.cases-sub-nav-item.active {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 10px var(--primary);
+} 

@@ -198,6 +198,58 @@ function attachEventListeners() {
     console.log('[UI Handlers] All event listeners attached.');
 }
 
+// Function to handle filtering in the Cases tab sub-navigation
+function setupCasesSubNavigation() {
+    const subNavItems = document.querySelectorAll('.cases-sub-nav-item');
+    const caseListings = document.querySelector('.cases-listings');
+
+    if (!subNavItems.length || !caseListings) {
+        console.warn('[UI Handlers] Cases sub-navigation elements not found.');
+        return;
+    }
+
+    subNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Update active state for sub-nav items
+            subNavItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            const filter = item.getAttribute('data-filter');
+            filterCaseListings(filter);
+        });
+    });
+}
+
+// Function to filter case listings based on the selected sub-nav filter
+function filterCaseListings(filter) {
+    const featuredCaseContainer = document.querySelector('.featured-case-container');
+    const popularCaseCards = document.querySelectorAll('.cases-grid .case-card'); // Selects only cards in popular section
+
+    // Handle featured case visibility
+    if (featuredCaseContainer) {
+        const featuredCaseType = featuredCaseContainer.getAttribute('data-case-type');
+        if (filter === 'all' || filter === featuredCaseType || (filter === 'telegram' && featuredCaseType === 'darkaura')) {
+            featuredCaseContainer.style.display = 'block';
+        } else {
+            featuredCaseContainer.style.display = 'none';
+        }
+    }
+
+    // Handle popular cases visibility
+    popularCaseCards.forEach(card => {
+        const popularCaseType = card.getAttribute('data-case-type');
+        if (filter === 'all' || filter === popularCaseType || 
+            (filter === 'custom' && popularCaseType === 'labubu') || 
+            (filter === 'telegram' && popularCaseType === 'darkaura')) {
+            card.style.display = 'block'; // Or flex, grid, depending on original display
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    // If no popular cases match, the .cases-grid might still be visible but empty.
+    // Consider hiding .popular-cases-container if all its children are hidden.
+}
+
 // Function to control the visibility of the rarity nav
 function updateRarityNavVisibility(tabId) {
     const rarityNav = document.getElementById('rarity-nav');

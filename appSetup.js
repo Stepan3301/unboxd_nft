@@ -90,6 +90,10 @@ async function setupApp() {
         console.log('[AppSetup] setupApp() - Step 17: Attaching event listeners...');
         attachEventListeners();
         console.log('[AppSetup] setupApp() - Event listeners attached.');
+
+        console.log('[AppSetup] setupApp() - Step 17b: Setting up Cases tab sub-navigation...');
+        setupCasesSubNavigation(); // Call the new function
+        console.log('[AppSetup] setupApp() - Cases tab sub-navigation setup.');
         
         console.log('[AppSetup] setupApp() - Step 18: Loading case opening data...');
         loadCaseOpeningData();

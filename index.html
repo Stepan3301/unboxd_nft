@@ -43,43 +43,36 @@
             <div class="nav-item" data-rarity="rare">Rare</div>
             <div class="nav-item" data-rarity="epic">Epic</div>
             <div class="nav-item" data-rarity="legendary">Legendary</div>
-                </div>
-                
+        </div>
+        
         <!-- Main Content -->
         <div class="main">
-            <!-- Home Tab (Previously Cases Tab) -->
+            <!-- Home Tab -->
             <div class="tab-content active" id="home-tab">
                 <!-- Daily Reward -->
                 <div class="daily-reward-container">
                     <div class="section-title">
                         <i class="fas fa-gift"></i>
                         Daily Reward
-                                </div>
+                    </div>
                     <div class="daily-reward-card">
                         <div id="daily-reward-ready" class="daily-reward-status daily-reward-ready">
-                            <div class="reward-icon">
-                                <i class="fas fa-coins"></i>
-                            </div>
-                                <div class="reward-text">
+                            <div class="reward-icon"><i class="fas fa-coins"></i></div>
+                            <div class="reward-text">
                                 <h3>Daily Reward Available!</h3>
                                 <p>Claim your free 1,000 UCoins</p>
+                            </div>
+                            <button class="daily-reward-btn" id="daily-reward-btn"><i class="fas fa-gift"></i> Claim</button>
                         </div>
-                        <button class="daily-reward-btn" id="daily-reward-btn">
-                                <i class="fas fa-gift"></i>
-                                Claim
-                        </button>
-                    </div>
                         <div id="daily-reward-timer" class="daily-reward-status daily-reward-timer" style="display: none;">
-                            <div class="reward-icon">
-                                <i class="fas fa-clock"></i>
-                </div>
+                            <div class="reward-icon"><i class="fas fa-clock"></i></div>
                             <div class="reward-text">
                                 <h3>Daily Reward</h3>
                                 <p>Next reward in: <span id="reward-countdown">--:--:--</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             
                 <!-- App Instructions -->
                 <div class="app-instructions">
@@ -91,78 +84,6 @@
                         <li><i class="fas fa-trophy"></i> Build your collection and show off rare items</li>
                     </ul>
                 </div>
-
-                <!-- Featured Case -->
-                <div class="featured-case">
-                    <div class="section-title">
-                        <i class="fas fa-star"></i>
-                        Featured Case
-                    </div>
-                    <div class="featured-card">
-                        <div class="featured-image">
-                            <img src="DarkAuraCase.png" alt="Dark Aura Case">
-                        </div>
-                        <div class="featured-info">
-                            <div class="featured-name">Dark Aura Case</div>
-                            <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
-                            <div class="featured-stats">
-                                <div class="stat">
-                                    <div class="stat-value">12</div>
-                                    <div class="stat-label">Items</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-value">0.2%</div>
-                                    <div class="stat-label">Mythic</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-value">0.8%</div>
-                                    <div class="stat-label">Divine</div>
-                                </div>
-                            </div>
-                            <div class="featured-action">
-                                <div class="featured-price">
-                                    <img src="ucoin2.png" alt="UCoin">
-                                    3,000
-                                </div>
-                                <button class="featured-btn" data-case="darkaura">
-                                    View Items
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Popular Cases -->
-                <div class="section-title">
-                    <i class="fas fa-fire"></i>
-                    Popular Cases
-                </div>
-                <div class="cases-grid">
-                    <div class="case-card labubu">
-                        <div class="case-image">
-                            <img src="LabubuCase.png" alt="Labubu Case">
-                            <div class="case-glow"></div>
-                        </div>
-                        <div class="case-info">
-                            <div class="case-name">Labubu Collection</div>
-                            <div class="case-rarity rare">
-                                <div class="rarity-indicator"></div>
-                                <span class="rarity-text">17 unique skins</span>
-                            </div>
-                            <div class="case-price">
-                                <div class="price">
-                                    <i class="fas fa-coins"></i>
-                                    100
-                                </div>
-                                <button class="open-btn" data-case="labubu">
-                                    View
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             
                 <!-- Recent Activity -->
                 <div class="recent-activity">
@@ -176,12 +97,99 @@
                 </div>
             </div>
             
+            <!-- Cases Tab -->
+            <div class="tab-content" id="cases-tab">
+                <!-- New Sub-Navigation for Cases -->
+                <div class="cases-sub-nav">
+                    <button class="cases-sub-nav-item active" data-filter="all">All Cases</button>
+                    <button class="cases-sub-nav-item" data-filter="custom">Custom NFTs</button>
+                    <button class="cases-sub-nav-item" data-filter="telegram">Telegram NFTs</button>
+                </div>
+
+                <!-- Case Listings -->
+                <div class="cases-listings">
+                    <!-- Featured Case -->
+                    <div class="featured-case-container" data-case-type="darkaura">
+                        <div class="section-title">
+                            <i class="fas fa-star"></i>
+                            Featured Case
+                        </div>
+                        <div class="featured-card">
+                            <div class="featured-image">
+                                <img src="DarkAuraCase.png" alt="Dark Aura Case">
+                            </div>
+                            <div class="featured-info">
+                                <div class="featured-name">Dark Aura Case</div>
+                                <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
+                                <div class="featured-stats">
+                                    <div class="stat">
+                                        <div class="stat-value" id="darkaura-total-items-featured">13</div>
+                                        <div class="stat-label">Items</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">0.2%</div>
+                                        <div class="stat-label">Mythic</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">0.8%</div>
+                                        <div class="stat-label">Divine</div>
+                                    </div>
+                                </div>
+                                <div class="featured-action">
+                                    <div class="featured-price">
+                                        <img src="ucoin2.png" alt="UCoin">
+                                        3,000
+                                    </div>
+                                    <button class="featured-btn" data-case="darkaura">
+                                        View Items
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Popular Cases -->
+                    <div class="popular-cases-container">
+                        <div class="section-title">
+                            <i class="fas fa-fire"></i>
+                            Popular Cases
+                        </div>
+                        <div class="cases-grid">
+                            <div class="case-card labubu" data-case-type="labubu">
+                                <div class="case-image">
+                                    <img src="LabubuCase.png" alt="Labubu Case">
+                                    <div class="case-glow"></div>
+                                </div>
+                                <div class="case-info">
+                                    <div class="case-name">Labubu Collection</div>
+                                    <div class="case-rarity rare">
+                                        <div class="rarity-indicator"></div>
+                                        <span class="rarity-text">17 unique skins</span>
+                                    </div>
+                                    <div class="case-price">
+                                        <div class="price">
+                                            <i class="fas fa-coins"></i>
+                                            100
+                                        </div>
+                                        <button class="open-btn" data-case="labubu">
+                                            View
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Inventory Tab -->
             <div class="tab-content" id="inventory-tab">
                 <div class="section-title">
                     <i class="fas fa-backpack"></i>
                     Your Inventory
-                    </div>
+                </div>
                 <div class="skins-grid" id="inventory-grid">
                     <!-- User's NFTs will be populated here -->
                 </div>
@@ -207,7 +215,7 @@
                         <div class="profile-stat">
                             <div class="stat-value" id="profile-cases-opened">0</div>
                             <div class="stat-label">Cases Opened</div>
-                    </div>
+                        </div>
                         <div class="profile-stat">
                             <div class="stat-value" id="profile-legendary-count">0</div>
                             <div class="stat-label">Legendaries</div>
@@ -251,532 +259,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Cases Tab (New placeholder) -->
-        <div class="tab-content" id="cases-tab">
-            <div class="section-title">
-                <i class="fas fa-cubes"></i>
-                Cases
-            </div>
-            <p style="text-align: center; padding: 20px;">
-                Select a case to open from the collections above or special featured cases!
-            </p>
-            <!-- Content for the actual cases could be dynamically loaded or be a duplicate of some parts of the home page if needed -->
-            
-            <!-- Featured Case -->
-            <div class="featured-case">
-                <div class="section-title">
-                    <i class="fas fa-star"></i>
-                    Featured Case
-                </div>
-                <div class="featured-card">
-                    <div class="featured-image">
-                        <img src="DarkAuraCase.png" alt="Dark Aura Case">
-                    </div>
-                    <div class="featured-info">
-                        <div class="featured-name">Dark Aura Case</div>
-                        <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
-                        <div class="featured-stats">
-                            <div class="stat">
-                                <div class="stat-value">12</div>
-                                <div class="stat-label">Items</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">0.2%</div>
-                                <div class="stat-label">Mythic</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">0.8%</div>
-                                <div class="stat-label">Divine</div>
-                            </div>
-                        </div>
-                        <div class="featured-action">
-                            <div class="featured-price">
-                                <img src="ucoin2.png" alt="UCoin">
-                                3,000
-                            </div>
-                            <button class="featured-btn" data-case="darkaura">
-                                View Items
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Popular Cases -->
-            <div class="section-title">
-                <i class="fas fa-fire"></i>
-                Popular Cases
-            </div>
-            <div class="cases-grid">
-                <div class="case-card labubu">
-                    <div class="case-image">
-                        <img src="LabubuCase.png" alt="Labubu Case">
-                        <div class="case-glow"></div>
-                    </div>
-                    <div class="case-info">
-                        <div class="case-name">Labubu Collection</div>
-                        <div class="case-rarity rare">
-                            <div class="rarity-indicator"></div>
-                            <span class="rarity-text">17 unique skins</span>
-                        </div>
-                        <div class="case-price">
-                            <div class="price">
-                                <i class="fas fa-coins"></i>
-                                100
-                            </div>
-                            <button class="open-btn" data-case="labubu">
-                                View
-                                <i class="fas fa-eye"></i>
-                            </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Case Detail Views -->
-    <!-- Labubu Case Detail -->
-    <div class="case-detail" id="labubu-case-detail">
-        <div class="case-detail-header">
-            <div class="case-detail-back" id="labubu-case-back">
-                <i class="fas fa-arrow-left"></i>
-            </div>
-            <div class="case-detail-title">Labubu Collection</div>
-        </div>
-        
-        <div class="featured-card">
-            <div class="featured-image">
-                    <img src="LabubuCase.png" alt="Labubu Case">
-            </div>
-            <div class="featured-info">
-                    <div class="featured-name">Labubu Collection Case</div>
-                    <div class="featured-desc">Original Labubu character collection with 17 unique themed variants</div>
-                    <div class="featured-stats">
-                        <div class="stat">
-                            <div class="stat-value">17</div>
-                            <div class="stat-label">Items</div>
-                </div>
-                        <div class="stat">
-                            <div class="stat-value">0.5%</div>
-                            <div class="stat-label">Mythic</div>
-            </div>
-                        <div class="stat">
-                            <div class="stat-value">1.5%</div>
-                            <div class="stat-label">Divine</div>
-        </div>
-                </div>
-                    <div class="featured-action">
-                        <div class="featured-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            100
-                        </div>
-                        <button class="featured-btn open-case-btn">
-                            Open Case
-                            <i class="fas fa-box-open"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Labubu Skins List -->
-            <div class="section-title">
-                <i class="fas fa-layer-group"></i>
-                Possible Items (17)
-            </div>
-            <div class="skins-grid">
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="SkeletonLabubu.png" alt="Skeleton Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-1">Skeleton Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            20
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="CandyLabubu.png" alt="Candy Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-1">Candy Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            20
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="ZombieLabubu.png" alt="Zombie Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-2">Zombie Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            50
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="NewDeepSeaLabubu.png" alt="New DeepSea Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-2">New DeepSea Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            50
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="AlienLabubu.png" alt="Alien Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-3">Alien Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            120
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="CircusLabubu.png" alt="Circus Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-3">Circus Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            120
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="GrassLabubu.png" alt="Grass Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-4">Grass Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="GrinchLabubu.png" alt="Grinch Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-4">Grinch Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                </div>
-            </div>
-                </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="VolcanicLabubu.png" alt="Volcanic Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-5">Volcanic Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            750
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="demon-labubu.png" alt="Demon Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-3">Demon Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            120
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="ghost-labubu.png" alt="Ghost Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-3">Ghost Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            120
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="cyber-labubu.png" alt="Cyber Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-4">Cyber Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="ice-crystal-labubu.png" alt="Ice Crystal Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-4">Ice Crystal Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="venom-labubu.png" alt="Venom Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-5">Venom Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            750
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="ronin-labubu.png" alt="Samurai Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-5">Samurai Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            750
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="glitch-labubu.png" alt="Glitch Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-5">Glitch Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            750
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <img src="golden-labubu.png" alt="Golden Labubu">
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-6">Golden Labubu</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            5000
-                        </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dark Aura Case Detail -->
-    <div class="case-detail" id="darkaura-case-detail">
-        <div class="case-detail-header">
-            <div class="case-detail-back" id="darkaura-case-back">
-                <i class="fas fa-arrow-left"></i>
-            </div>
-            <div class="case-detail-title">Dark Aura Case Items (12 Total)</div>
-        </div>
-        
-        <div class="featured-card">
-            <div class="featured-image">
-                    <img src="DarkAuraCase.png" alt="Dark Aura Case">
-            </div>
-            <div class="featured-info">
-                    <div class="featured-name">Dark Aura Case</div>
-                    <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
-                    <div class="featured-stats">
-                        <div class="stat">
-                            <div class="stat-value">12</div>
-                            <div class="stat-label">Items</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">0.2%</div>
-                            <div class="stat-label">Mythic</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">0.8%</div>
-                            <div class="stat-label">Divine</div>
-                        </div>
-                    </div>
-                    <div class="featured-action">
-                        <div class="featured-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            3,000
-                        </div>
-                        <button class="featured-btn open-case-btn">
-                            Open Case
-                            <i class="fas fa-box-open"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-            <!-- Dark Aura Skins List with Lottie Animations -->
-            <div class="section-title">
-                <i class="fas fa-layer-group"></i>
-                Possible Items (12) - Click to Preview Animations
-            </div>
-            <div class="skins-grid">
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-deskcalendar-280571.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-1">Haunted Desk Calendar</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            20
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-madpumpkin-7551.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-2">Mad Pumpkin Spirit</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            50
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-electricskull-8221.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-3">Electric Skull</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            120
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="darkaura-cleaned-crystalball-9027.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-3">Mystic Crystal Ball</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            150
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-voodoodoll-7970.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-4">Cursed Voodoo Doll</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-gingercookie-20477.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-4">Bewitched Ginger Cookie</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            300
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="darkaura-cleaned-genielamp-4594.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-4">Cursed Genie Lamp</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            350
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-signetring-14328.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-5">Mystical Signet Ring</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            750
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="darkaura-cleaned-eternalrose-7069.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class "skin-name tier-5">Eternal Shadow Rose</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            800
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-minioscar-1983.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                        <div class="skin-name tier-6">Mini Oscar Phantom</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            10000
-                        </div>
-                </div>
-            </div>
-            <div class="skin-card">
-                <div class="skin-image">
-                        <lottie-player src="cleaned-scaredcat-18595.json" background="transparent" speed="1" style="width: 90px; height: 90px" class="static-lottie"></lottie-player>
-                </div>
-                <div class="skin-info">
-                    <div class="skin-name tier-6">Scared Cat Obelisk</div>
-                        <div class="skin-price">
-                            <img src="ucoin2.png" alt="UCoin">
-                            10000
-                        </div>
-                </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -923,7 +405,7 @@
             <span>Home</span>
         </div>
         <div class="footer-nav-item" data-tab="inventory-tab">
-            <i class="fas fa-backpack"></i>
+            <i class="fas fa-layer-group"></i>
             <span>Inventory</span>
         </div>
         <div class="footer-nav-item" data-tab="cases-tab">

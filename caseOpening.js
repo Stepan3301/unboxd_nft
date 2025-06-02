@@ -199,47 +199,60 @@ async function openDarkAuraCase() {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        // Define item probabilities for Dark Aura Case - UPDATED FOR 12 items
-        // IMPORTANT: REVIEW AND ADJUST THESE PROBABILITIES TO SUM TO 1.0
-        const darkAuraProbabilities = [
-            0.20, // Haunted Desk Calendar (Tier 1)
-            0.15, // Mad Pumpkin Spirit (Tier 2)
-            0.15, // Cursed Lootbag (Tier 2) - NEW, placeholder probability
-            0.12, // Electric Skull (Tier 3)
-            0.10, // Mystic Crystal Ball (Tier 3)
-            0.08, // Cursed Voodoo Doll (Tier 4)
-            0.07, // Bewitched Ginger Cookie (Tier 4)
-            0.06, // Cursed Genie Lamp (Tier 4)
-            0.03, // Mystical Signet Ring (Tier 5)
-            0.02, // Eternal Shadow Rose (Tier 5)
-            0.01, // Mini Oscar Phantom (Tier 6)
-            0.01  // Scared Cat Obelisk (Tier 6)
-            // Current Sum = 1.00 - but ensure this is the desired distribution
+        // Define items for Dark Aura Case
+        const darkAuraSkins = [
+            { name: 'Haunted Desk Calendar', lottie: 'cleaned-deskcalendar-280571.json', tier: 1, price: skinPrices[1] },
+            { name: 'Mad Pumpkin Spirit', lottie: 'cleaned-madpumpkin-7551.json', tier: 2, price: skinPrices[2] },
+            // NEW ITEM ADDED HERE
+            { name: 'Bag of Holding', lottie: 'darkaura-cleaned-lootbag-7239.json', tier: 3, price: skinPrices[3] }, 
+            { name: 'Electric Skull', lottie: 'cleaned-electricskull-8221.json', tier: 3, price: skinPrices[3] },
+            { name: 'Mystic Crystal Ball', lottie: 'darkaura-cleaned-crystalball-9027.json', tier: 3, price: skinPrices[3] },
+            { name: 'Cursed Voodoo Doll', lottie: 'cleaned-voodoodoll-7970.json', tier: 4, price: skinPrices[4] },
+            { name: 'Bewitched Ginger Cookie', lottie: 'cleaned-gingercookie-20477.json', tier: 4, price: skinPrices[4] },
+            { name: 'Cursed Genie Lamp', lottie: 'darkaura-cleaned-genielamp-4594.json', tier: 4, price: skinPrices[4] },
+            { name: 'Mystical Signet Ring', lottie: 'cleaned-signetring-14328.json', tier: 5, price: skinPrices[5] },
+            { name: 'Eternal Shadow Rose', lottie: 'darkaura-cleaned-eternalrose-7069.json', tier: 5, price: skinPrices[5] },
+            { name: 'Mini Oscar Phantom', lottie: 'cleaned-minioscar-1983.json', tier: 6, price: skinPrices[6] },
+            { name: 'Scared Cat Obelisk', lottie: 'cleaned-scaredcat-18595.json', tier: 6, price: skinPrices[6] }
+        ];
+        // Total 13 items now
+
+        // IMPORTANT: REVIEW AND ADJUST THESE PROBABILITIES TO SUM TO 1.0 for 13 items
+        let darkAuraProbabilities = [
+            0.20,  // Haunted Desk Calendar (Tier 1)
+            0.15,  // Mad Pumpkin Spirit (Tier 2)
+            0.10,  // Bag of Holding (Tier 3) - NEW
+            0.10,  // Electric Skull (Tier 3)
+            0.10,  // Mystic Crystal Ball (Tier 3)
+            0.08,  // Cursed Voodoo Doll (Tier 4)
+            0.07,  // Bewitched Ginger Cookie (Tier 4)
+            0.06,  // Cursed Genie Lamp (Tier 4)
+            0.04,  // Mystical Signet Ring (Tier 5)
+            0.04,  // Eternal Shadow Rose (Tier 5)
+            0.03,  // Mini Oscar Phantom (Tier 6)
+            0.03   // Scared Cat Obelisk (Tier 6)
+            // SUM: 0.20+0.15+0.10+0.10+0.10+0.08+0.07+0.06+0.04+0.04+0.03+0.03 = 1.00
         ];
 
-        // Adjust probabilities if guaranteed Tier 3
-        // Tier 3 items are now at index 2 and 3
         if (isGuaranteedTier3) {
-            // Zero out lower tiers
-            darkAuraProbabilities[0] = 0; // Tier 1
-            darkAuraProbabilities[1] = 0; // Tier 2
-            
-            // Distribute 100% among Tier 3 and higher
-            // For simplicity, giving Tier 3 items a higher chance, then distributing rest
-            darkAuraProbabilities[2] = 0.3; // Electric Skull (Tier 3)
-            darkAuraProbabilities[3] = 0.3; // Mystic Crystal Ball (Tier 3 - NEW)
-            
-            // Zero out tiers below the guaranteed one if they were not already handled
-            // For higher tiers, you might want to keep their relative probabilities or adjust.
-            // For now, let's set the others to have some chance, summing up to 0.4
-            darkAuraProbabilities[4] = 0.08; // Cursed Voodoo Doll
-            darkAuraProbabilities[5] = 0.08; // Bewitched Ginger Cookie 
-            darkAuraProbabilities[6] = 0.08; // Cursed Genie Lamp (NEW)
-            darkAuraProbabilities[7] = 0.05; // Mystical Signet Ring
-            darkAuraProbabilities[8] = 0.05; // Eternal Shadow Rose (NEW)
-            darkAuraProbabilities[9] = 0.03; // Mini Oscar Phantom
-            darkAuraProbabilities[10] =0.03; // Scared Cat Obelisk
-            // This sums to 1.0 for the guaranteed case. Please review & adjust distribution.
+            console.log("[Case Opening] Applying guaranteed Tier 3+ probabilities for Dark Aura Case.");
+            // Indices for Tier 3 items: Bag of Holding (2), Electric Skull (3), Mystic Crystal Ball (4)
+            // Higher Tiers: 5 through 12
+            darkAuraProbabilities = [
+                0,    // T1: Haunted Desk Calendar
+                0,    // T2: Mad Pumpkin Spirit
+                0.20, // T3: Bag of Holding
+                0.20, // T3: Electric Skull
+                0.20, // T3: Mystic Crystal Ball
+                0.08, // T4: Cursed Voodoo Doll
+                0.07, // T4: Bewitched Ginger Cookie
+                0.06, // T4: Cursed Genie Lamp
+                0.06, // T5: Mystical Signet Ring
+                0.06, // T5: Eternal Shadow Rose
+                0.035,// T6: Mini Oscar Phantom
+                0.035 // T6: Scared Cat Obelisk
+                // SUM: 0.20+0.20+0.20+0.08+0.07+0.06+0.06+0.06+0.035+0.035 = 1.00
+            ];
         }
 
         const winningDarkAuraItem = selectRandomItemByProbability(darkAuraSkins, darkAuraProbabilities); // from utils.js
