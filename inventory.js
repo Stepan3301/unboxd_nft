@@ -62,10 +62,7 @@ function displayInventory(inventory) {
         let imageElement;
         if (item.skin_image && item.skin_image.endsWith('.json')) {
             let lottieFileName = item.skin_image;
-            // Simplified path handling, assuming skin_image is already the correct root path for Lottie files
-            // if (lottieFileName.startsWith('LottieAnimations/')) { // This check might be too specific or outdated
-            //     lottieFileName = lottieFileName.substring('LottieAnimations/'.length);
-            // }
+            console.log('[InventoryJS] Attempting to load Lottie for Inventory:', lottieFileName); // Log Lottie path
             imageElement = `
                 <lottie-player 
                     src="${lottieFileName}" 
@@ -75,6 +72,7 @@ function displayInventory(inventory) {
                 </lottie-player>
             `;
         } else {
+            console.log('[InventoryJS] Attempting to load Image for Inventory:', item.skin_image); // Log Image path
             imageElement = `<img src="${item.skin_image || 'placeholder.png'}" alt="${item.skin_name}">`;
         }
 

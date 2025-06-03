@@ -2291,6 +2291,14 @@ body {
     border-color: rgba(108, 92, 231, 0.5);
 }
 
+.item-image-container {
+    width: 100%;
+    padding-top: 100%; /* Creates a square aspect ratio (height is 100% of width) */
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.2); /* Background for the square area */
+    /* background-color: rgba(255, 0, 0, 0.1); /* TEMP DIAGNOSTIC */
+}
+
 .item-image-container img,
 .item-image-container lottie-player {
     position: absolute;
@@ -2301,6 +2309,10 @@ body {
     object-fit: contain;
     padding: 5px;
     box-sizing: border-box;
+    display: block !important; /* DIAGNOSTIC/FIX */
+    opacity: 1 !important;     /* DIAGNOSTIC/FIX */
+    visibility: visible !important; /* DIAGNOSTIC/FIX */
+    /* z-index: 1; /* Could be useful if there were overlays within item-image-container */
 }
 
 .item-info {

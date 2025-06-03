@@ -403,15 +403,15 @@ function displayCaseItems(caseId, retryCount = 0) {
 
         let imageElementHTML = '';
         if (itemType === 'lottie' && item.lottie) {
-            // Lottie files are expected to be in a subfolder like 'lottie/darkaura/'
             const lottieSrc = itemBasePath + item.lottie;
+            console.log('[UI Handlers] Attempting to load Lottie for Drops:', lottieSrc); // Log Lottie path
             imageElementHTML = `
                 <div class="item-image-container">
                     <lottie-player class="static-lottie" src="${lottieSrc}" background="transparent" speed="1"></lottie-player>
                 </div>`;
         } else if (itemType === 'image' && item.image) {
-            // Image paths: if itemBasePath is set, prepend it. Otherwise, use item.image directly.
             const imgSrc = itemBasePath ? itemBasePath + item.image : item.image;
+            console.log('[UI Handlers] Attempting to load Image for Drops:', imgSrc); // Log Image path
             imageElementHTML = `
                 <div class="item-image-container">
                     <img src="${imgSrc}" alt="${item.name}">
