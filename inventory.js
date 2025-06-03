@@ -62,17 +62,16 @@ function displayInventory(inventory) {
         let imageElement;
         if (item.skin_image && item.skin_image.endsWith('.json')) {
             let lottieFileName = item.skin_image;
-            if (lottieFileName.startsWith('LottieAnimations/')) {
-                lottieFileName = lottieFileName.substring('LottieAnimations/'.length);
-            }
+            // Simplified path handling, assuming skin_image is already the correct root path for Lottie files
+            // if (lottieFileName.startsWith('LottieAnimations/')) { // This check might be too specific or outdated
+            //     lottieFileName = lottieFileName.substring('LottieAnimations/'.length);
+            // }
             imageElement = `
                 <lottie-player 
                     src="${lottieFileName}" 
                     background="transparent" 
                     speed="1" 
-                    style="width: 100%; height: 120px;" 
-                    loop 
-                    autoplay>
+                    style="width: 100%; height: 100%;"> <!-- Removed loop, autoplay. Ensure height: 100% to fill container -->
                 </lottie-player>
             `;
         } else {
@@ -94,6 +93,26 @@ function displayInventory(inventory) {
             </div>
         `;
         inventoryGrid.appendChild(itemCard);
+
+        // If it's a Lottie item, add click-to-play functionality
+        if (item.skin_image && item.skin_image.endsWith('.json')) {
+            const lottiePlayer = itemCard.querySelector('lottie-player');
+            if (lottiePlayer) {
+                lottiePlayer.addEventListener('load', () => {
+                    lottiePlayer.stop(); // Stop initially
+                });
+                itemCard.addEventListener('click', (event) => {
+                    // Prevent sell button click from also triggering lottie play
+                    if (event.target.classList.contains('inventory-sell-btn')) {
+                        return;
+                    }
+                    if (lottiePlayer.getLottie && lottiePlayer.getLottie()) {
+                        lottiePlayer.stop();
+                        lottiePlayer.play();
+                    }
+                });
+            }
+        }
     });
 
     // Add event listeners to new sell buttons

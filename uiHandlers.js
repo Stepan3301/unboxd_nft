@@ -407,7 +407,7 @@ function displayCaseItems(caseId, retryCount = 0) {
             const lottieSrc = itemBasePath + item.lottie;
             imageElementHTML = `
                 <div class="item-image-container">
-                    <lottie-player class="static-lottie" src="${lottieSrc}" background="transparent" speed="1" loop autoplay></lottie-player>
+                    <lottie-player class="static-lottie" src="${lottieSrc}" background="transparent" speed="1"></lottie-player>
                 </div>`;
         } else if (itemType === 'image' && item.image) {
             // Image paths: if itemBasePath is set, prepend it. Otherwise, use item.image directly.
@@ -422,11 +422,29 @@ function displayCaseItems(caseId, retryCount = 0) {
             ${imageElementHTML}
             <div class="item-info">
                 <h3>${item.name}</h3>
-                <div class="item-tier rarity-text tier-${item.tier}" style="text-transform: capitalize;">Tier ${item.tier}</div>
-                ${'' /* Price is not typically shown on each item card in a "possible drops" list */}
+                ${/* REMOVED TIER DISPLAY: <div class="item-tier rarity-text tier-${item.tier}" style="text-transform: capitalize;">Tier ${item.tier}</div> */ ''}
+                ${/* Price is not typically shown on each item card in a "possible drops" list */ ''}
             </div>
         `;
         grid.appendChild(card);
+
+        // If it's a Lottie item, add click-to-play functionality
+        if (itemType === 'lottie' && item.lottie) {
+            const lottiePlayer = card.querySelector('lottie-player');
+            if (lottiePlayer) {
+                // Ensure the player is loaded before trying to add event listeners or control it.
+                lottiePlayer.addEventListener('load', () => {
+                    // Stop it initially in case some default is autoplay, though we removed the attribute
+                    lottiePlayer.stop(); 
+                });
+                card.addEventListener('click', () => {
+                    if (lottiePlayer.getLottie && lottiePlayer.getLottie()) { // Check if player is ready
+                        lottiePlayer.stop(); // Stop first to allow replaying from the start
+                        lottiePlayer.play();
+                    }
+                });
+            }
+        }
     });
     console.log('[UI Handlers] Displayed ' + itemsArray.length + ' items in ' + targetGridId);
 }
