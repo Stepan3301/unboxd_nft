@@ -2123,6 +2123,8 @@ body {
 }
 
 /* Styles for the new action panel in case detail */
+/* Commenting out old styles for .case-detail-action-panel and related elements */
+/*
 .case-detail-action-panel {
     display: flex;
     align-items: center;
@@ -2157,4 +2159,136 @@ body {
     font-size: 1rem;
     flex-shrink: 0;
     min-width: 150px;
+}
+*/
+
+/* New Case Controls Styles */
+.case-controls {
+  background: rgba(20, 20, 35, 0.7);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0; /* Adjusted from margin: 20px to have vertical margin only */
+  /*width: calc(100% - 40px); /* Ensure padding of parent .case-detail (if any) is respected */
+  /*margin-left: 20px; */
+  /*margin-right: 20px; */
+  border: 1px solid rgba(128, 128, 255, 0.2);
+  box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
+}
+
+.quantity-selector h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #fff;
+  text-align: center;
+}
+
+.quantity-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.quantity-btn {
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px;
+  background: rgba(40, 40, 60, 0.6);
+  border: 1px solid rgba(128, 128, 255, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: center; /* Ensure text and discount are centered */
+}
+
+.quantity-btn:first-child {
+  margin-left: 0;
+}
+
+.quantity-btn:last-child {
+  margin-right: 0;
+}
+
+.quantity-btn.active {
+  background: linear-gradient(135deg, #5865F2, #7289da);
+  box-shadow: 0 0 15px rgba(88, 101, 242, 0.5);
+  transform: translateY(-2px);
+}
+
+.quantity-btn:hover:not(.active) {
+  background: rgba(60, 60, 90, 0.8);
+  transform: translateY(-1px);
+}
+
+.discount {
+  display: block;
+  font-size: 10px;
+  color: #72f7b8;
+  margin-top: 3px;
+}
+
+/* Styles for the new .open-case-btn, distinct from any previous generic .open-case-btn styles */
+.case-controls .open-case-btn { /* Specific to the one in case-controls */
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #FF4D4D, #F9CB28);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+}
+
+.case-controls .open-case-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 77, 77, 0.6);
+}
+
+.case-controls .open-case-btn:active {
+  transform: translateY(1px);
+}
+
+.case-controls .open-case-btn .btn-text { /* Specific to the one in case-controls */
+  margin-right: 10px;
+}
+
+.case-controls .open-case-btn .btn-price { /* Specific to the one in case-controls */
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+/* The ucoin icon within the button is an img, not i */
+.case-controls .open-case-btn .btn-price .ucoin-icon-sm { /* Adjusted selector */
+  margin-left: 5px;
+  /* color: #FFD700; /* Not applicable for img, but can be a filter if needed */
+}
+
+.case-controls .open-case-btn .btn-glow { /* Specific to the one in case-controls */
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.case-controls .open-case-btn:hover .btn-glow {
+  opacity: 0.1;
 } 

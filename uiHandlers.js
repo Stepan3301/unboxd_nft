@@ -1,3 +1,11 @@
+const skinPrices = { /* populated from config.js or elsewhere */ };
+
+// Define base prices for cases (ideally from a config)
+const CASE_PRICES = {
+    darkaura: 100, // Example base price for Dark Aura
+    labubu: 50     // Example base price for Labubu
+};
+
 // Function to attach event listeners for UI interactions
 function attachEventListeners() {
     // Tab navigation
@@ -316,35 +324,38 @@ function activateTab(tabId) {
 function displayCaseItems(caseId) {
     let itemsArray;
     let targetGridId;
-    let itemBasePath = ''; // Base path for images/lotties
-    let itemType = 'image'; // Default to image
+    let itemBasePath = ''; 
+    let itemType = 'image';
 
     console.log('[UI Handlers] Displaying items for caseId:', caseId);
 
-    if (caseId === 'darkaura') { // Changed to match baseCaseId
+    if (caseId === 'darkaura') { 
         if (typeof window.darkAuraSkins === 'undefined' || typeof window.skinPrices === 'undefined') {
             console.error('[UI Handlers] darkAuraSkins array or skinPrices is not defined globally. Cannot display items.');
-            itemsArray = []; // Fallback to empty if not found
+            itemsArray = []; 
         } else {
-            itemsArray = window.darkAuraSkins;
+            itemsArray = [...window.darkAuraSkins]; // Create a copy for sorting
         }
         targetGridId = 'darkaura-skins-grid';
         itemBasePath = 'lottie/darkaura/';
         itemType = 'lottie';
-    } else if (caseId === 'labubu') { // Changed to match baseCaseId
+    } else if (caseId === 'labubu') { 
         if (typeof window.labubuItems === 'undefined' || typeof window.skinPrices === 'undefined') {
             console.error('[UI Handlers] labubuItems array or skinPrices is not defined globally. Cannot display items.');
-            itemsArray = []; // Fallback to empty if not found
+            itemsArray = []; 
         } else {
-            itemsArray = window.labubuItems;
+            itemsArray = [...window.labubuItems]; // Create a copy for sorting
         }
         targetGridId = 'labubu-skins-grid';
-        itemBasePath = ''; // Assuming Labubu images are in root or paths are full in data
-                           // If they are in 'lottie/labubu/', this should be 'lottie/labubu/'
-                           // For now, let's assume root or full path.
+        itemBasePath = ''; 
     } else {
         console.error('[UI Handlers] Unknown caseId for displayCaseItems:', caseId);
         return;
+    }
+
+    // Sort items by tier in descending order (most rare first)
+    if (itemsArray.length > 0 && typeof itemsArray[0].tier !== 'undefined') {
+        itemsArray.sort((a, b) => b.tier - a.tier);
     }
 
     const grid = document.getElementById(targetGridId);
@@ -396,6 +407,65 @@ function displayCaseItems(caseId) {
     console.log('[UI Handlers] Displayed ' + itemsArray.length + ' items in ' + targetGridId);
 }
 
+// NEW FUNCTION to handle quantity selector and price updates for a case
+function initializeCaseControls(caseDetailId, baseCaseId) {
+    const caseDetailElement = document.getElementById(caseDetailId);
+    if (!caseDetailElement) {
+        console.error('[UI Handlers] Case detail element not found for controls setup:', caseDetailId);
+        return;
+    }
+
+    const basePrice = CASE_PRICES[baseCaseId];
+    if (typeof basePrice === 'undefined') {
+        console.error('[UI Handlers] Base price not found for case:', baseCaseId);
+        return;
+    }
+
+    const quantityButtons = caseDetailElement.querySelectorAll('.quantity-btn');
+    const openCaseButton = caseDetailElement.querySelector('.case-controls .open-case-btn');
+    const priceValueSpan = openCaseButton ? openCaseButton.querySelector('.btn-price .price-value') : null;
+
+    if (!quantityButtons.length || !openCaseButton || !priceValueSpan) {
+        console.error('[UI Handlers] Control elements (quantity buttons, open button, or price span) not found in:', caseDetailId);
+        return;
+    }
+
+    // Function to update price and button state
+    const updateOpenButton = (quantity, discount) => {
+        const finalPrice = Math.round(basePrice * quantity * (1 - discount / 100));
+        priceValueSpan.textContent = finalPrice;
+        openCaseButton.dataset.selectedQuantity = quantity;
+        openCaseButton.dataset.finalPrice = finalPrice;
+        console.log(`[UI Handlers] Case: ${baseCaseId}, Qty: ${quantity}, Discount: ${discount}%, Price: ${finalPrice}`);
+    };
+
+    // Attach listeners to quantity buttons
+    quantityButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            quantityButtons.forEach(qBtn => qBtn.classList.remove('active'));
+            btn.classList.add('active');
+            const quantity = parseInt(btn.dataset.quantity);
+            const discount = parseInt(btn.dataset.discount);
+            updateOpenButton(quantity, discount);
+        });
+    });
+
+    // Set initial state (first button is active by default HTML)
+    const initialActiveButton = caseDetailElement.querySelector('.quantity-btn.active');
+    if (initialActiveButton) {
+        const initialQuantity = parseInt(initialActiveButton.dataset.quantity);
+        const initialDiscount = parseInt(initialActiveButton.dataset.discount);
+        updateOpenButton(initialQuantity, initialDiscount);
+    } else {
+        // Fallback if no button is active by default (should not happen with current HTML)
+        updateOpenButton(1, 0);
+        if (quantityButtons.length > 0) {
+            quantityButtons[0].classList.add('active');
+        }
+    }
+    console.log('[UI Handlers] Initialized case controls for:', caseDetailId);
+}
+
 // Functions to show/hide case detail views
 function showCaseDetail(caseDetailId) {
     const caseDetailElement = document.getElementById(caseDetailId);
@@ -403,7 +473,6 @@ function showCaseDetail(caseDetailId) {
     const bottomNav = document.querySelector('.bottom-nav');
 
     if (caseDetailElement && mainContent && bottomNav) {
-        // Hide all other case-detail views first
         document.querySelectorAll('.case-detail').forEach(cd => {
             if (cd.id !== caseDetailId) {
                 cd.classList.remove('active');
@@ -411,12 +480,14 @@ function showCaseDetail(caseDetailId) {
         });
 
         caseDetailElement.classList.add('active');
-        mainContent.style.display = 'none'; // Hide main content
+        mainContent.style.display = 'none'; 
         bottomNav.setAttribute('data-case-detail-open', 'true');
         console.log('Showing case detail: ' + caseDetailId);
         
         const baseCaseId = caseDetailId.replace('-case-detail', '');
-        displayCaseItems(baseCaseId); // Call to display items
+        displayCaseItems(baseCaseId); 
+        initializeCaseControls(caseDetailId, baseCaseId); // Initialize new controls
+
     } else {
         console.error('Elements for showing case detail ' + caseDetailId + ' not found.');
     }

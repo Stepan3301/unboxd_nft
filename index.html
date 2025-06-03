@@ -264,76 +264,118 @@
         <!-- Dark Aura Case Detail -->
         <div class="case-detail" id="darkaura-case-detail">
             <div class="case-detail-header">
-                <div class="case-detail-back" id="darkaura-case-back">
-                    <i class="fas fa-arrow-left"></i>
-                </div>
-                <div class="case-detail-title">Dark Aura Case Items (13 Total)</div>
+                <div class="case-detail-back" id="darkaura-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="darkaura-case-title">Dark Aura Case</h2>
             </div>
-            <div class="featured-card"> <!-- Main case info card -->
+            <div class="featured-card"> <!-- This contains image and description, keep as is -->
                 <div class="featured-image">
-                    <img src="DarkAuraCase.png" alt="Dark Aura Case">
+                    <img src="lottie/darkaura/dark_aura_case_static.png" alt="Dark Aura Case">
                 </div>
                 <div class="featured-info">
-                    <div class="featured-name">Dark Aura Case</div>
-                    <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers.</div>
+                    <h3 class="featured-name">Dark Aura Collection</h3>
+                    <p class="featured-desc">Unveil a shadowy assortment of 13 mystical Lottie animations, ranging from common enchantments to divine artifacts.</p>
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <span class="stat-value">13</span>
+                            <span class="stat-label">Items</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">6</span>
+                            <span class="stat-label">Tiers</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">Rare</span>
+                            <span class="stat-label">Avg. Rarity</span>
+                        </div>
+                    </div>
                 </div>
-                <!-- Removed featured-action from here -->
-            </div>
-            
-            <div class="section-title case-items-title"> <!-- Added class for specific styling -->
-                <i class="fas fa-list-ul"></i> Items in this Case
-            </div>
-            <div class="skins-grid case-detail-skins-grid" id="darkaura-skins-grid">
-                <!-- Dark Aura skins will be populated by JavaScript -->
             </div>
 
-            <!-- New Action Panel for Price and Open Button -->
-            <div class="case-detail-action-panel">
-                <div class="case-detail-price">
-                    <img src="ucoin2.png" alt="UCoin">
-                    3,000
+            <!-- New Case Opening Controls -->
+            <div class="case-controls">
+              <div class="quantity-selector">
+                <h3>How many cases to open?</h3>
+                <div class="quantity-buttons">
+                  <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                  <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                  <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                  <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
                 </div>
-                <button class="open-case-btn btn" data-case="darkaura">
-                    <i class="fas fa-box-open"></i> Open Case
-                </button>
+              </div>
+              
+              <button class="open-case-btn" data-case="darkaura"> <!-- Added data-case -->
+                <span class="btn-text">Open Case</span>
+                <span class="btn-price">
+                    <span class="price-value">100</span> 
+                    <img src="images/ucoin.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                </span>
+                <div class="btn-glow"></div>
+              </button>
+            </div>
+            <!-- End New Case Opening Controls -->
+
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="darkaura-skins-grid" class="case-detail-skins-grid skins-grid">
+                <!-- Items will be populated here by JS -->
             </div>
         </div>
 
         <!-- Labubu Case Detail -->
         <div class="case-detail" id="labubu-case-detail">
             <div class="case-detail-header">
-                <div class="case-detail-back" id="labubu-case-back">
-                    <i class="fas fa-arrow-left"></i>
-                </div>
-                <div class="case-detail-title">Labubu Collection (17 Total)</div>
+                <div class="case-detail-back" id="labubu-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="labubu-case-title">Labubu & Friends</h2>
             </div>
-            <div class="featured-card">
+            <div class="featured-card"> <!-- This contains image and description, keep as is -->
                 <div class="featured-image">
-                    <img src="LabubuCase.png" alt="Labubu Case">
+                    <img src="lottie/labubu/labubu_case_static.png" alt="Labubu Case">
                 </div>
                 <div class="featured-info">
-                    <div class="featured-name">Labubu Collection</div>
-                    <div class="featured-desc">A collection of 17 unique Labubu character skins.</div>
+                    <h3 class="featured-name">The Monsters Toys Collection</h3>
+                    <p class="featured-desc">Discover 17 unique Labubu figures, from common tricksters to the legendary Golden Labubu.</p>
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <span class="stat-value">17</span>
+                            <span class="stat-label">Items</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">6</span>
+                            <span class="stat-label">Tiers</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">Rare</span>
+                            <span class="stat-label">Avg. Rarity</span>
+                        </div>
+                    </div>
                 </div>
-                <!-- Removed featured-action from here -->
             </div>
 
-            <div class="section-title case-items-title">
-                <i class="fas fa-list-ul"></i> Skins in this Collection
-            </div>
-            <div class="skins-grid case-detail-skins-grid" id="labubu-skins-grid">
-                <!-- Labubu skins will be populated by JavaScript -->
-            </div>
-
-            <!-- New Action Panel for Price and Open Button -->
-            <div class="case-detail-action-panel">
-                <div class="case-detail-price">
-                    <img src="ucoin2.png" alt="UCoin">
-                    100
+            <!-- New Case Opening Controls -->
+            <div class="case-controls">
+              <div class="quantity-selector">
+                <h3>How many cases to open?</h3>
+                <div class="quantity-buttons">
+                  <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                  <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                  <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                  <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
                 </div>
-                <button class="open-case-btn btn" data-case="labubu">
-                    <i class="fas fa-box-open"></i> Open Case
-                </button>
+              </div>
+              
+              <button class="open-case-btn" data-case="labubu"> <!-- Added data-case -->
+                <span class="btn-text">Open Case</span>
+                <span class="btn-price">
+                    <span class="price-value">50</span> 
+                    <img src="images/ucoin.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                </span>
+                <div class="btn-glow"></div>
+              </button>
+            </div>
+            <!-- End New Case Opening Controls -->
+
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="labubu-skins-grid" class="case-detail-skins-grid skins-grid">
+                <!-- Items will be populated here by JS -->
             </div>
         </div>
         <!-- End Case Detail Views -->
