@@ -313,23 +313,39 @@ window.activateTab = function(tabId) {
 }
 
 // NEW FUNCTION to display items in the case detail view
-function displayCaseItems(caseId) {
+function displayCaseItems(caseId, retryCount = 0) {
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY_MS = 200;
+
     let itemsArray;
     let targetGridId;
     let itemBasePath = ''; 
     let itemType = 'image';
 
-    console.log('[UI Handlers] Attempting to display items for caseId:', caseId);
+    console.log(`[UI Handlers] Attempting to display items for caseId: ${caseId}, Retry: ${retryCount}`);
 
-    // Explicitly check for skinPrices first, as it's a dependency for item arrays in caseOpening.js
+    // Explicitly check for skinPrices first
     if (typeof window.skinPrices === 'undefined') {
-        console.error('[UI Handlers] CRITICAL: window.skinPrices is not defined. Item prices will be missing. Ensure caseOpening.js loads and defines it first.');
-        // We can still try to load items, but prices might be wrong if hardcoded in arrays or default to 0.
+        console.error('[UI Handlers] CRITICAL: window.skinPrices is not defined. Item prices will be missing.');
+        if (retryCount < MAX_RETRIES) {
+            console.warn(`[UI Handlers] Retrying displayCaseItems for ${caseId} (skinPrices missing)...`);
+            setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
+            return;
+        } else {
+            console.error(`[UI Handlers] Max retries reached for ${caseId}. window.skinPrices still undefined.`);
+            // Display error in grid? For now, we proceed but items might lack price-related data if needed
+        }
     }
 
     if (caseId === 'darkaura') { 
         if (typeof window.darkAuraSkins === 'undefined') {
-            console.error('[UI Handlers] CRITICAL: window.darkAuraSkins is UNDEFINED. Cannot display items for Dark Aura case. Ensure caseOpening.js loads and defines window.darkAuraSkins.');
+            console.error('[UI Handlers] CRITICAL: window.darkAuraSkins is UNDEFINED.');
+            if (retryCount < MAX_RETRIES) {
+                console.warn(`[UI Handlers] Retrying displayCaseItems for Dark Aura (darkAuraSkins missing)...`);
+                setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
+                return;
+            }
+            console.error('[UI Handlers] Max retries reached for Dark Aura. window.darkAuraSkins still undefined.');
             itemsArray = []; 
         } else {
             console.log('[UI Handlers] window.darkAuraSkins found:', window.darkAuraSkins);
@@ -340,7 +356,13 @@ function displayCaseItems(caseId) {
         itemType = 'lottie';
     } else if (caseId === 'labubu') { 
         if (typeof window.labubuItems === 'undefined') {
-            console.error('[UI Handlers] CRITICAL: window.labubuItems is UNDEFINED. Cannot display items for Labubu case. Ensure caseOpening.js loads and defines window.labubuItems.');
+            console.error('[UI Handlers] CRITICAL: window.labubuItems is UNDEFINED.');
+            if (retryCount < MAX_RETRIES) {
+                console.warn(`[UI Handlers] Retrying displayCaseItems for Labubu (labubuItems missing)...`);
+                setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
+                return;
+            }
+            console.error('[UI Handlers] Max retries reached for Labubu. window.labubuItems still undefined.');
             itemsArray = []; 
         } else {
             console.log('[UI Handlers] window.labubuItems found:', window.labubuItems);
@@ -410,16 +432,33 @@ function displayCaseItems(caseId) {
 }
 
 // NEW FUNCTION to handle quantity selector and price updates for a case
-function initializeCaseControls(caseDetailId, baseCaseId) {
+function initializeCaseControls(caseDetailId, baseCaseId, retryCount = 0) {
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY_MS = 200;
+
     const caseDetailElement = document.getElementById(caseDetailId);
     if (!caseDetailElement) {
         console.error('[UI Handlers] Case detail element not found for controls setup:', caseDetailId);
         return;
     }
+
     // Make sure CASE_PRICES is available globally
     if (typeof window.CASE_PRICES === 'undefined' || typeof window.CASE_PRICES[baseCaseId] === 'undefined') {
-        console.error('[UI Handlers] CRITICAL: window.CASE_PRICES or price for case '+ baseCaseId +' is not defined. Ensure caseOpening.js defines it.');
-        return;
+        console.error('[UI Handlers] CRITICAL: window.CASE_PRICES or price for case '+ baseCaseId +' is not defined.');
+        if (retryCount < MAX_RETRIES) {
+            console.warn(`[UI Handlers] Retrying initializeCaseControls for ${baseCaseId} (CASE_PRICES missing)...`);
+            setTimeout(() => initializeCaseControls(caseDetailId, baseCaseId, retryCount + 1), RETRY_DELAY_MS);
+            return;
+        } else {
+            console.error(`[UI Handlers] Max retries reached for ${baseCaseId}. window.CASE_PRICES still undefined. Cannot initialize controls.`);
+            // Optionally, disable the open case button or show an error message
+            const openCaseButton = caseDetailElement.querySelector('.case-controls .open-case-btn');
+            if(openCaseButton) {
+                openCaseButton.disabled = true;
+                openCaseButton.textContent = "Error: Price Unavailable";
+            }
+            return;
+        }
     }
     const basePrice = window.CASE_PRICES[baseCaseId];
 
