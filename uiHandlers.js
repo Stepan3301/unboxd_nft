@@ -352,7 +352,7 @@ function displayCaseItems(caseId, retryCount = 0) {
             itemsArray = [...window.darkAuraSkins];
         }
         targetGridId = 'darkaura-skins-grid';
-        itemBasePath = 'lottie/darkaura/';
+        itemBasePath = '';
         itemType = 'lottie';
     } else if (caseId === 'labubu') { 
         if (typeof window.labubuItems === 'undefined') {
