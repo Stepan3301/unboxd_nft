@@ -1178,11 +1178,12 @@ body {
 /* For now, assuming .skin-card might have different specific styles or is legacy */
 .skins-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Min 90px width, flexible, auto columns */
-    gap: 10px; /* Unified gap */
-    /* margin-top: 20px; /* Removed - parent elements should handle top margin if needed */
-    padding: 10px; /* Padding within the grid container, around items */
-}
+    /* Каждая колонка фиксирована в 90px, если влезает — добавляется ещё одна колонка */
+    grid-template-columns: repeat(auto-fill, 90px);
+    justify-content: start; /* при свободном месте карточки будут прижаты влево */
+    gap: 10px;
+    padding: 10px;
+  }
 
 .skin-card {
     background: rgba(255, 255, 255, 0.05);
