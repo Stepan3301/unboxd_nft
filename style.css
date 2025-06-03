@@ -25,6 +25,8 @@ body {
     color: white;
     min-height: 100vh;
     overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #454545 #202020;
 }
 
 .container {
@@ -1511,18 +1513,19 @@ body {
 
 /* Case Detail View */
 .case-detail {
-    display: none; /* Hide by default */
-    flex-direction: column; /* Stack header, content, action panel vertically */
     position: fixed;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     width: 100%;
-    max-width: 414px;
     height: 100%;
-    z-index: 200;
-    background: rgba(20, 20, 35, 0.9);
-    padding-bottom: 0;
+    background-color: #121212; /* Dark background */
+    z-index: 100;
+    display: none; /* Initially hidden */
+    flex-direction: column;
+    /* padding-top: 60px; */ /* Adjusted: header inside is position:fixed or absolute */
+    padding: 0; /* Full bleed */
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow entire case detail to scroll */
 }
 
 .case-detail.active {
@@ -2114,6 +2117,27 @@ body {
     padding: 15px;
     flex-grow: 1;
     overflow-y: auto;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar for case detail item grids */
+.case-detail-skins-grid::-webkit-scrollbar {
+  width: 8px;
+  height: 8px; /* For horizontal scroll if ever needed */
+}
+.case-detail-skins-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1); /* Slightly transparent track */
+  border-radius: 10px;
+}
+.case-detail-skins-grid::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3); /* Lighter thumb for contrast */
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0); /* Transparent border to give space */
+}
+.case-detail-skins-grid {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1); /* For Firefox */
 }
 
 /* Specific styling for the section title within case detail */
@@ -2291,4 +2315,38 @@ body {
 
 .case-controls .open-case-btn:hover .btn-glow {
   opacity: 0.1;
+}
+
+/* General body scrollbar */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+body::-webkit-scrollbar-track {
+  background: #202020; /* Slightly lighter than pure black for track */
+}
+body::-webkit-scrollbar-thumb {
+  background-color: #454545; /* Dark grey thumb */
+  border-radius: 10px;
+  border: 2px solid #202020; /* Padding effect */
+}
+body {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #454545 #202020; /* For Firefox: thumb and track */
+}
+
+/* Scrollbar for .case-detail */
+.case-detail::-webkit-scrollbar {
+  width: 8px;
+}
+.case-detail::-webkit-scrollbar-track {
+  background: #1a1a1a; /* Match case-detail bg or slightly different */
+}
+.case-detail::-webkit-scrollbar-thumb {
+  background-color: #484848;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+}
+.case-detail {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #484848 #1a1a1a; /* For Firefox */
 } 
