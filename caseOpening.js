@@ -1,5 +1,21 @@
 // Case Opening Logic
 
+// Define global skin prices by tier
+window.skinPrices = {
+    1: 10,   // Tier 1 (Common)
+    2: 25,   // Tier 2 (Rare)
+    3: 75,   // Tier 3 (Epic)
+    4: 200,  // Tier 4 (Legendary)
+    5: 500,  // Tier 5 (Mythic)
+    6: 1500  // Tier 6 (Divine)
+};
+
+// Define global base prices for cases
+window.CASE_PRICES = {
+    darkaura: 100, // Base price for Dark Aura case
+    labubu: 50     // Base price for Labubu case
+};
+
 // caseOpeningsCount and guaranteedTier3NextOpening are global from config.js
 
 // Load opening count from localStorage

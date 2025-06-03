@@ -1,11 +1,3 @@
-const skinPrices = { /* populated from config.js or elsewhere */ };
-
-// Define base prices for cases (ideally from a config)
-const CASE_PRICES = {
-    darkaura: 100, // Example base price for Dark Aura
-    labubu: 50     // Example base price for Labubu
-};
-
 // Function to attach event listeners for UI interactions
 function attachEventListeners() {
     // Tab navigation
@@ -265,7 +257,7 @@ function filterCaseListings(filter) {
 }
 
 // Function to control the visibility of the rarity nav
-function updateRarityNavVisibility(tabId) {
+window.updateRarityNavVisibility = function(tabId) {
     const rarityNav = document.getElementById('rarity-nav');
     if (!rarityNav) return;
 
@@ -277,7 +269,7 @@ function updateRarityNavVisibility(tabId) {
 }
 
 // Function to activate a tab and update UI
-function activateTab(tabId) {
+window.activateTab = function(tabId) {
     console.log('Activating tab:', tabId);
     // Deactivate all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
