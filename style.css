@@ -1178,9 +1178,7 @@ body {
 /* For now, assuming .skin-card might have different specific styles or is legacy */
 .skins-grid {
     display: grid;
-    /* Каждая колонка фиксирована в 90px, если влезает — добавляется ещё одна колонка */
-    grid-template-columns: repeat(auto-fill, 90px);
-    justify-content: start; /* при свободном месте карточки будут прижаты влево */
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 10px;
   }
@@ -2040,7 +2038,6 @@ body {
 /* Styles for the items grid within case detail */
 .case-detail-skins-grid {
     padding: 15px;
-    flex-grow: 1;
     overflow-y: auto;
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.2);
