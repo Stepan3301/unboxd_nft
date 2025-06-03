@@ -1165,99 +1165,23 @@ body {
 
 /* Inventory Grid System - Updated for 3 columns and uniform sizing */
 #inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-    gap: 10px; /* Adjust gap as needed */
-    padding: 10px 0; /* Add some padding around the grid */
+    /* display: grid; Will be inherited from .skins-grid */
+    /* grid-template-columns: repeat(3, 1fr); Will be inherited from .skins-grid */
+    /* gap: 10px; Will be inherited from .skins-grid */
+    /* padding: 10px 0; Will be replaced by .skins-grid padding or can be adjusted if inventory needs specific padding */
+    /* If #inventory-grid needs a specific top margin, it can be added here, e.g. margin-top: 15px; */
+    /* For now, we assume its parent (.section-title) provides adequate spacing or .skins-grid padding is sufficient */
 }
 
-.inventory-item-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px; /* Slightly smaller radius */
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Pushes button to bottom if info varies */
-    transition: all 0.3s ease;
-}
-
-.inventory-item-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
-}
-
-.item-image-container {
-    width: 100%;
-    padding-top: 100%; /* Creates a square aspect ratio (height is 100% of width) */
-    position: relative;
-    background-color: rgba(0, 0, 0, 0.2); /* Background for the square area */
-}
-
-.item-image-container img,
-.item-image-container lottie-player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Or 'cover' if you prefer, 'contain' ensures whole item is visible */
-    padding: 5px; /* Small padding around the image/lottie itself */
-}
-
-.item-info {
-    padding: 8px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center info content */
-    flex-grow: 1; /* Allows this section to grow if needed */
-}
-
-.item-info h3 {
-    font-size: 0.85rem; /* Adjust as needed */
-    font-weight: 600;
-    color: white;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-}
-
-.item-info .item-tier {
-    font-size: 0.7rem;
-    margin-bottom: 4px;
-}
-
-.item-info .item-price {
-    font-size: 0.75rem;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.item-info .item-price img {
-    width: 12px;
-    height: 12px;
-    margin-right: 3px;
-}
-
-/* Ensure inventory sell button takes full width of its container in the card */
-.inventory-sell-btn {
-    /* Styles for .inventory-sell-btn are already defined later, 
-       this ensures it behaves correctly within the flex layout of .item-info */
-    width: 100%; 
-    margin-top: auto; /* Pushes button to the bottom if .item-info has extra space */
-}
-
-/* Labubu Skins List */
+/* Labubu Skins List - Note: .skins-grid is now the primary class for these grids */
+/* .skin-card was a separate style, if it's meant to be the same as .inventory-item-card, they should be merged */
+/* For now, assuming .skin-card might have different specific styles or is legacy */
 .skins-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Min 90px width, flexible, auto columns */
+    gap: 10px; /* Unified gap */
+    /* margin-top: 20px; /* Removed - parent elements should handle top margin if needed */
+    padding: 10px; /* Padding within the grid container, around items */
 }
 
 .skin-card {
