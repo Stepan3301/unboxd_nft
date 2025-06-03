@@ -319,24 +319,32 @@ function displayCaseItems(caseId) {
     let itemBasePath = ''; 
     let itemType = 'image';
 
-    console.log('[UI Handlers] Displaying items for caseId:', caseId);
+    console.log('[UI Handlers] Attempting to display items for caseId:', caseId);
+
+    // Explicitly check for skinPrices first, as it's a dependency for item arrays in caseOpening.js
+    if (typeof window.skinPrices === 'undefined') {
+        console.error('[UI Handlers] CRITICAL: window.skinPrices is not defined. Item prices will be missing. Ensure caseOpening.js loads and defines it first.');
+        // We can still try to load items, but prices might be wrong if hardcoded in arrays or default to 0.
+    }
 
     if (caseId === 'darkaura') { 
-        if (typeof window.darkAuraSkins === 'undefined' || typeof window.skinPrices === 'undefined') {
-            console.error('[UI Handlers] darkAuraSkins array or skinPrices is not defined globally. Cannot display items.');
+        if (typeof window.darkAuraSkins === 'undefined') {
+            console.error('[UI Handlers] CRITICAL: window.darkAuraSkins is UNDEFINED. Cannot display items for Dark Aura case. Ensure caseOpening.js loads and defines window.darkAuraSkins.');
             itemsArray = []; 
         } else {
-            itemsArray = [...window.darkAuraSkins]; // Create a copy for sorting
+            console.log('[UI Handlers] window.darkAuraSkins found:', window.darkAuraSkins);
+            itemsArray = [...window.darkAuraSkins];
         }
         targetGridId = 'darkaura-skins-grid';
         itemBasePath = 'lottie/darkaura/';
         itemType = 'lottie';
     } else if (caseId === 'labubu') { 
-        if (typeof window.labubuItems === 'undefined' || typeof window.skinPrices === 'undefined') {
-            console.error('[UI Handlers] labubuItems array or skinPrices is not defined globally. Cannot display items.');
+        if (typeof window.labubuItems === 'undefined') {
+            console.error('[UI Handlers] CRITICAL: window.labubuItems is UNDEFINED. Cannot display items for Labubu case. Ensure caseOpening.js loads and defines window.labubuItems.');
             itemsArray = []; 
         } else {
-            itemsArray = [...window.labubuItems]; // Create a copy for sorting
+            console.log('[UI Handlers] window.labubuItems found:', window.labubuItems);
+            itemsArray = [...window.labubuItems];
         }
         targetGridId = 'labubu-skins-grid';
         itemBasePath = ''; 
@@ -346,8 +354,10 @@ function displayCaseItems(caseId) {
     }
 
     // Sort items by tier in descending order (most rare first)
-    if (itemsArray.length > 0 && typeof itemsArray[0].tier !== 'undefined') {
+    if (itemsArray && itemsArray.length > 0 && typeof itemsArray[0].tier !== 'undefined') {
         itemsArray.sort((a, b) => b.tier - a.tier);
+    } else {
+        console.warn('[UI Handlers] Items array is empty or tier property is missing, skipping sort.', itemsArray);
     }
 
     const grid = document.getElementById(targetGridId);
@@ -406,12 +416,12 @@ function initializeCaseControls(caseDetailId, baseCaseId) {
         console.error('[UI Handlers] Case detail element not found for controls setup:', caseDetailId);
         return;
     }
-
-    const basePrice = CASE_PRICES[baseCaseId];
-    if (typeof basePrice === 'undefined') {
-        console.error('[UI Handlers] Base price not found for case:', baseCaseId);
+    // Make sure CASE_PRICES is available globally
+    if (typeof window.CASE_PRICES === 'undefined' || typeof window.CASE_PRICES[baseCaseId] === 'undefined') {
+        console.error('[UI Handlers] CRITICAL: window.CASE_PRICES or price for case '+ baseCaseId +' is not defined. Ensure caseOpening.js defines it.');
         return;
     }
+    const basePrice = window.CASE_PRICES[baseCaseId];
 
     const quantityButtons = caseDetailElement.querySelectorAll('.quantity-btn');
     const openCaseButton = caseDetailElement.querySelector('.case-controls .open-case-btn');
