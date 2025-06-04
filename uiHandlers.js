@@ -480,7 +480,7 @@ function initializeCaseControls(caseId, basePrice) {
 function showCaseDetail(caseId) {
     // Hide all tabs and other detail views
     document.querySelectorAll('.tab-content, .case-detail').forEach(el => el.classList.remove('active'));
-    hideRarityNav(); // Hide rarity nav when showing case details
+    window.updateRarityNavVisibility(null); // Hide rarity nav by passing a non-inventory tab or null
 
     if (caseId === 'girlish') {
         console.log('[UI] showCaseDetail called for Girlish case.');

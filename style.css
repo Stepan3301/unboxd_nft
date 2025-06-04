@@ -2346,6 +2346,11 @@ body {
     box-shadow: 0 4px 15px rgba(240, 98, 146, 0.2);
 }
 
+/* Make the image container transparent for Girlish theme */
+.girlish-theme-card .featured-image {
+    background: transparent;
+}
+
 .girlish-theme-card .featured-name,
 .girlish-theme-card .stat-label {
     color: #ad1457; /* Deeper pink for text */
@@ -2417,7 +2422,3 @@ body {
 .featured-case-container[data-case-type="girlish"] .section-title i {
     color: #f06292; /* Match a pink theme */
 }
-
-
-/* Additional Responsive Adjustments */
-// ... existing code ... 
