@@ -138,9 +138,50 @@
                                 <div class="featured-action">
                                     <div class="featured-price">
                                         <img src="ucoin2.png" alt="UCoin">
-                                        3,000
+                                        100
                                     </div>
                                     <button class="featured-btn" data-case="darkaura">
+                                        View Items
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW Girlish Case Card (Featured) -->
+                    <div class="featured-case-container" data-case-type="girlish">
+                        <div class="section-title">
+                            <i class="fas fa-heart"></i>
+                            New Arrival
+                        </div>
+                        <div class="featured-card girlish-theme-card">
+                            <div class="featured-image">
+                                <img src="GirlishCase.png" alt="Girlish Case">
+                            </div>
+                            <div class="featured-info">
+                                <div class="featured-name">Girlish Collection</div>
+                                <div class="featured-desc">A delightful set of 11 charming Lottie animations for a touch of sweetness.</div>
+                                <div class="featured-stats">
+                                    <div class="stat">
+                                        <div class="stat-value">11</div>
+                                        <div class="stat-label">Items</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">5</div>
+                                        <div class="stat-label">Tiers</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">Sweet</div>
+                                        <div class="stat-label">Avg. Rarity</div>
+                                    </div>
+                                </div>
+                                <div class="featured-action">
+                                    <div class="featured-price">
+                                        <img src="ucoin2.png" alt="UCoin">
+                                        5000
+                                    </div>
+                                    <button class="featured-btn" data-case="girlish">
                                         View Items
                                         <i class="fas fa-arrow-right"></i>
                                     </button>
@@ -378,7 +419,64 @@
                 <!-- Items will be populated here by JS -->
             </div>
         </div>
-        <!-- End Case Detail Views -->
+
+        <!-- NEW Girlish Case Detail -->
+        <div class="case-detail girlish-theme-detail" id="girlish-case-detail">
+            <div class="case-detail-header">
+                <div class="case-detail-back" id="girlish-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="girlish-case-title">Girlish Collection</h2>
+            </div>
+            <div class="featured-card girlish-theme-card">
+                <div class="featured-image">
+                    <img src="GirlishCase.png" alt="Girlish Case">
+                </div>
+                <div class="featured-info">
+                    <h3 class="featured-name">Sweet & Sparkly NFTs</h3>
+                    <p class="featured-desc">Discover 11 adorable Lottie animations, from common charms to rare treasures.</p>
+                    <div class="featured-stats">
+                        <div class="stat">
+                            <span class="stat-value">11</span>
+                            <span class="stat-label">Items</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">5</span>
+                            <span class="stat-label">Tiers</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">Lovely</span>
+                            <span class="stat-label">Avg. Rarity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="case-controls girlish-theme-controls">
+              <div class="quantity-selector">
+                <h3>How many cases to open?</h3>
+                <div class="quantity-buttons">
+                  <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                  <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                  <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                  <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                </div>
+              </div>
+              
+              <button class="open-case-btn" data-case="girlish">
+                <span class="btn-text">Open Case</span>
+                <span class="btn-price">
+                    <span class="price-value">5000</span> 
+                    <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                </span>
+                <div class="btn-glow"></div>
+              </button>
+            </div>
+
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="girlish-skins-grid" class="case-detail-skins-grid skins-grid girlish-theme-drops">
+                <!-- Items will be populated here by JS -->
+            </div>
+        </div>
+        <!-- End Girlish Case Detail -->
 
         <!-- Footer Navigation -->
         <!-- <div class="footer-nav"> OLD NAVIGATION REMOVED

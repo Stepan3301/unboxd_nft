@@ -313,242 +313,196 @@ window.activateTab = function(tabId) {
 }
 
 // NEW FUNCTION to display items in the case detail view
-function displayCaseItems(caseId, retryCount = 0) {
-    const MAX_RETRIES = 5;
-    const RETRY_DELAY_MS = 200;
-
-    let itemsArray;
-    let targetGridId;
-    let itemBasePath = ''; 
-    let itemType = 'image';
-
-    console.log(`[UI Handlers] Attempting to display items for caseId: ${caseId}, Retry: ${retryCount}`);
-
-    // Explicitly check for skinPrices first
-    if (typeof window.skinPrices === 'undefined') {
-        console.error('[UI Handlers] CRITICAL: window.skinPrices is not defined. Item prices will be missing.');
-        if (retryCount < MAX_RETRIES) {
-            console.warn(`[UI Handlers] Retrying displayCaseItems for ${caseId} (skinPrices missing)...`);
-            setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
-            return;
-        } else {
-            console.error(`[UI Handlers] Max retries reached for ${caseId}. window.skinPrices still undefined.`);
-            // Display error in grid? For now, we proceed but items might lack price-related data if needed
-        }
-    }
-
-    if (caseId === 'darkaura') { 
-        if (typeof window.darkAuraSkins === 'undefined') {
-            console.error('[UI Handlers] CRITICAL: window.darkAuraSkins is UNDEFINED.');
-            if (retryCount < MAX_RETRIES) {
-                console.warn(`[UI Handlers] Retrying displayCaseItems for Dark Aura (darkAuraSkins missing)...`);
-                setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
-                return;
-            }
-            console.error('[UI Handlers] Max retries reached for Dark Aura. window.darkAuraSkins still undefined.');
-            itemsArray = []; 
-        } else {
-            console.log('[UI Handlers] window.darkAuraSkins found:', window.darkAuraSkins);
-            itemsArray = [...window.darkAuraSkins];
-        }
-        targetGridId = 'darkaura-skins-grid';
-        itemBasePath = '';
-        itemType = 'lottie';
-    } else if (caseId === 'labubu') { 
-        if (typeof window.labubuItems === 'undefined') {
-            console.error('[UI Handlers] CRITICAL: window.labubuItems is UNDEFINED.');
-            if (retryCount < MAX_RETRIES) {
-                console.warn(`[UI Handlers] Retrying displayCaseItems for Labubu (labubuItems missing)...`);
-                setTimeout(() => displayCaseItems(caseId, retryCount + 1), RETRY_DELAY_MS);
-                return;
-            }
-            console.error('[UI Handlers] Max retries reached for Labubu. window.labubuItems still undefined.');
-            itemsArray = []; 
-        } else {
-            console.log('[UI Handlers] window.labubuItems found:', window.labubuItems);
-            itemsArray = [...window.labubuItems];
-        }
-        targetGridId = 'labubu-skins-grid';
-        itemBasePath = ''; 
-    } else {
-        console.error('[UI Handlers] Unknown caseId for displayCaseItems:', caseId);
-        return;
-    }
-
-    // Sort items by tier in descending order (most rare first)
-    if (itemsArray && itemsArray.length > 0 && typeof itemsArray[0].tier !== 'undefined') {
-        itemsArray.sort((a, b) => b.tier - a.tier);
-    } else {
-        console.warn('[UI Handlers] Items array is empty or tier property is missing, skipping sort.', itemsArray);
-    }
-
-    const grid = document.getElementById(targetGridId);
+function displayCaseItems(caseId, items, gridId) {
+    console.log(`[UI] Displaying items for ${caseId} in grid ${gridId}`);
+    const grid = document.getElementById(gridId);
     if (!grid) {
-        console.error('[UI Handlers] Target grid #' + targetGridId + ' not found.');
+        console.error('Items grid not found for ID:', gridId);
         return;
     }
-
     grid.innerHTML = ''; // Clear previous items
 
-    if (!itemsArray || itemsArray.length === 0) {
-        grid.innerHTML = '<p class="empty-inventory-message" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No items to display for this case.</p>';
-        console.warn('[UI Handlers] No items found for case:', caseId);
+    // Determine base path for Lottie/image files
+    let itemBasePath = ''; // Default for root
+    if (caseId === 'labubu') {
+        itemBasePath = 'img/labubu/';
+    }
+    // For 'darkaura' and 'girlish', Lottie files are expected at the root, so itemBasePath remains ''.
+    
+    console.log(`[UI] Using itemBasePath: '${itemBasePath}' for case ${caseId}`);
+
+    if (!items || items.length === 0) {
+        console.warn(`[UI] No items to display for ${caseId} or items array is empty/undefined.`);
+        grid.innerHTML = '<p style="color: white; text-align: center;">No items defined for this case.</p>';
+        // Attempt to load items if they are not yet available (retry logic)
+        if (caseId === 'darkaura' && !window.darkAuraSkins) {
+            console.log('[UI] darkAuraSkins not ready, retrying displayCaseItems for darkaura...');
+            setTimeout(() => displayCaseItems(caseId, window.darkAuraSkins, gridId), 1000);
+            return;
+        } else if (caseId === 'labubu' && !window.labubuItems) {
+            console.log('[UI] labubuItems not ready, retrying displayCaseItems for labubu...');
+            setTimeout(() => displayCaseItems(caseId, window.labubuItems, gridId), 1000);
+            return;
+        } else if (caseId === 'girlish' && !window.girlishItems) { // NEW: Retry for girlish
+            console.log('[UI] girlishItems not ready, retrying displayCaseItems for girlish...');
+            setTimeout(() => displayCaseItems(caseId, window.girlishItems, gridId), 1000);
+            return;
+        }
         return;
     }
+    
+    // Sort items by tier (rarest first) - assuming tier is a number, higher is rarer
+    const sortedItems = [...items].sort((a, b) => b.tier - a.tier);
 
-    itemsArray.forEach(item => {
-        const card = document.createElement('div');
-        // Using inventory-item-card structure for consistency if possible, or skin-card
-        card.className = `inventory-item-card tier-${item.tier}`; // Or skin-card if preferred
+    sortedItems.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'inventory-item-card'; // Re-using inventory item card style
 
-        let imageElementHTML = '';
-        if (itemType === 'lottie' && item.lottie) {
-            const lottieSrc = itemBasePath + item.lottie;
-            console.log('[UI Handlers] Attempting to load Lottie for Drops:', lottieSrc); // Log Lottie path
-            imageElementHTML = `
-                <div class="item-image-container">
-                    <lottie-player class="static-lottie" src="${lottieSrc}" background="transparent" speed="1"></lottie-player>
-                </div>`;
-        } else if (itemType === 'image' && item.image) {
-            const imgSrc = itemBasePath ? itemBasePath + item.image : item.image;
-            console.log('[UI Handlers] Attempting to load Image for Drops:', imgSrc); // Log Image path
-            imageElementHTML = `
-                <div class="item-image-container">
-                    <img src="${imgSrc}" alt="${item.name}">
-                </div>`;
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'item-image-container';
+
+        let playerOrImg;
+        if (item.lottie) {
+            const lottiePath = itemBasePath + item.lottie;
+            console.log(`[UI] Creating Lottie for ${item.name}: ${lottiePath}`);
+            playerOrImg = document.createElement('lottie-player');
+            playerOrImg.setAttribute('src', lottiePath);
+            playerOrImg.setAttribute('background', 'transparent');
+            playerOrImg.setAttribute('speed', '1');
+            // playerOrImg.setAttribute('autoplay', ''); // Removed autoplay
+            // playerOrImg.setAttribute('loop', ''); // Removed loop
+            playerOrImg.style.width = '100%';
+            playerOrImg.style.height = '100%';
+            itemCard.addEventListener('click', () => {
+                playerOrImg.stop();
+                playerOrImg.play();
+            });
+        } else if (item.image) {
+            const imagePath = itemBasePath + item.image;
+            console.log(`[UI] Creating Image for ${item.name}: ${imagePath}`);
+            playerOrImg = document.createElement('img');
+            playerOrImg.src = imagePath;
+            playerOrImg.alt = item.name;
         }
+        imageContainer.appendChild(playerOrImg);
 
-        card.innerHTML = `
-            ${imageElementHTML}
-            <div class="item-info">
-                <h3>${item.name}</h3>
-                ${/* REMOVED TIER DISPLAY: <div class="item-tier rarity-text tier-${item.tier}" style="text-transform: capitalize;">Tier ${item.tier}</div> */ ''}
-                ${/* Price is not typically shown on each item card in a "possible drops" list */ ''}
-            </div>
-        `;
-        grid.appendChild(card);
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'item-info';
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'item-name';
+        nameDiv.textContent = item.name;
+        
+        // Tier text removed as per previous request
+        // const tierDiv = document.createElement('div');
+        // tierDiv.className = `item-tier tier-${item.tier}`;
+        // tierDiv.textContent = `Tier ${item.tier}`;
 
-        // If it's a Lottie item, add click-to-play functionality
-        if (itemType === 'lottie' && item.lottie) {
-            const lottiePlayer = card.querySelector('lottie-player');
-            if (lottiePlayer) {
-                // Ensure the player is loaded before trying to add event listeners or control it.
-                lottiePlayer.addEventListener('load', () => {
-                    // Stop it initially in case some default is autoplay, though we removed the attribute
-                    lottiePlayer.stop(); 
-                });
-                card.addEventListener('click', () => {
-                    if (lottiePlayer.getLottie && lottiePlayer.getLottie()) { // Check if player is ready
-                        lottiePlayer.stop(); // Stop first to allow replaying from the start
-                        lottiePlayer.play();
-                    }
-                });
-            }
-        }
+        infoDiv.appendChild(nameDiv);
+        // infoDiv.appendChild(tierDiv); // Tier text removed
+
+        itemCard.appendChild(imageContainer);
+        itemCard.appendChild(infoDiv);
+        grid.appendChild(itemCard);
     });
-    console.log('[UI Handlers] Displayed ' + itemsArray.length + ' items in ' + targetGridId);
 }
 
 // NEW FUNCTION to handle quantity selector and price updates for a case
-function initializeCaseControls(caseDetailId, baseCaseId, retryCount = 0) {
-    const MAX_RETRIES = 5;
-    const RETRY_DELAY_MS = 200;
-
-    const caseDetailElement = document.getElementById(caseDetailId);
-    if (!caseDetailElement) {
-        console.error('[UI Handlers] Case detail element not found for controls setup:', caseDetailId);
-        return;
-    }
-
-    // Make sure CASE_PRICES is available globally
-    if (typeof window.CASE_PRICES === 'undefined' || typeof window.CASE_PRICES[baseCaseId] === 'undefined') {
-        console.error('[UI Handlers] CRITICAL: window.CASE_PRICES or price for case '+ baseCaseId +' is not defined.');
-        if (retryCount < MAX_RETRIES) {
-            console.warn(`[UI Handlers] Retrying initializeCaseControls for ${baseCaseId} (CASE_PRICES missing)...`);
-            setTimeout(() => initializeCaseControls(caseDetailId, baseCaseId, retryCount + 1), RETRY_DELAY_MS);
+function initializeCaseControls(caseId, basePrice) {
+    const caseDetailView = document.getElementById(`${caseId}-case-detail`);
+    if (!caseDetailView) {
+        console.error(`[UI] Case detail view not found for ${caseId} to initialize controls.`);
+        // Attempt to load items if they are not yet available (retry logic)
+        if (caseId === 'darkaura' && (!window.CASE_PRICES || !window.CASE_PRICES.darkaura)) {
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for darkaura...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.darkaura : undefined), 1000);
             return;
-        } else {
-            console.error(`[UI Handlers] Max retries reached for ${baseCaseId}. window.CASE_PRICES still undefined. Cannot initialize controls.`);
-            // Optionally, disable the open case button or show an error message
-            const openCaseButton = caseDetailElement.querySelector('.case-controls .open-case-btn');
-            if(openCaseButton) {
-                openCaseButton.disabled = true;
-                openCaseButton.textContent = "Error: Price Unavailable";
-            }
+        } else if (caseId === 'labubu' && (!window.CASE_PRICES || !window.CASE_PRICES.labubu)) {
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for labubu...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.labubu : undefined), 1000);
+            return;
+        } else if (caseId === 'girlish' && (!window.CASE_PRICES || !window.CASE_PRICES.girlish)) { // NEW: Retry for girlish
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for girlish...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.girlish : undefined), 1000);
             return;
         }
-    }
-    const basePrice = window.CASE_PRICES[baseCaseId];
-
-    const quantityButtons = caseDetailElement.querySelectorAll('.quantity-btn');
-    const openCaseButton = caseDetailElement.querySelector('.case-controls .open-case-btn');
-    const priceValueSpan = openCaseButton ? openCaseButton.querySelector('.btn-price .price-value') : null;
-
-    if (!quantityButtons.length || !openCaseButton || !priceValueSpan) {
-        console.error('[UI Handlers] Control elements (quantity buttons, open button, or price span) not found in:', caseDetailId);
         return;
     }
 
-    // Function to update price and button state
-    const updateOpenButton = (quantity, discount) => {
-        const finalPrice = Math.round(basePrice * quantity * (1 - discount / 100));
-        priceValueSpan.textContent = finalPrice;
-        openCaseButton.dataset.selectedQuantity = quantity;
-        openCaseButton.dataset.finalPrice = finalPrice;
-        console.log(`[UI Handlers] Case: ${baseCaseId}, Qty: ${quantity}, Discount: ${discount}%, Price: ${finalPrice}`);
-    };
+    const quantityButtons = caseDetailView.querySelectorAll('.quantity-btn');
+    const openCaseBtn = caseDetailView.querySelector('.open-case-btn');
+    const priceValueSpan = openCaseBtn.querySelector('.price-value');
 
-    // Attach listeners to quantity buttons
-    quantityButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            quantityButtons.forEach(qBtn => qBtn.classList.remove('active'));
-            btn.classList.add('active');
-            const quantity = parseInt(btn.dataset.quantity);
-            const discount = parseInt(btn.dataset.discount);
-            updateOpenButton(quantity, discount);
+    if (!openCaseBtn || !priceValueSpan) {
+        console.error(`[UI] Open case button or price span not found for ${caseId}.`);
+        return;
+    }
+
+    function updatePrice(quantity, discount) {
+        const discountedPrice = Math.round(basePrice * quantity * (1 - discount / 100));
+        priceValueSpan.textContent = discountedPrice;
+        openCaseBtn.dataset.selectedQuantity = quantity;
+        openCaseBtn.dataset.finalPrice = discountedPrice;
+    }
+
+    quantityButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            quantityButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const quantity = parseInt(button.dataset.quantity);
+            const discount = parseInt(button.dataset.discount);
+            updatePrice(quantity, discount);
         });
     });
 
-    // Set initial state (first button is active by default HTML)
-    const initialActiveButton = caseDetailElement.querySelector('.quantity-btn.active');
-    if (initialActiveButton) {
-        const initialQuantity = parseInt(initialActiveButton.dataset.quantity);
-        const initialDiscount = parseInt(initialActiveButton.dataset.discount);
-        updateOpenButton(initialQuantity, initialDiscount);
-    } else {
-        // Fallback if no button is active by default (should not happen with current HTML)
-        updateOpenButton(1, 0);
-        if (quantityButtons.length > 0) {
-            quantityButtons[0].classList.add('active');
-        }
+    // Initialize with the default selected button (quantity 1)
+    const defaultButton = caseDetailView.querySelector('.quantity-btn[data-quantity="1"]');
+    if (defaultButton) {
+        defaultButton.click(); // Simulate click to set initial price and active state
+    } else { // Fallback if no button with data-quantity="1" is found (should not happen with current HTML)
+        updatePrice(1, 0); 
     }
-    console.log('[UI Handlers] Initialized case controls for:', caseDetailId);
 }
 
 // Functions to show/hide case detail views
-function showCaseDetail(caseDetailId) {
-    const caseDetailElement = document.getElementById(caseDetailId);
-    const mainContent = document.querySelector('.main');
-    const bottomNav = document.querySelector('.bottom-nav');
+function showCaseDetail(caseId) {
+    // Hide all tabs and other detail views
+    document.querySelectorAll('.tab-content, .case-detail').forEach(el => el.classList.remove('active'));
+    hideRarityNav(); // Hide rarity nav when showing case details
 
-    if (caseDetailElement && mainContent && bottomNav) {
-        document.querySelectorAll('.case-detail').forEach(cd => {
-            if (cd.id !== caseDetailId) {
-                cd.classList.remove('active');
-            }
-        });
+    let caseDetailElement;
+    let caseTitle = '';
+    let itemsToDisplay = [];
+    let gridId = '';
+    let basePrice = 0;
 
+    if (caseId === 'darkaura') {
+        caseDetailElement = document.getElementById('darkaura-case-detail');
+        caseTitle = 'Dark Aura Case';
+        itemsToDisplay = window.darkAuraSkins;
+        gridId = 'darkaura-skins-grid';
+        basePrice = window.CASE_PRICES.darkaura;
+    } else if (caseId === 'labubu') {
+        caseDetailElement = document.getElementById('labubu-case-detail');
+        caseTitle = 'Labubu & Friends';
+        itemsToDisplay = window.labubuItems;
+        gridId = 'labubu-skins-grid';
+        basePrice = window.CASE_PRICES.labubu;
+    } else if (caseId === 'girlish') { // NEW: Girlish case
+        caseDetailElement = document.getElementById('girlish-case-detail');
+        caseTitle = 'Girlish Collection';
+        itemsToDisplay = window.girlishItems;
+        gridId = 'girlish-skins-grid';
+        basePrice = window.CASE_PRICES.girlish;
+    }
+
+    if (caseDetailElement) {
+        document.getElementById(caseId + '-case-title').textContent = caseTitle;
+        displayCaseItems(caseId, itemsToDisplay, gridId); // Pass caseId here
+        initializeCaseControls(caseId, basePrice);
         caseDetailElement.classList.add('active');
-        mainContent.style.display = 'none'; 
-        bottomNav.setAttribute('data-case-detail-open', 'true');
-        console.log('Showing case detail: ' + caseDetailId);
-        
-        const baseCaseId = caseDetailId.replace('-case-detail', '');
-        displayCaseItems(baseCaseId); 
-        initializeCaseControls(caseDetailId, baseCaseId); // Initialize new controls
-
+        caseDetailElement.scrollTop = 0; // Scroll to top
     } else {
-        console.error('Elements for showing case detail ' + caseDetailId + ' not found.');
+        console.error('Case detail element not found for:', caseId);
     }
 }
 

@@ -2324,4 +2324,100 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     color: white;
-} 
+}
+
+/* Diagnostic styles - REMOVE AFTER DEBUGGING */
+/* .item-image-container img,
+.item-image-container lottie-player {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border: 2px solid red !important;
+} */
+
+/* General Case Detail Styling */
+/* Dark Aura Specific Theme (Example, can be expanded) */
+/* You can add specific styling for .darkaura-theme-card, .darkaura-theme-detail etc. if needed */
+
+/* Girlish Theme Styling */
+.girlish-theme-card {
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0); /* Light pink gradient */
+    border: 1px solid #f48fb1; /* Softer pink border */
+    box-shadow: 0 4px 15px rgba(240, 98, 146, 0.2);
+}
+
+.girlish-theme-card .featured-name,
+.girlish-theme-card .stat-label {
+    color: #ad1457; /* Deeper pink for text */
+}
+
+.girlish-theme-card .featured-desc {
+    color: #d81b60; /* Medium pink for desc */
+}
+
+.girlish-theme-card .featured-btn {
+    background-color: #f48fb1; /* Soft pink button */
+    color: #fff;
+    border: none;
+}
+
+.girlish-theme-card .featured-btn:hover {
+    background-color: #f06292; /* Slightly darker pink on hover */
+}
+
+.girlish-theme-card .featured-price img {
+    filter: hue-rotate(60deg) saturate(1.5); /* Make UCoin slightly more pinkish/gold */
+}
+
+.girlish-theme-detail {
+    background-color: #fff0f5; /* Lavender blush background */
+}
+
+.girlish-theme-detail .case-detail-title {
+    color: #ab47bc; /* Purple accent for title */
+}
+
+.girlish-theme-controls .open-case-btn {
+    background: linear-gradient(to right, #ce93d8, #ba68c8); /* Lavender gradient button */
+    box-shadow: 0 2px 10px rgba(171, 71, 188, 0.4);
+}
+
+.girlish-theme-controls .open-case-btn:hover {
+    background: linear-gradient(to right, #ba68c8, #ab47bc);
+}
+
+.girlish-theme-controls .quantity-btn {
+    background-color: #e1bee7; /* Light lavender for quantity buttons */
+    color: #6a1b9a;
+    border: 1px solid #ce93d8;
+}
+
+.girlish-theme-controls .quantity-btn.active,
+.girlish-theme-controls .quantity-btn:hover {
+    background-color: #ce93d8;
+    color: #4a148c;
+    border-color: #ab47bc;
+}
+
+.girlish-theme-controls .discount {
+    background-color: #f8bbd0; /* Light pink for discount tags */
+    color: #c2185b;
+}
+
+.girlish-theme-drops .inventory-item-card {
+    background-color: #fce4ec; /* Very light pink for item cards */
+    border: 1px solid #f8bbd0; /* Soft pink border */
+}
+
+.girlish-theme-drops .item-name {
+    color: #ad1457; /* Deeper pink for item names */
+}
+
+/* Ensure Girlish case card specific icon color if needed */
+.featured-case-container[data-case-type="girlish"] .section-title i {
+    color: #f06292; /* Match a pink theme */
+}
+
+
+/* Additional Responsive Adjustments */
+// ... existing code ... 
