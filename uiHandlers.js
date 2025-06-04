@@ -201,6 +201,19 @@ function attachEventListeners() {
         // Consider calling this when the darkaura tab/detail becomes active if it loads dynamically
     }
 
+    // Case "View Items" and "Open Case" buttons on case cards in listings
+    document.querySelectorAll('.featured-btn, .open-btn[data-case]').forEach(button => {
+        button.addEventListener('click', () => {
+            const caseId = button.dataset.case;
+            if (caseId === 'girlish') {
+                console.log('[UI] Girlish case card \'View Items\' button clicked, data-case:', caseId);
+            }
+            if (caseId) {
+                showCaseDetail(caseId);
+            }
+        });
+    });
+
     console.log('[UI Handlers] All event listeners attached.');
 }
 
@@ -468,6 +481,10 @@ function showCaseDetail(caseId) {
     // Hide all tabs and other detail views
     document.querySelectorAll('.tab-content, .case-detail').forEach(el => el.classList.remove('active'));
     hideRarityNav(); // Hide rarity nav when showing case details
+
+    if (caseId === 'girlish') {
+        console.log('[UI] showCaseDetail called for Girlish case.');
+    }
 
     let caseDetailElement;
     let caseTitle = '';
