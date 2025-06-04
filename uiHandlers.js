@@ -46,17 +46,6 @@ function attachEventListeners() {
         });
     });
 
-    // Case view buttons (Featured and Popular)
-    document.querySelectorAll('.featured-btn[data-case="labubu"], .open-btn[data-case="labubu"]').forEach(button => {
-        button.addEventListener('click', () => {
-            const caseId = button.dataset.case;
-            console.log('View Case button clicked for:', caseId);
-            if (caseId === 'labubu') {
-                showCaseDetail('labubu-case-detail');
-            }
-        });
-    });
-
     // Case detail back button for Labubu
     const labubuCaseBack = document.getElementById('labubu-case-back');
     if (labubuCaseBack) {
@@ -65,22 +54,19 @@ function attachEventListeners() {
         });
     }
 
-    // Dark Aura Case view buttons
-    document.querySelectorAll('.featured-btn[data-case="darkaura"]:not(.open-case-btn), .open-btn[data-case="darkaura"]:not(.open-case-btn)').forEach(button => {
-        button.addEventListener('click', () => {
-            const caseId = button.dataset.case;
-            console.log('View Case button clicked for:', caseId);
-            if (caseId === 'darkaura') {
-                showCaseDetail('darkaura-case-detail');
-            }
-        });
-    });
-
     // Dark Aura Case detail back button
     const darkauraCaseBack = document.getElementById('darkaura-case-back');
     if (darkauraCaseBack) {
         darkauraCaseBack.addEventListener('click', () => {
             hideCaseDetail('darkaura-case-detail');
+        });
+    }
+
+    // Girlish Case detail back button (NEW)
+    const girlishCaseBack = document.getElementById('girlish-case-back');
+    if (girlishCaseBack) {
+        girlishCaseBack.addEventListener('click', () => {
+            hideCaseDetail('girlish-case-detail');
         });
     }
 
@@ -338,7 +324,7 @@ function displayCaseItems(caseId, items, gridId) {
     // Determine base path for Lottie/image files
     let itemBasePath = ''; // Default for root
     if (caseId === 'labubu') {
-        itemBasePath = 'img/labubu/';
+        itemBasePath = ''; // Corrected: Labubu images are at the root
     }
     // For 'darkaura' and 'girlish', Lottie files are expected at the root, so itemBasePath remains ''.
     
@@ -481,6 +467,12 @@ function showCaseDetail(caseId) {
     // Hide all tabs and other detail views
     document.querySelectorAll('.tab-content, .case-detail').forEach(el => el.classList.remove('active'));
     window.updateRarityNavVisibility(null); // Hide rarity nav by passing a non-inventory tab or null
+
+    // Hide main content area and set nav state for detail view
+    const mainContent = document.querySelector('.main');
+    if (mainContent) mainContent.style.display = 'none';
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) bottomNav.setAttribute('data-case-detail-open', 'true');
 
     if (caseId === 'girlish') {
         console.log('[UI] showCaseDetail called for Girlish case.');

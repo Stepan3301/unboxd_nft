@@ -62,7 +62,7 @@ window.girlishItems = [
     { name: 'Neko Helmet', lottie: 'girlish-cleaned-nekohelmet-402.json', tier: 3, price: window.skinPrices[3] },
     { name: 'Cuddly Toybear', lottie: 'girlish-cleaned-toybear-31469.json', tier: 3, price: window.skinPrices[3] },
     { name: 'Plush Pepe', lottie: 'girlish-cleaned-plushpepe-2707.json', tier: 3, price: window.skinPrices[3] },
-    { name: 'Astral Shard', lottie: 'girlish-cleaned-astrshard-3087.json', tier: 4, price: window.skinPrices[4] },
+    { name: 'Astral Shard', lottie: 'girlish-cleaned-astralshard-3087.json', tier: 4, price: window.skinPrices[4] },
     { name: 'Winter Wreath', lottie: 'girlish-cleaned-winterwreath-9594.json', tier: 4, price: window.skinPrices[4] },
     { name: 'Eternal Candle', lottie: 'girlish-cleaned-eternalcandle-17246.json', tier: 5, price: window.skinPrices[5] },
     { name: 'Pastel Lootbag', lottie: 'girlish-cleaned-lootbag-7825.json', tier: 5, price: window.skinPrices[5] }

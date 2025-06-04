@@ -2351,6 +2351,13 @@ body {
     background: transparent;
 }
 
+/* Specific styling for the image within Girlish theme card */
+.girlish-theme-card .featured-image img {
+    width: 90%; /* Make image slightly larger in its container */
+    filter: none; /* Remove inherited drop-shadow */
+    animation: none; /* Remove inherited float animation */
+}
+
 .girlish-theme-card .featured-name,
 .girlish-theme-card .stat-label {
     color: #ad1457; /* Deeper pink for text */
