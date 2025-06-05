@@ -70,6 +70,14 @@ function attachEventListeners() {
         });
     }
 
+    // New Money Case detail back button (NEW)
+    const newmoneyCaseBack = document.getElementById('newmoney-case-back');
+    if (newmoneyCaseBack) {
+        newmoneyCaseBack.addEventListener('click', () => {
+            hideCaseDetail('newmoney-case-detail');
+        });
+    }
+
     // Daily reward button (calls function from dailyRewards.js)
     const dailyRewardBtnEl = document.getElementById('daily-reward-btn');
     if (dailyRewardBtnEl) {
@@ -609,7 +617,7 @@ function showCaseDetail(caseId) {
         }
 
         hideAllMainViews();
-        caseDetailElement.style.display = 'block';
+        caseDetailElement.classList.add('active');
         document.getElementById('app').classList.add('case-detail-open');
 
         // Base path for Lottie files - should be from project root for GitHub Pages
@@ -630,6 +638,7 @@ function hideCaseDetail(caseDetailId) {
         caseDetailElement.classList.remove('active');
         mainContent.style.display = 'block'; // Show main content
         bottomNav.removeAttribute('data-case-detail-open');
+        document.getElementById('app').classList.remove('case-detail-open');
         console.log(`Hiding case detail: ${caseDetailId}`);
         activateTab('cases-tab'); // Explicitly activate the cases tab content
     } else {
