@@ -525,6 +525,7 @@ function hideCaseDetail(caseDetailId) {
         mainContent.style.display = 'block'; // Show main content
         bottomNav.removeAttribute('data-case-detail-open');
         console.log(`Hiding case detail: ${caseDetailId}`);
+        activateTab('cases-tab'); // Explicitly activate the cases tab content
     } else {
         console.error(`Elements for hiding case detail ${caseDetailId} not found.`);
     }
