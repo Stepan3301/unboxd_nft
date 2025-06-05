@@ -829,7 +829,7 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 18px;
-    z-index: 100;
+    z-index: 101; /* Increased from 100 to ensure it's above case-detail */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(108, 92, 231, 0.2);
     clip-path: polygon(
         5% 0%, 95% 0%, 100% 5%, 

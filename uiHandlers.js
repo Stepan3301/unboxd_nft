@@ -613,8 +613,8 @@ function showCaseDetail(caseId) {
         document.getElementById('app').classList.add('case-detail-open');
 
         // Base path for Lottie files - should be from project root for GitHub Pages
-        const itemBasePath = '/unboxd_nft/'; 
-        displayCaseItems(caseItems, skinsGridId, itemBasePath, caseId); // Pass caseId for tier class prefixing
+        // const itemBasePath = '/unboxd_nft/'; // itemBasePath is now determined within displayCaseItems
+        displayCaseItems(caseId, caseItems, skinsGridId); // CORRECTED ARGUMENT ORDER & REMOVED itemBasePath from call
         initializeCaseControls(caseId, basePrice);
     }
 
