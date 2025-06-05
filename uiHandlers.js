@@ -324,7 +324,9 @@ function displayCaseItems(caseId, items, gridId) {
     // Determine base path for Lottie/image files
     let itemBasePath = ''; // Default for root
     if (caseId === 'labubu') {
-        itemBasePath = ''; // Corrected: Labubu images are at the root
+        itemBasePath = ''; // Labubu images are co-located with index.html (in LottieAnimations/)
+    } else if (caseId === 'darkaura' || caseId === 'girlish') {
+        itemBasePath = '../'; // Dark Aura & Girlish Lotties are at the site root (parent of LottieAnimations/)
     }
     // For 'darkaura' and 'girlish', Lottie files are expected at the root, so itemBasePath remains ''.
     

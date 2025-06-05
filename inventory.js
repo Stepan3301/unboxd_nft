@@ -61,11 +61,16 @@ function displayInventory(inventory) {
         // Check if the item image is a Lottie file or a static image
         let imageElement;
         if (item.skin_image && item.skin_image.endsWith('.json')) {
-            let lottieFileName = item.skin_image;
-            console.log('[InventoryJS] Attempting to load Lottie for Inventory:', lottieFileName); // Log Lottie path
+            let lottiePathValue = item.skin_image; // This might be "LottieAnimations/filename.json"
+            console.log('[InventoryJS] Original Lottie path from DB:', lottiePathValue);
+            // If Lotties are at site root and skin_image has "LottieAnimations/" prefix, adjust to "../filename.json"
+            if (lottiePathValue.startsWith('LottieAnimations/')) {
+                lottiePathValue = '../' + lottiePathValue.substring('LottieAnimations/'.length);
+            }
+            console.log('[InventoryJS] Attempting to load Lottie for Inventory with adjusted path:', lottiePathValue);
             imageElement = `
                 <lottie-player 
-                    src="${lottieFileName}" 
+                    src="${lottiePathValue}" 
                     background="transparent" 
                     speed="1" 
                     style="width: 100%; height: 100%;"> <!-- Removed loop, autoplay. Ensure height: 100% to fill container -->
