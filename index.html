@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="app">
     <div class="container">
         <!-- Floating particles background -->
         <div class="particles" id="particles"></div>
@@ -321,8 +322,8 @@
         <!-- Dark Aura Case Detail -->
         <div class="case-detail darkaura-theme-detail" id="darkaura-case-detail" style="display: none;">
             <div class="case-detail-header">
-                <button id="darkaura-case-back" class="back-button">&larr; Back to Cases</button>
-                <h1 id="darkaura-case-title">Dark Aura Collection</h1>
+                <div class="case-detail-back" id="darkaura-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="darkaura-case-title">Dark Aura Collection</h2>
             </div>
             <div class="featured-card">
                 <div class="featured-image">
@@ -333,16 +334,27 @@
                     <p>Contains 7 unique Lottie animations with a dark and mysterious theme.</p>
                 </div>
             </div>
-            <div id="darkaura-case-controls" class="case-controls darkaura-theme-controls">
+            <div id="darkaura-case-controls" class="case-controls">
                 <div class="quantity-selector">
-                    <button class="quantity-btn minus">-</button>
-                    <input type="number" class="quantity-input" value="1" min="1" max="10" readonly>
-                    <button class="quantity-btn plus">+</button>
+                    <h3>How many cases to open?</h3>
+                    <div class="quantity-buttons">
+                      <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                      <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                      <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                      <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                    </div>
                 </div>
-                <button class="open-case-btn" data-case="darkaura" data-base-price="100">Open for <span class="total-price-display">100</span> UCoins</button>
+                <button class="open-case-btn" data-case="darkaura" data-base-price="100">
+                    <span class="btn-text">Open Case</span>
+                    <span class="btn-price">
+                        <span class="price-value">100</span> 
+                        <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                    </span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
-            <h2>Possible Drops:</h2>
-            <div id="darkaura-skins-grid" class="inventory-grid">
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="darkaura-skins-grid" class="case-detail-skins-grid skins-grid">
                 <!-- Skins will be populated by JavaScript -->
             </div>
         </div>
@@ -350,8 +362,8 @@
         <!-- Labubu Case Detail -->
         <div class="case-detail labubu-theme-detail" id="labubu-case-detail" style="display: none;">
             <div class="case-detail-header">
-                <button id="labubu-case-back" class="back-button">&larr; Back to Cases</button>
-                <h1 id="labubu-case-title">Labubu & Friends</h1>
+                <div class="case-detail-back" id="labubu-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="labubu-case-title">Labubu & Friends</h2>
             </div>
             <div class="featured-card">
                 <div class="featured-image">
@@ -362,25 +374,36 @@
                     <p>A collection of 7 adorable Labubu Lottie animations.</p>
                 </div>
             </div>
-            <div id="labubu-case-controls" class="case-controls labubu-theme-controls">
+            <div id="labubu-case-controls" class="case-controls">
                  <div class="quantity-selector">
-                    <button class="quantity-btn minus">-</button>
-                    <input type="number" class="quantity-input" value="1" min="1" max="10" readonly>
-                    <button class="quantity-btn plus">+</button>
+                    <h3>How many cases to open?</h3>
+                    <div class="quantity-buttons">
+                      <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                      <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                      <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                      <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                    </div>
                 </div>
-                <button class="open-case-btn" data-case="labubu" data-base-price="50">Open for <span class="total-price-display">50</span> UCoins</button>
+                <button class="open-case-btn" data-case="labubu" data-base-price="50">
+                    <span class="btn-text">Open Case</span>
+                    <span class="btn-price">
+                        <span class="price-value">50</span> 
+                        <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                    </span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
-            <h2>Possible Drops:</h2>
-            <div id="labubu-skins-grid" class="inventory-grid">
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="labubu-skins-grid" class="case-detail-skins-grid skins-grid">
                 <!-- Skins will be populated by JavaScript -->
             </div>
         </div>
-
+        
         <!-- NEW Girlish Case Detail -->
         <div class="case-detail girlish-theme-detail" id="girlish-case-detail" style="display: none;">
             <div class="case-detail-header">
-                <button id="girlish-case-back" class="back-button">&larr; Back to Cases</button>
-                <h1 id="girlish-case-title">Girlish Collection</h1>
+                <div class="case-detail-back" id="girlish-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="girlish-case-title">Girlish Collection</h2>
             </div>
             <div class="featured-card">
                 <div class="featured-image">
@@ -391,16 +414,27 @@
                     <p>A collection of 7 cute and girly Lottie animations.</p>
                 </div>
             </div>
-            <div id="girlish-case-controls" class="case-controls girlish-theme-controls">
+            <div id="girlish-case-controls" class="case-controls">
                 <div class="quantity-selector">
-                    <button class="quantity-btn minus">-</button>
-                    <input type="number" class="quantity-input" value="1" min="1" max="10" readonly>
-                    <button class="quantity-btn plus">+</button>
+                    <h3>How many cases to open?</h3>
+                    <div class="quantity-buttons">
+                      <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                      <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                      <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                      <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                    </div>
                 </div>
-                <button class="open-case-btn" data-case="girlish" data-base-price="5000">Open for <span class="total-price-display">5000</span> UCoins</button>
+                <button class="open-case-btn" data-case="girlish" data-base-price="5000">
+                    <span class="btn-text">Open Case</span>
+                    <span class="btn-price">
+                        <span class="price-value">5000</span> 
+                        <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                    </span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
-            <h2>Possible Drops:</h2>
-            <div id="girlish-skins-grid" class="inventory-grid">
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="girlish-skins-grid" class="case-detail-skins-grid skins-grid">
                 <!-- Skins will be populated by JavaScript -->
             </div>
         </div>
@@ -409,8 +443,8 @@
         <!-- NEW: New Money Case Detail View -->
         <div id="newmoney-case-detail" class="case-detail newmoney-theme-detail" style="display: none;">
             <div class="case-detail-header">
-                <button id="newmoney-case-back" class="back-button">&larr; Back to Cases</button>
-                <h1 id="newmoney-case-title">New Money Collection</h1>
+                <div class="case-detail-back" id="newmoney-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="newmoney-case-title">New Money Collection</h2>
             </div>
             <div class="featured-card">
                 <div class="featured-image">
@@ -421,16 +455,27 @@
                     <p>Indulge in opulence. Features 9 exclusive Lottie animations with a gold, black, and soft brown theme.</p>
                 </div>
             </div>
-            <div id="newmoney-case-controls" class="case-controls newmoney-theme-controls">
+            <div id="newmoney-case-controls" class="case-controls">
                 <div class="quantity-selector">
-                    <button class="quantity-btn minus">-</button>
-                    <input type="number" class="quantity-input" value="1" min="1" max="10" readonly>
-                    <button class="quantity-btn plus">+</button>
+                    <h3>How many cases to open?</h3>
+                    <div class="quantity-buttons">
+                      <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                      <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                      <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                      <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                    </div>
                 </div>
-                <button class="open-case-btn" data-case="newmoney" data-base-price="10000">Open for <span class="total-price-display">10000</span> UCoins</button>
+                <button class="open-case-btn" data-case="newmoney" data-base-price="10000">
+                    <span class="btn-text">Open Case</span>
+                    <span class="btn-price">
+                        <span class="price-value">10000</span> 
+                        <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                    </span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
-            <h2>Possible Drops:</h2>
-            <div id="newmoney-skins-grid" class="inventory-grid">
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="newmoney-skins-grid" class="case-detail-skins-grid skins-grid">
                 <!-- Skins will be populated by JavaScript -->
             </div>
         </div>
@@ -616,5 +661,6 @@
     <script src="uiHandlers.js" defer></script>
     <script src="appSetup.js" defer></script>
 
+</div>
 </body>
 </html>

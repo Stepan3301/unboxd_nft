@@ -2448,7 +2448,7 @@ body {
 }
 
 .newmoney-theme-card .featured-image img {
-    border: 1px solid #FFD700; /* Gold border for image */
+    /* border: 1px solid #FFD700; */ /* Gold border for image - REMOVED */
 }
 
 .newmoney-theme-card .featured-info h3 {
@@ -2498,7 +2498,7 @@ body {
 }
 
 .newmoney-theme-detail .featured-card .featured-image img {
-    border: 1px solid #FFD700;
+    /* border: 1px solid #FFD700; */ /* REMOVED */
 }
 
 .newmoney-theme-detail .featured-card .featured-info h3 {

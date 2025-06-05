@@ -592,7 +592,7 @@ function showCaseDetail(caseId) {
         console.log(`[showCaseDetail] Displaying detail for ${caseId}. Items:`, caseItems, `Base Price: ${basePrice}`);
         
         // Update title
-        const titleElement = caseDetailElement.querySelector('.case-detail-header h1'); // Adjusted selector based on recent HTML changes
+        const titleElement = document.getElementById(caseId + '-case-title');
         if (titleElement) {
             titleElement.textContent = caseTitle;
         } else {
