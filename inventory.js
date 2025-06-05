@@ -61,12 +61,17 @@ function displayInventory(inventory) {
         // Check if the item image is a Lottie file or a static image
         let imageElement;
         if (item.skin_image && item.skin_image.endsWith('.json')) {
-            let lottiePathValue = item.skin_image; // This might be "LottieAnimations/filename.json"
+            let lottiePathValue = item.skin_image; // This might be "LottieAnimations/filename.json" or just "filename.json"
             console.log('[InventoryJS] Original Lottie path from DB:', lottiePathValue);
-            // If Lotties are at site root and skin_image has "LottieAnimations/" prefix, adjust to "../filename.json"
+            
+            // Strip "LottieAnimations/" prefix if present
             if (lottiePathValue.startsWith('LottieAnimations/')) {
-                lottiePathValue = '../' + lottiePathValue.substring('LottieAnimations/'.length);
+                lottiePathValue = lottiePathValue.substring('LottieAnimations/'.length);
             }
+            
+            // Prepend the correct absolute path including the GitHub project name
+            lottiePathValue = '/unboxd_nft/' + lottiePathValue;
+            
             console.log('[InventoryJS] Attempting to load Lottie for Inventory with adjusted path:', lottiePathValue);
             imageElement = `
                 <lottie-player 

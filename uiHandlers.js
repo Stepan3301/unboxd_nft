@@ -326,9 +326,8 @@ function displayCaseItems(caseId, items, gridId) {
     if (caseId === 'labubu') {
         itemBasePath = ''; // Labubu images are co-located with index.html (in LottieAnimations/)
     } else if (caseId === 'darkaura' || caseId === 'girlish') {
-        itemBasePath = '../'; // Dark Aura & Girlish Lotties are at the site root (parent of LottieAnimations/)
+        itemBasePath = '/unboxd_nft/'; // Dark Aura & Girlish Lotties are at the site root, accessed via /project_name/
     }
-    // For 'darkaura' and 'girlish', Lottie files are expected at the root, so itemBasePath remains ''.
     
     console.log(`[UI] Using itemBasePath: '${itemBasePath}' for case ${caseId}`);
 
