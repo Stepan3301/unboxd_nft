@@ -205,6 +205,40 @@ function attachEventListeners() {
     console.log('[UI Handlers] All event listeners attached.');
 }
 
+// NEW FUNCTION DEFINITION
+function hideAllMainViews() {
+    console.log('[UI] Attempting to hide all main views and case details.');
+    const mainContentAreas = [
+        document.getElementById('home-tab-content'),
+        document.getElementById('cases-tab-content'),
+        document.getElementById('inventory-tab-content'),
+        document.getElementById('profile-tab-content'),
+        document.getElementById('settings-tab-content') // Assuming settings is a main view
+    ];
+
+    mainContentAreas.forEach(view => {
+        if (view) {
+            view.style.display = 'none';
+            view.classList.remove('active'); // Remove active class if it controls visibility
+            console.log(`[UI] Hid main view: ${view.id}`);
+        }
+    });
+
+    // Also explicitly hide all case detail views
+    document.querySelectorAll('.case-detail').forEach(detailView => {
+        if (detailView) {
+            detailView.style.display = 'none';
+            detailView.classList.remove('active');
+            console.log(`[UI] Hid case detail view: ${detailView.id}`);
+        }
+    });
+    
+    // The .main container's display is typically handled by the function *showing* a specific view (like a case detail page hiding it, or a tab function showing it).
+    // So, hideAllMainViews focuses on the *contents* within .main or elements that overlay .main.
+    console.log('[UI] hideAllMainViews finished.');
+}
+// END NEW FUNCTION DEFINITION
+
 // Function to handle filtering in the Cases tab sub-navigation
 function setupCasesSubNavigation() {
     const subNavItems = document.querySelectorAll('.cases-sub-nav-item');
