@@ -14,7 +14,8 @@ window.skinPrices = {
 window.CASE_PRICES = {
     darkaura: 100, // Base price for Dark Aura case
     labubu: 50,    // Base price for Labubu case
-    girlish: 5000  // NEW: Base price for Girlish case
+    girlish: 5000,  // NEW: Base price for Girlish case
+    newmoney: 10000 // NEW: Base price for New Money case
 };
 
 // Define global item arrays for cases
@@ -66,6 +67,19 @@ window.girlishItems = [
     { name: 'Winter Wreath', lottie: 'girlish-cleaned-winterwreath-9594.json', tier: 4, price: window.skinPrices[4] },
     { name: 'Eternal Candle', lottie: 'girlish-cleaned-eternalcandle-17246.json', tier: 5, price: window.skinPrices[5] },
     { name: 'Pastel Lootbag', lottie: 'girlish-cleaned-lootbag-7825.json', tier: 5, price: window.skinPrices[5] }
+];
+
+// NEW: New Money Case Items
+window.newMoneyItems = [
+    { name: 'Golden Lootbag', lottie: 'moneyrain-cleaned-lootbag-4244.json', tier: 1, price: window.skinPrices[1] },
+    { name: 'Vintage Record Player', lottie: 'moneyrain-cleaned-recordplayer-5940.json', tier: 1, price: window.skinPrices[1] },
+    { name: 'Diamond Star Notepad', lottie: 'moneyrain-cleaned-starnotepad-32502.json', tier: 2, price: window.skinPrices[2] },
+    { name: 'Luxury Swiss Watch', lottie: 'moneyrain-cleaned-swisswatch-3145.json', tier: 2, price: window.skinPrices[2] },
+    { name: 'Retro Tamagadget', lottie: 'moneyrain-cleaned-tamagadget-1168.json', tier: 3, price: window.skinPrices[3] },
+    { name: 'Classic Top Hat', lottie: 'moneyrain-cleaned-tophat-32663.json', tier: 3, price: window.skinPrices[3] },
+    { name: 'Golden Toy Bear', lottie: 'moneyrain-cleaned-toybear-35493.json', tier: 4, price: window.skinPrices[4] },
+    { name: 'Premium Vintage Cigar', lottie: 'moneyrain-cleaned-vintagecigar-12246.json', tier: 4, price: window.skinPrices[4] },
+    { name: 'Gilded Winter Wreath', lottie: 'moneyrain-cleaned-winterwreath-31568.json', tier: 5, price: window.skinPrices[5] }
 ];
 
 // caseOpeningsCount and guaranteedTier3NextOpening are global from config.js
@@ -370,6 +384,99 @@ async function openGirlishCase() {
 }
 
 window.openGirlishCase = openGirlishCase;
+
+// NEW: Open New Money Case function
+async function openNewMoneyCase() {
+    const caseName = 'New Money Case';
+    const openButton = document.querySelector('#newmoney-case-detail .case-controls .open-case-btn');
+    const selectedQuantity = parseInt(openButton.dataset.selectedQuantity || '1');
+    const finalPrice = parseInt(openButton.dataset.finalPrice || window.CASE_PRICES.newmoney.toString());
+
+    console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
+
+    if (userBalance < finalPrice) { 
+        showNotEnoughBalanceDialog(); 
+        return;
+    }
+
+    try {
+        showCustomDialog('Processing your lavish request...', true); 
+        const balanceUpdated = await updateUserBalance(-finalPrice, `Opened ${selectedQuantity} x ${caseName}`, 'case_open_multiple'); 
+        if (!balanceUpdated) {
+            hideCustomDialog();
+            showToast('Transaction failed. Please try again.', 'error'); 
+            return;
+        }
+
+        if (selectedQuantity > 1) {
+            console.warn("[Case Opening] Multi-case opening logic is not fully implemented beyond UI price calculation for New Money case.");
+        }
+
+        caseOpeningsCount++;
+        let isGuaranteedTier3 = guaranteedTier3NextOpening;
+        if (isGuaranteedTier3) {
+            guaranteedTier3NextOpening = false; 
+        }
+        else if (caseOpeningsCount % 10 === 0) { 
+            guaranteedTier3NextOpening = true;
+        }
+        saveCaseOpeningData();
+
+        console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
+        
+        // Probabilities for New Money Case (9 items, 5 tiers)
+        // T1:2, T2:2, T3:2, T4:2, T5:1
+        // Adjusted probabilities for 9 items
+        let newMoneyProbabilities = [
+            0.22, 0.22,       // T1 (44%)
+            0.15, 0.15,       // T2 (30%)
+            0.08, 0.08,       // T3 (16%)
+            0.03, 0.03,       // T4 (6%)
+            0.04            // T5 (4%) - Total 100%
+        ];
+
+        if (isGuaranteedTier3) {
+            console.log("[Case Opening] Applying guaranteed Tier 3+ probabilities for New Money Case.");
+            newMoneyProbabilities = [
+                0, 0,           // T1
+                0, 0,           // T2
+                0.35, 0.35,     // T3 (70%)
+                0.10, 0.10,     // T4 (20%)
+                0.10            // T5 (10%)
+            ];
+        }
+
+        const winningItem = selectRandomItemByProbability(window.newMoneyItems, newMoneyProbabilities);
+        currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'newmoney' };
+
+        console.log('[Case Opening] New Money Case Winning item selected:', winningItem);
+        await startLottieRouletteAnimation(window.newMoneyItems, newMoneyProbabilities, winningItem.name, finalPrice / selectedQuantity, 'newmoney');
+        hideCustomDialog(); 
+
+        const uniqueItemId = generateUUID(); 
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId, 'lottie');
+
+        if (addItemResult.success) {
+            if (typeof addItemResult.new_balance !== 'undefined') {
+                userBalance = parseFloat(addItemResult.new_balance);
+                updateBalanceDisplay();
+            }
+            console.log('[Case Opening] Item added to inventory successfully.');
+        } else {
+            console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
+            showToast('Error adding item to inventory. Please contact support.', 'error');
+        }
+        showLottieRouletteResult(currentResultSkin, 'newmoney'); 
+        addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
+        await updateUserStat('cases_opened', selectedQuantity); 
+
+    } catch (error) {
+        console.error(`[Case Opening] Error opening ${caseName}:`, error);
+        showToast('An error occurred while opening the case.', 'error');
+        hideCustomDialog(); 
+    }
+}
+window.openNewMoneyCase = openNewMoneyCase;
 
 // Helper to show not enough balance dialog (could be moved to utils.js or uiHandlers.js if not there)
 function showNotEnoughBalanceDialog() {

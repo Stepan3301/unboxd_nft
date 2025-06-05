@@ -188,14 +188,16 @@ function attachEventListeners() {
     }
 
     // Case "View Items" and "Open Case" buttons on case cards in listings
-    document.querySelectorAll('.featured-btn, .open-btn[data-case]').forEach(button => {
-        button.addEventListener('click', () => {
-            const caseId = button.dataset.case;
-            if (caseId === 'girlish') {
-                console.log('[UI] Girlish case card \'View Items\' button clicked, data-case:', caseId);
-            }
-            if (caseId) {
+    const featuredButtons = document.querySelectorAll('.featured-btn, .open-btn[data-case]');
+    featuredButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const caseId = this.dataset.case;
+            if (caseId === 'darkaura' || caseId === 'labubu' || caseId === 'girlish' || caseId === 'newmoney') {
                 showCaseDetail(caseId);
+            } else {
+                console.error('Unknown case ID:', caseId);
+                hideAllMainViews(); // Hide all main views
+                document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
             }
         });
     });
@@ -484,36 +486,105 @@ function showCaseDetail(caseId) {
     let itemsToDisplay = [];
     let gridId = '';
     let basePrice = 0;
+    let caseThemeControlsClass, caseThemeDetailClass;
 
-    if (caseId === 'darkaura') {
-        caseDetailElement = document.getElementById('darkaura-case-detail');
-        caseTitle = 'Dark Aura Case';
-        itemsToDisplay = window.darkAuraSkins;
-        gridId = 'darkaura-skins-grid';
-        basePrice = window.CASE_PRICES.darkaura;
-    } else if (caseId === 'labubu') {
-        caseDetailElement = document.getElementById('labubu-case-detail');
-        caseTitle = 'Labubu & Friends';
-        itemsToDisplay = window.labubuItems;
-        gridId = 'labubu-skins-grid';
-        basePrice = window.CASE_PRICES.labubu;
-    } else if (caseId === 'girlish') { // NEW: Girlish case
-        caseDetailElement = document.getElementById('girlish-case-detail');
-        caseTitle = 'Girlish Collection';
-        itemsToDisplay = window.girlishItems;
-        gridId = 'girlish-skins-grid';
-        basePrice = window.CASE_PRICES.girlish;
-    }
+    // Define a retry mechanism for fetching case data
+    const maxRetries = 5;
+    let currentRetry = 0;
 
-    if (caseDetailElement) {
-        document.getElementById(caseId + '-case-title').textContent = caseTitle;
-        displayCaseItems(caseId, itemsToDisplay, gridId); // Pass caseId here
+    function attemptToLoadCaseData() {
+        caseItems = null;
+        basePrice = null;
+
+        switch (caseId) {
+            case 'darkaura':
+                caseTitle = 'Dark Aura Collection';
+                caseDetailElement = document.getElementById('darkaura-case-detail');
+                skinsGridId = 'darkaura-skins-grid';
+                caseItems = window.darkAuraSkins;
+                basePrice = window.CASE_PRICES ? window.CASE_PRICES.darkaura : null;
+                caseThemeControlsClass = 'darkaura-theme-controls';
+                caseThemeDetailClass = 'darkaura-theme-detail';
+                break;
+            case 'labubu':
+                caseTitle = 'Labubu & Friends';
+                caseDetailElement = document.getElementById('labubu-case-detail');
+                skinsGridId = 'labubu-skins-grid';
+                caseItems = window.labubuItems;
+                basePrice = window.CASE_PRICES ? window.CASE_PRICES.labubu : null;
+                caseThemeControlsClass = 'labubu-theme-controls';
+                caseThemeDetailClass = 'labubu-theme-detail';
+                break;
+            case 'girlish':
+                caseTitle = 'Girlish Collection';
+                caseDetailElement = document.getElementById('girlish-case-detail');
+                skinsGridId = 'girlish-skins-grid';
+                caseItems = window.girlishItems;
+                basePrice = window.CASE_PRICES ? window.CASE_PRICES.girlish : null;
+                caseThemeControlsClass = 'girlish-theme-controls';
+                caseThemeDetailClass = 'girlish-theme-detail';
+                break;
+            case 'newmoney':
+                caseTitle = 'New Money Collection';
+                caseDetailElement = document.getElementById('newmoney-case-detail');
+                skinsGridId = 'newmoney-skins-grid';
+                caseItems = window.newMoneyItems;
+                basePrice = window.CASE_PRICES ? window.CASE_PRICES.newmoney : null;
+                caseThemeControlsClass = 'newmoney-theme-controls';
+                caseThemeDetailClass = 'newmoney-theme-detail';
+                break;
+            default:
+                console.error('Unknown case ID:', caseId);
+                hideAllMainViews(); // Hide all main views
+                document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+                return;
+        }
+
+        if (!caseItems || typeof basePrice === 'undefined' || basePrice === null) {
+            currentRetry++;
+            if (currentRetry <= maxRetries) {
+                console.warn(`[showCaseDetail] Data for ${caseId} not ready. Retry ${currentRetry}/${maxRetries}.`);
+                setTimeout(attemptToLoadCaseData, 300); // Retry after 300ms
+                return;
+            }
+            console.error(`[showCaseDetail] Failed to load data for ${caseId} after ${maxRetries} retries.`);
+            showToast('Error loading case details. Please try again.', 'error');
+            hideAllMainViews(); // Hide all main views
+            document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+            return;
+        }
+
+        // All data is loaded, proceed to display
+        console.log(`[showCaseDetail] Displaying detail for ${caseId}. Items:`, caseItems, `Base Price: ${basePrice}`);
+        
+        // Update title
+        const titleElement = caseDetailElement.querySelector('.case-detail-header h1'); // Adjusted selector based on recent HTML changes
+        if (titleElement) {
+            titleElement.textContent = caseTitle;
+        } else {
+            console.warn("[showCaseDetail] Case title element not found for", caseId);
+        }
+
+        // Update case detail classes if needed (though they are already on the elements)
+        if (!caseDetailElement.classList.contains(caseThemeDetailClass)) {
+            caseDetailElement.classList.add(caseThemeDetailClass);
+        }
+        const controlsElement = caseDetailElement.querySelector('.case-controls');
+        if (controlsElement && !controlsElement.classList.contains(caseThemeControlsClass)) {
+            controlsElement.classList.add(caseThemeControlsClass);
+        }
+
+        hideAllMainViews();
+        caseDetailElement.style.display = 'block';
+        document.getElementById('app').classList.add('case-detail-open');
+
+        // Base path for Lottie files - should be from project root for GitHub Pages
+        const itemBasePath = '/unboxd_nft/'; 
+        displayCaseItems(caseItems, skinsGridId, itemBasePath, caseId); // Pass caseId for tier class prefixing
         initializeCaseControls(caseId, basePrice);
-        caseDetailElement.classList.add('active');
-        caseDetailElement.scrollTop = 0; // Scroll to top
-    } else {
-        console.error('Case detail element not found for:', caseId);
     }
+
+    attemptToLoadCaseData(); // Initial attempt to load data
 }
 
 function hideCaseDetail(caseDetailId) {
