@@ -118,31 +118,19 @@ async function openLabubuCaseWithStars() {
     console.log(`[Case Opening] Attempting to open ${caseName} for ${starsPrice} Stars`);
 
     try {
-        // Show processing dialog
-        showCustomDialog('🌟 Initiating Telegram Stars payment...', true);
-        
-        // Initiate Telegram Stars payment
+        // Initiate Telegram Stars payment using proper API flow
         const paymentResult = await initiateStarsPayment('labubu', starsPrice);
         
         if (!paymentResult.success) {
-            hideCustomDialog();
             showToast(paymentResult.message || 'Payment failed. Please try again.', 'error');
             return;
         }
 
-        // Payment flow initiated successfully
-        hideCustomDialog();
-        showToast('Payment initiated! Please complete the transaction in the bot chat that just opened.', 'success');
-        
-        // Note: The actual case opening will happen after successful payment
-        // through the bot's successful_payment handler which will notify the WebApp
-        
         console.log(`[Case Opening] ${caseName} payment flow initiated successfully`);
 
     } catch (error) {
         console.error(`[Case Opening] Error initiating ${caseName} payment:`, error);
         showToast('An error occurred while initiating payment. Please try again.', 'error');
-        hideCustomDialog(); 
     }
 }
 
