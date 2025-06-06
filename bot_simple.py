@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 # Bot token provided by BotFather
 TOKEN = "7548063060:AAFRPyueo070wzlN-Ui0MzKGLXiz1YcUK5U"
 
-# IMPORTANT: Replace with your actual bot username
-BOT_USERNAME = "UnboxdNFT_bot"  # Replace with your actual bot username
+# IMPORTANT: Updated to match user's actual bot username
+BOT_USERNAME = "unboxdnft_bot"  # Changed from UnboxdNFT_bot to match @unboxdnft_bot
 
 # Define the URL where your web app is hosted
 # Updated to use your GitHub Pages URL
@@ -316,29 +316,67 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     """Handle data sent from the WebApp."""
     try:
         web_app_data = update.message.web_app_data.data
-        data = json.loads(web_app_data)
         
-        logger.info(f"[WebApp] Received data: {data}")
-        print(f"[WebApp] Received data: {data}")
+        print(f"\n{'='*60}")
+        print(f"[WebApp] 🚀 RAW DATA RECEIVED FROM WEBAPP")
+        print(f"[WebApp] Raw data length: {len(web_app_data)}")
+        print(f"[WebApp] Raw data: {web_app_data}")
+        print(f"[WebApp] Message from user: {update.message.from_user.id} (@{update.message.from_user.username})")
+        print(f"[WebApp] Chat ID: {update.message.chat.id}")
+        print(f"{'='*60}\n")
         
-        if data.get('action') == 'send_stars_invoice':
+        try:
+            data = json.loads(web_app_data)
+            logger.info(f"[WebApp] Parsed data successfully: {data}")
+            print(f"[WebApp] ✅ Parsed JSON: {data}")
+        except json.JSONDecodeError as json_error:
+            error_msg = f"❌ Invalid JSON format: {str(json_error)}"
+            logger.error(f"[WebApp] JSON parsing error: {json_error}")
+            print(f"[WebApp] ❌ JSON Error: {json_error}")
+            await update.message.reply_text(error_msg)
+            return
+        
+        action = data.get('action')
+        print(f"[WebApp] 🎯 Action detected: {action}")
+        
+        if action == 'test_connection':
+            print(f"[WebApp] 🧪 TEST CONNECTION received!")
+            print(f"[WebApp] Test data: {data}")
+            await update.message.reply_text(
+                "✅ **Bot Connection Test Successful!**\n\n"
+                f"📱 WebApp is connected to @UnboxdNFT_bot\n"
+                f"👤 User ID: {data.get('user_id', 'Unknown')}\n"
+                f"🕐 Timestamp: {data.get('timestamp', 'Unknown')}\n\n"
+                "🌟 **Ready to process Telegram Stars payments!**",
+                parse_mode='Markdown'
+            )
+            return
+            
+        elif action == 'send_stars_invoice':
             case_type = data.get('case_type')
             user_id = data.get('user_id')
             stars_amount = data.get('stars_amount')
             
+            print(f"[WebApp] 🌟 STARS INVOICE REQUEST:")
+            print(f"[WebApp]   - Case Type: {case_type}")
+            print(f"[WebApp]   - User ID: {user_id}")
+            print(f"[WebApp]   - Stars Amount: {stars_amount}")
+            print(f"[WebApp]   - Expected Price: {CASE_PRICES_STARS.get(case_type, 'Unknown')}")
+            
             logger.info(f"[WebApp] Processing stars invoice: case={case_type}, user={user_id}, amount={stars_amount}")
-            print(f"[WebApp] Processing stars invoice: case={case_type}, user={user_id}, amount={stars_amount}")
             
             # Validate data
             if not case_type or case_type not in CASE_PRICES_STARS:
                 error_msg = f"❌ Invalid case type: {case_type}"
                 logger.error(error_msg)
+                print(f"[WebApp] ❌ Validation failed: {error_msg}")
                 await update.message.reply_text(error_msg)
                 return
                 
             if CASE_PRICES_STARS[case_type] != stars_amount:
                 error_msg = f"❌ Invalid price. Expected {CASE_PRICES_STARS[case_type]}, got {stars_amount}"
                 logger.error(error_msg)
+                print(f"[WebApp] ❌ Price validation failed: {error_msg}")
                 await update.message.reply_text(error_msg)
                 return
             
@@ -346,7 +384,10 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             chat_id = update.message.chat.id
             sender_user_id = update.message.from_user.id
             
-            logger.info(f"[WebApp] Chat ID: {chat_id}, Sender: {sender_user_id}, Requested User: {user_id}")
+            print(f"[WebApp] 📋 Invoice Details:")
+            print(f"[WebApp]   - Target Chat ID: {chat_id}")
+            print(f"[WebApp]   - Sender User ID: {sender_user_id}")
+            print(f"[WebApp]   - Requested User ID: {user_id}")
             
             # Prepare invoice
             title = f"{case_type.title()} Case"
@@ -363,8 +404,8 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             prices = [LabeledPrice(label=title, amount=stars_amount)]
             
             try:
+                print(f"[WebApp] 📤 Sending invoice to chat {chat_id}...")
                 logger.info(f"[WebApp] Sending invoice to chat {chat_id}...")
-                print(f"[WebApp] Sending invoice to chat {chat_id}...")
                 
                 message = await context.bot.send_invoice(
                     chat_id=chat_id,
@@ -377,8 +418,10 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                     start_parameter=f"stars_{case_type}_{int(time.time())}"
                 )
                 
+                print(f"[WebApp] ✅ Invoice sent successfully!")
+                print(f"[WebApp]   - Message ID: {message.message_id}")
+                print(f"[WebApp]   - Chat ID: {message.chat.id}")
                 logger.info(f"[WebApp] Invoice sent successfully! Message ID: {message.message_id}")
-                print(f"[WebApp] Invoice sent successfully! Message ID: {message.message_id}")
                 
                 # Store invoice in memory
                 invoice_id = f"{sender_user_id}_{int(time.time())}"
@@ -391,9 +434,11 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                     'message_id': message.message_id
                 }
                 logger.info(f"[WebApp] Invoice stored in memory: {invoice_id}")
+                print(f"[WebApp] 💾 Invoice stored: {invoice_id}")
                 
                 # NEW: Store payment context for tracking
                 store_payment_context(sender_user_id, case_type, stars_amount, invoice_id)
+                print(f"[WebApp] 🎯 Payment context stored for user {sender_user_id}")
                 
                 await update.message.reply_text(
                     f"✅ **Invoice Created Successfully!**\n\n"
@@ -405,23 +450,20 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception as invoice_error:
                 error_msg = f"❌ Failed to create invoice: {str(invoice_error)}"
                 logger.error(f"[WebApp] Invoice error: {invoice_error}")
-                print(f"[WebApp] Invoice error: {invoice_error}")
+                print(f"[WebApp] ❌ Invoice creation failed: {invoice_error}")
                 await update.message.reply_text(error_msg)
                 return
         
         else:
             unknown_action = data.get('action', 'unknown')
             logger.warning(f"[WebApp] Unknown action: {unknown_action}")
+            print(f"[WebApp] ❓ Unknown action received: {unknown_action}")
             await update.message.reply_text(f"❓ Unknown action: {unknown_action}")
             
-    except json.JSONDecodeError as json_error:
-        error_msg = f"❌ Invalid data format: {str(json_error)}"
-        logger.error(f"[WebApp] JSON error: {json_error}")
-        await update.message.reply_text(error_msg)
     except Exception as e:
         error_msg = f"❌ Error processing request: {str(e)}"
         logger.error(f"[WebApp] General error: {e}")
-        print(f"[WebApp] General error: {e}")
+        print(f"[WebApp] 🚨 General error: {e}")
         await update.message.reply_text(error_msg)
 
 def main() -> None:

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Stars Payment Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            background: #2d2d2d;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+        }
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .success { background: #0f5132; color: #d1e7dd; }
+        .error { background: #842029; color: #f8d7da; }
+        .warning { background: #664d03; color: #fff3cd; }
+        .info { background: #055160; color: #b3d4fc; }
+        button {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            border: 2px solid #ffd700;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #ff4444 0%, #dd0000 50%, #ff4444 100%);
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 Telegram Stars Payment Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Environment Check</h2>
+        <div id="env-status"></div>
+        <button onclick="checkEnvironment()">Check Environment</button>
+    </div>
+
+    <div class="test-section">
+        <h2>2. WebApp Configuration</h2>
+        <div id="webapp-status"></div>
+        <button onclick="checkWebApp()">Check WebApp</button>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Bot Connection Test</h2>
+        <div id="bot-status"></div>
+        <button onclick="testBotConnection()">Test Bot Connection</button>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Payment Flow Test</h2>
+        <div id="payment-status"></div>
+        <button onclick="testPaymentFlow()">Test Payment Flow</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Console Log</h2>
+        <div id="console-log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let logContainer = document.getElementById('console-log');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logContainer.textContent += logEntry;
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            console.log(`[TEST] ${message}`);
+        }
+
+        function setStatus(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearLog() {
+            logContainer.textContent = '';
+        }
+
+        function checkEnvironment() {
+            log('=== ENVIRONMENT CHECK ===');
+            
+            // Check if we're in Telegram
+            if (window.Telegram) {
+                log('✅ window.Telegram is available');
+                if (window.Telegram.WebApp) {
+                    log('✅ window.Telegram.WebApp is available');
+                    setStatus('env-status', '✅ Telegram WebApp environment detected', 'success');
+                } else {
+                    log('❌ window.Telegram.WebApp is NOT available');
+                    setStatus('env-status', '❌ Telegram WebApp not available', 'error');
+                }
+            } else {
+                log('❌ window.Telegram is NOT available');
+                setStatus('env-status', '❌ Not running in Telegram environment', 'error');
+            }
+            
+            // Check user agent
+            log(`User Agent: ${navigator.userAgent}`);
+            
+            // Check URL
+            log(`Current URL: ${window.location.href}`);
+        }
+
+        function checkWebApp() {
+            log('=== WEBAPP CHECK ===');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ WebApp not available for detailed check');
+                setStatus('webapp-status', '❌ WebApp not available', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+            
+            log(`WebApp version: ${tg.version}`);
+            log(`Platform: ${tg.platform}`);
+            log(`Color scheme: ${tg.colorScheme}`);
+            log(`Theme params: ${JSON.stringify(tg.themeParams)}`);
+            log(`Viewport: height=${tg.viewportHeight}, stable=${tg.viewportStableHeight}`);
+            log(`Safe area: top=${tg.safeAreaInset?.top}, bottom=${tg.safeAreaInset?.bottom}`);
+            
+            if (tg.initDataUnsafe) {
+                log(`Init data unsafe: ${JSON.stringify(tg.initDataUnsafe)}`);
+                if (tg.initDataUnsafe.user) {
+                    log(`User ID: ${tg.initDataUnsafe.user.id}`);
+                    log(`Username: ${tg.initDataUnsafe.user.username || 'N/A'}`);
+                    log(`First name: ${tg.initDataUnsafe.user.first_name}`);
+                    setStatus('webapp-status', `✅ User authenticated: ${tg.initDataUnsafe.user.first_name} (ID: ${tg.initDataUnsafe.user.id})`, 'success');
+                } else {
+                    log('❌ No user data available');
+                    setStatus('webapp-status', '❌ No user data available', 'error');
+                }
+            } else {
+                log('❌ No init data available');
+                setStatus('webapp-status', '❌ No init data available', 'error');
+            }
+
+            // Ready the WebApp
+            try {
+                tg.ready();
+                log('✅ WebApp.ready() called successfully');
+            } catch (error) {
+                log(`❌ WebApp.ready() failed: ${error.message}`);
+            }
+
+            // Expand the WebApp
+            try {
+                tg.expand();
+                log('✅ WebApp.expand() called successfully');
+            } catch (error) {
+                log(`❌ WebApp.expand() failed: ${error.message}`);
+            }
+        }
+
+        function testBotConnection() {
+            log('=== BOT CONNECTION TEST ===');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ WebApp not available for bot test');
+                setStatus('bot-status', '❌ WebApp not available', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+            
+            if (!tg.initDataUnsafe?.user?.id) {
+                log('❌ User ID not available for bot test');
+                setStatus('bot-status', '❌ User ID not available', 'error');
+                return;
+            }
+
+            const testData = {
+                action: 'test_connection',
+                timestamp: Date.now(),
+                user_id: tg.initDataUnsafe.user.id,
+                test_name: 'complete_flow_test'
+            };
+
+            log(`Sending test data to bot: ${JSON.stringify(testData)}`);
+            
+            try {
+                tg.sendData(JSON.stringify(testData));
+                log('✅ Test data sent to bot successfully');
+                setStatus('bot-status', '✅ Test data sent to bot - check bot console for response', 'success');
+            } catch (error) {
+                log(`❌ Failed to send data to bot: ${error.message}`);
+                setStatus('bot-status', `❌ Failed to send data: ${error.message}`, 'error');
+            }
+        }
+
+        function testPaymentFlow() {
+            log('=== PAYMENT FLOW TEST ===');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ WebApp not available for payment test');
+                setStatus('payment-status', '❌ WebApp not available', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+            
+            if (!tg.initDataUnsafe?.user?.id) {
+                log('❌ User ID not available for payment test');
+                setStatus('payment-status', '❌ User ID not available', 'error');
+                return;
+            }
+
+            const paymentData = {
+                action: 'send_stars_invoice',
+                case_type: 'labubu',
+                stars_amount: 1,
+                user_id: tg.initDataUnsafe.user.id,
+                timestamp: Date.now(),
+                test_payment: true
+            };
+
+            log(`Sending payment request: ${JSON.stringify(paymentData)}`);
+            
+            // Set up invoice event listener
+            tg.onEvent('invoiceClosed', (result) => {
+                log(`💳 Invoice event received: ${JSON.stringify(result)}`);
+                if (result.status === 'paid') {
+                    log('🎉 Payment successful!');
+                    setStatus('payment-status', '🎉 Payment completed successfully!', 'success');
+                } else if (result.status === 'cancelled') {
+                    log('❌ Payment cancelled');
+                    setStatus('payment-status', '❌ Payment cancelled by user', 'warning');
+                } else {
+                    log(`❓ Payment status: ${result.status}`);
+                    setStatus('payment-status', `❓ Payment status: ${result.status}`, 'info');
+                }
+            });
+            
+            try {
+                tg.sendData(JSON.stringify(paymentData));
+                log('✅ Payment request sent to bot');
+                setStatus('payment-status', '⏳ Payment request sent - waiting for invoice...', 'info');
+            } catch (error) {
+                log(`❌ Failed to send payment request: ${error.message}`);
+                setStatus('payment-status', `❌ Failed to send payment request: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('🚀 Test page loaded');
+            checkEnvironment();
+        });
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            log(`🚨 Global Error: ${event.message} at ${event.filename}:${event.lineno}`);
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`🚨 Unhandled Promise Rejection: ${event.reason}`);
+        });
+    </script>
+</body>
+</html> 
