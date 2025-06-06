@@ -138,6 +138,14 @@ function attachEventListeners() {
         console.warn('Open Labubu Case button inside detail view not found for event listener.');
     }
 
+    // NEW: Labubu Case Stars Payment Button (calls function from caseOpening.js)
+    const openLabubuCaseStarsButton = document.querySelector('.case-detail#labubu-case-detail .open-case-stars-btn');
+    if (openLabubuCaseStarsButton) {
+        openLabubuCaseStarsButton.addEventListener('click', openLabubuCaseWithStars); // openLabubuCaseWithStars from caseOpening.js
+    } else {
+        console.warn('Open Labubu Case with Stars button inside detail view not found for event listener.');
+    }
+
     // Dark Aura Case Open Button (calls function from caseOpening.js)
     const openDarkAuraCaseButton = document.querySelector('.case-detail#darkaura-case-detail .open-case-btn');
     if (openDarkAuraCaseButton) {
@@ -226,7 +234,7 @@ function hideAllMainViews() {
 
     mainContentAreas.forEach(view => {
         if (view) {
-            view.classList.remove('active'); // Remove active class if it controls visibility
+            view.classList.remove('active');
             console.log(`[UI] Hid main view: ${view.id}`);
         }
     });

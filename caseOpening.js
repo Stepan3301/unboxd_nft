@@ -110,6 +110,119 @@ async function openLabubuCase() {
     }
 }
 
+// NEW: Open Labubu Case with Telegram Stars
+async function openLabubuCaseWithStars() {
+    const caseName = 'Labubu Case (Stars)';
+    const starsPrice = 1; // 1 Telegram Star
+    
+    console.log(`[Case Opening] Attempting to open ${caseName} for ${starsPrice} Stars`);
+
+    try {
+        // Show processing dialog
+        showCustomDialog('🌟 Initiating Telegram Stars payment...', true);
+        
+        // Initiate Telegram Stars payment
+        const paymentResult = await initiateStarsPayment('labubu', starsPrice);
+        
+        if (!paymentResult.success) {
+            hideCustomDialog();
+            showToast(paymentResult.message || 'Payment failed. Please try again.', 'error');
+            return;
+        }
+
+        // Payment flow initiated successfully
+        hideCustomDialog();
+        showToast('Payment initiated! Please complete the transaction in the bot chat that just opened.', 'success');
+        
+        // Note: The actual case opening will happen after successful payment
+        // through the bot's successful_payment handler which will notify the WebApp
+        
+        console.log(`[Case Opening] ${caseName} payment flow initiated successfully`);
+
+    } catch (error) {
+        console.error(`[Case Opening] Error initiating ${caseName} payment:`, error);
+        showToast('An error occurred while initiating payment. Please try again.', 'error');
+        hideCustomDialog(); 
+    }
+}
+
+// NEW: Function to handle case opening after successful Stars payment
+async function processStarsPaymentSuccess(caseType, paymentId) {
+    const caseName = `${caseType} Case (Stars)`;
+    
+    console.log(`[Case Opening] Processing successful Stars payment for ${caseName}`);
+
+    try {
+        // Show processing dialog
+        showCustomDialog('🎉 Payment successful! Opening your case...', true);
+        
+        // Increment case opening count
+        caseOpeningsCount++;
+        let isGuaranteedTier3 = guaranteedTier3NextOpening;
+        if (isGuaranteedTier3) {
+            guaranteedTier3NextOpening = false; 
+        }
+        else if (caseOpeningsCount % 10 === 0) { 
+            guaranteedTier3NextOpening = true;
+        }
+        saveCaseOpeningData();
+
+        console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
+
+        let probabilities, items;
+        
+        // Set up case-specific data
+        if (caseType === 'labubu') {
+            items = window.labubuItems;
+            probabilities = isGuaranteedTier3 ? 
+                [0,0,0,0,0.15,0.15,0,0,0,0.15,0.15,0.05,0.05,0.05,0.05,0.05,0.05] // Adjusted for 17 items & Tier3+ guarantee
+                :
+                [0.15,0.15,0.10,0.10,0.05,0.05,0.05,0.05,0.04,0.04,0.035,0.035,0.025,0.025,0.025,0.025,0.05];
+        } else {
+            // Add other case types as needed
+            throw new Error(`Case type ${caseType} not supported for Stars payment yet`);
+        }
+
+        const winningItem = selectRandomItemByProbability(items, probabilities);
+        currentResultSkin = { ...winningItem, type: 'image', caseType: caseType, paymentMethod: 'stars', paymentId: paymentId }; 
+
+        console.log(`[Case Opening] ${caseName} winning item selected:`, winningItem);
+        
+        // Start the roulette animation
+        if (caseType === 'labubu') {
+            await startEnhancedLabubuRouletteAnimation(items, probabilities, winningItem.name, 0, caseType); // Price 0 since paid with stars
+        }
+        
+        hideCustomDialog();
+
+        // Add item to inventory
+        const uniqueItemId = generateUUID(); 
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
+
+        if (addItemResult.success) {
+            console.log('[Case Opening] Item added to inventory successfully.');
+        } else {
+            console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
+            showToast('Error adding item to inventory. Please contact support.', 'error');
+        }
+        
+        // Show result and add activity
+        showRouletteResult(currentResultSkin, caseType);
+        addActivity('case_open_stars', { 
+            caseName: caseName, 
+            skinName: winningItem.name, 
+            paymentMethod: 'stars',
+            paymentId: paymentId
+        });
+        await updateUserStat('cases_opened', 1); 
+
+    } catch (error) {
+        console.error(`[Case Opening] Error processing Stars payment success for ${caseName}:`, error);
+        showToast('Payment was successful, but there was an error opening the case. Please contact support.', 'error');
+        hideCustomDialog(); 
+    }
+}
+
 // Open Dark Aura Case function
 async function openDarkAuraCase() {
     const caseName = 'Dark Aura Case';

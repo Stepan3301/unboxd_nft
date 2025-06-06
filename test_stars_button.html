@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stars Button</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div style="padding: 20px; background: #2d3436;">
+        <h2 style="color: white; margin-bottom: 20px;">Testing Telegram Stars Button</h2>
+        
+        <!-- Test the regular button -->
+        <div class="case-controls" style="margin-bottom: 20px;">
+            <button class="open-case-btn" data-case="labubu" data-base-price="50">
+                <span class="btn-text">Open Case</span>
+                <span class="btn-price">
+                    <span class="price-value">50</span> 
+                    <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                </span>
+                <div class="btn-glow"></div>
+            </button>
+        </div>
+        
+        <!-- Test the stars button -->
+        <div class="case-controls">
+            <button class="open-case-stars-btn" data-case="labubu" data-stars="1">
+                <span class="btn-text">Open for</span>
+                <span class="btn-price">
+                    <span class="price-value">1</span>
+                    <span class="star-icon">⭐</span>
+                </span>
+                <div class="btn-glow"></div>
+            </button>
+        </div>
+        
+        <p style="color: white; margin-top: 20px;">
+            If you can see both buttons above, the styling is working correctly!
+        </p>
+    </div>
+</body>
+</html> 

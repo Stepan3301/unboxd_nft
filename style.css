@@ -2576,3 +2576,67 @@ body {
 .inventory-item-card lottie-player {
     background-color: transparent;
 }
+
+.case-controls .open-case-btn:hover .btn-glow {
+    left: 100%;
+}
+
+/* NEW: Telegram Stars payment button styling */
+.case-controls .open-case-stars-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    border: 2px solid #333;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.case-controls .open-case-stars-btn:hover {
+    background: linear-gradient(135deg, #2d1a1a 0%, #4d2d2d 50%, #2d1a1a 100%);
+    border-color: #ff4444;
+    box-shadow: 0 6px 20px rgba(255, 68, 68, 0.3);
+    transform: translateY(-2px);
+}
+
+.case-controls .open-case-stars-btn .btn-text {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.case-controls .open-case-stars-btn .btn-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.case-controls .open-case-stars-btn .star-icon {
+    font-size: 20px;
+    filter: drop-shadow(0 0 8px #ffd700);
+}
+
+.case-controls .open-case-stars-btn .btn-glow {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.case-controls .open-case-stars-btn:hover .btn-glow {
+    left: 100%;
+}
