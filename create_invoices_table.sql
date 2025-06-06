@@ -1,33 +1,31 @@
--- Create invoices table for Telegram Stars payments
+-- Create invoices table for tracking Telegram Stars payment invoices
 CREATE TABLE IF NOT EXISTS invoices (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     telegram_id BIGINT NOT NULL,
     case_type VARCHAR(50) NOT NULL,
     stars_amount INTEGER NOT NULL,
     status VARCHAR(20) DEFAULT 'pending',
-    payload TEXT,
+    payload TEXT NOT NULL,
+    message_id BIGINT,
     telegram_payment_charge_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index on telegram_id for faster queries
+-- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_invoices_telegram_id ON invoices(telegram_id);
-
--- Create index on status for filtering
 CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_case_type ON invoices(case_type);
+CREATE INDEX IF NOT EXISTS idx_invoices_payment_charge_id ON invoices(telegram_payment_charge_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices(created_at);
 
--- Add RLS (Row Level Security) if needed
+-- Enable Row Level Security
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow users to see their own invoices
-CREATE POLICY "Users can view own invoices" ON invoices
+-- Create policy for users to only see their own invoices
+CREATE POLICY "Users can view their own invoices" ON invoices
     FOR SELECT USING (auth.uid()::text = telegram_id::text);
 
--- Create policy to allow service role to insert invoices
-CREATE POLICY "Service role can insert invoices" ON invoices
-    FOR INSERT WITH CHECK (true);
-
--- Create policy to allow service role to update invoices
-CREATE POLICY "Service role can update invoices" ON invoices
-    FOR UPDATE USING (true); 
+-- Create policy for service role to manage all invoices
+CREATE POLICY "Service role can manage all invoices" ON invoices
+    FOR ALL USING (auth.role() = 'service_role'); 
