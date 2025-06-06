@@ -15,7 +15,7 @@ function attachEventListeners() {
                 bottomNav.removeAttribute('data-case-detail-open');
                 // Restore main content visibility
                 const mainContent = document.querySelector('.main');
-                if (mainContent) mainContent.style.display = 'block'; 
+                if (mainContent) mainContent.classList.add('active'); 
             }
             
             // Get the tab ID
@@ -205,7 +205,7 @@ function attachEventListeners() {
             } else {
                 console.error('Unknown case ID:', caseId);
                 hideAllMainViews(); // Hide all main views
-                document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+                document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
             }
         });
     });
@@ -226,7 +226,6 @@ function hideAllMainViews() {
 
     mainContentAreas.forEach(view => {
         if (view) {
-            view.style.display = 'none';
             view.classList.remove('active'); // Remove active class if it controls visibility
             console.log(`[UI] Hid main view: ${view.id}`);
         }
@@ -235,7 +234,6 @@ function hideAllMainViews() {
     // Also explicitly hide all case detail views
     document.querySelectorAll('.case-detail').forEach(detailView => {
         if (detailView) {
-            detailView.style.display = 'none';
             detailView.classList.remove('active');
             console.log(`[UI] Hid case detail view: ${detailView.id}`);
         }
@@ -278,9 +276,9 @@ function filterCaseListings(filter) {
     if (featuredCaseContainer) {
         const featuredCaseType = featuredCaseContainer.getAttribute('data-case-type');
         if (filter === 'all' || filter === featuredCaseType || (filter === 'telegram' && featuredCaseType === 'darkaura')) {
-            featuredCaseContainer.style.display = 'block';
+            featuredCaseContainer.classList.add('active');
         } else {
-            featuredCaseContainer.style.display = 'none';
+            featuredCaseContainer.classList.remove('active');
         }
     }
 
@@ -290,9 +288,9 @@ function filterCaseListings(filter) {
         if (filter === 'all' || filter === popularCaseType || 
             (filter === 'custom' && popularCaseType === 'labubu') || 
             (filter === 'telegram' && popularCaseType === 'darkaura')) {
-            card.style.display = 'block'; // Or flex, grid, depending on original display
+            card.classList.add('active'); // Or flex, grid, depending on original display
         } else {
-            card.style.display = 'none';
+            card.classList.remove('active');
         }
     });
     // If no popular cases match, the .cases-grid might still be visible but empty.
@@ -305,9 +303,9 @@ window.updateRarityNavVisibility = function(tabId) {
     if (!rarityNav) return;
 
     if (tabId === 'inventory-tab') {
-        rarityNav.style.display = 'flex';
+        rarityNav.classList.add('active');
     } else {
-        rarityNav.style.display = 'none';
+        rarityNav.classList.remove('active');
     }
 }
 
@@ -515,7 +513,7 @@ function showCaseDetail(caseId) {
 
     // Hide main content area and set nav state for detail view
     const mainContent = document.querySelector('.main');
-    if (mainContent) mainContent.style.display = 'none';
+    if (mainContent) mainContent.classList.remove('active');
     const bottomNav = document.querySelector('.bottom-nav');
     if (bottomNav) bottomNav.setAttribute('data-case-detail-open', 'true');
 
@@ -537,7 +535,7 @@ function showCaseDetail(caseId) {
     function attemptToLoadCaseData() {
         caseItems = null;
 
-        // Simplified data retrieval
+        // Simplified data retrieval from centralized config
         basePrice = window.CASE_PRICES ? window.CASE_PRICES[caseId] : null;
 
         const caseDataMap = {
@@ -580,10 +578,10 @@ function showCaseDetail(caseId) {
         if (!caseData) {
             console.error('Unknown case ID:', caseId);
             hideAllMainViews(); // Hide all main views
-            document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+            document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
             return;
         }
-        
+
         caseTitle = caseData.title;
         caseDetailElement = document.getElementById(caseData.elementId);
         skinsGridId = caseData.gridId;
@@ -602,7 +600,7 @@ function showCaseDetail(caseId) {
             console.error(`[showCaseDetail] Failed to load data for ${caseId} after ${maxRetries} retries.`);
             showToast('Error loading case details. Please try again.', 'error');
             hideAllMainViews(); // Hide all main views
-            document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+            document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
             return;
         }
 
@@ -646,7 +644,7 @@ function hideCaseDetail(caseDetailId) {
 
     if (caseDetailElement && mainContent && bottomNav) {
         caseDetailElement.classList.remove('active');
-        mainContent.style.display = 'block'; // Show main content
+        mainContent.classList.add('active'); // Show main content
         bottomNav.removeAttribute('data-case-detail-open');
         document.getElementById('app').classList.remove('case-detail-open');
         console.log(`Hiding case detail: ${caseDetailId}`);
