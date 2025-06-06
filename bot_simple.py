@@ -38,27 +38,6 @@ payments_storage = {}
 # NEW: Payment context storage to track active payments
 payment_contexts = {}  # user_id -> {case_type, stars_amount, timestamp, invoice_id}
 
-def store_payment_context(user_id, case_type, stars_amount, invoice_id):
-    """Store payment context for tracking"""
-    payment_contexts[user_id] = {
-        'case_type': case_type,
-        'stars_amount': stars_amount,
-        'timestamp': int(time.time()),
-        'invoice_id': invoice_id,
-        'status': 'pending'
-    }
-    logger.info(f"[Payment Context] Stored context for user {user_id}: {case_type}")
-
-def get_payment_context(user_id):
-    """Get payment context for user"""
-    return payment_contexts.get(user_id)
-
-def clear_payment_context(user_id):
-    """Clear payment context after completion"""
-    if user_id in payment_contexts:
-        del payment_contexts[user_id]
-        logger.info(f"[Payment Context] Cleared context for user {user_id}")
-
 async def register_user(user):
     """Register user (simplified for testing)"""
     logger.info(f"User registered: {user.id} - {user.first_name}")
@@ -344,7 +323,7 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             print(f"[WebApp] Test data: {data}")
             await update.message.reply_text(
                 "✅ **Bot Connection Test Successful!**\n\n"
-                f"📱 WebApp is connected to @UnboxdNFT_bot\n"
+                f"📱 WebApp is connected to @{BOT_USERNAME}\n"
                 f"👤 User ID: {data.get('user_id', 'Unknown')}\n"
                 f"🕐 Timestamp: {data.get('timestamp', 'Unknown')}\n\n"
                 "🌟 **Ready to process Telegram Stars payments!**",
@@ -352,18 +331,18 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return
             
-        elif action == 'send_stars_invoice':
+        elif action == 'get_invoice_link':
             case_type = data.get('case_type')
             user_id = data.get('user_id')
             stars_amount = data.get('stars_amount')
             
-            print(f"[WebApp] 🌟 STARS INVOICE REQUEST:")
+            print(f"[WebApp] 🌟 INVOICE LINK REQUEST:")
             print(f"[WebApp]   - Case Type: {case_type}")
             print(f"[WebApp]   - User ID: {user_id}")
             print(f"[WebApp]   - Stars Amount: {stars_amount}")
             print(f"[WebApp]   - Expected Price: {CASE_PRICES_STARS.get(case_type, 'Unknown')}")
             
-            logger.info(f"[WebApp] Processing stars invoice: case={case_type}, user={user_id}, amount={stars_amount}")
+            logger.info(f"[WebApp] Processing invoice link request: case={case_type}, user={user_id}, amount={stars_amount}")
             
             # Validate data
             if not case_type or case_type not in CASE_PRICES_STARS:
@@ -380,16 +359,14 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                 await update.message.reply_text(error_msg)
                 return
             
-            # Use the message sender's chat ID
-            chat_id = update.message.chat.id
+            # Use the message sender's user ID
             sender_user_id = update.message.from_user.id
             
-            print(f"[WebApp] 📋 Invoice Details:")
-            print(f"[WebApp]   - Target Chat ID: {chat_id}")
+            print(f"[WebApp] 📋 Invoice Link Details:")
             print(f"[WebApp]   - Sender User ID: {sender_user_id}")
             print(f"[WebApp]   - Requested User ID: {user_id}")
             
-            # Prepare invoice
+            # Prepare invoice link
             title = f"{case_type.title()} Case"
             description = f"Open a {case_type} case and get random NFT items!"
             
@@ -398,30 +375,28 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                 'user_id': sender_user_id,
                 'stars_amount': stars_amount,
                 'timestamp': int(time.time()),
-                'source': 'webapp_stars'
+                'source': 'webapp_invoice_link'
             })
             
             prices = [LabeledPrice(label=title, amount=stars_amount)]
             
             try:
-                print(f"[WebApp] 📤 Sending invoice to chat {chat_id}...")
-                logger.info(f"[WebApp] Sending invoice to chat {chat_id}...")
+                print(f"[WebApp] 🔗 Creating invoice link...")
+                logger.info(f"[WebApp] Creating invoice link for {case_type} case...")
                 
-                message = await context.bot.send_invoice(
-                    chat_id=chat_id,
+                # Create invoice link instead of sending invoice
+                invoice_link = await context.bot.create_invoice_link(
                     title=title,
                     description=description,
                     payload=payload,
-                    provider_token="",
-                    currency="XTR",
-                    prices=prices,
-                    start_parameter=f"stars_{case_type}_{int(time.time())}"
+                    provider_token="",  # Empty for Telegram Stars
+                    currency="XTR",  # Telegram Stars currency
+                    prices=prices
                 )
                 
-                print(f"[WebApp] ✅ Invoice sent successfully!")
-                print(f"[WebApp]   - Message ID: {message.message_id}")
-                print(f"[WebApp]   - Chat ID: {message.chat.id}")
-                logger.info(f"[WebApp] Invoice sent successfully! Message ID: {message.message_id}")
+                print(f"[WebApp] ✅ Invoice link created successfully!")
+                print(f"[WebApp]   - Invoice link: {invoice_link}")
+                logger.info(f"[WebApp] Invoice link created successfully: {invoice_link}")
                 
                 # Store invoice in memory
                 invoice_id = f"{sender_user_id}_{int(time.time())}"
@@ -431,26 +406,39 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                     'stars_amount': stars_amount,
                     'status': 'pending',
                     'payload': payload,
-                    'message_id': message.message_id
+                    'invoice_link': invoice_link
                 }
                 logger.info(f"[WebApp] Invoice stored in memory: {invoice_id}")
                 print(f"[WebApp] 💾 Invoice stored: {invoice_id}")
                 
-                # NEW: Store payment context for tracking
+                # Store payment context for tracking
                 store_payment_context(sender_user_id, case_type, stars_amount, invoice_id)
                 print(f"[WebApp] 🎯 Payment context stored for user {sender_user_id}")
                 
+                # Send the invoice link back to the WebApp
+                response_data = {
+                    'action': 'invoice_link_response',
+                    'success': True,
+                    'invoice_link': invoice_link,
+                    'case_type': case_type,
+                    'stars_amount': stars_amount,
+                    'invoice_id': invoice_id
+                }
+                
                 await update.message.reply_text(
-                    f"✅ **Invoice Created Successfully!**\n\n"
+                    f"✅ **Invoice Link Created!**\n\n"
                     f"💫 **{title}** - {stars_amount} ⭐\n"
-                    f"📋 Please tap the invoice above to pay with Telegram Stars.\n\n"
-                    f"💡 After payment, your case will open automatically in the app!"
+                    f"🔗 Invoice link generated successfully!\n"
+                    f"📋 The payment will open in your app.\n\n"
+                    f"💡 Complete the payment to open your case automatically!\n\n"
+                    f"**Invoice Link:** `{invoice_link}`",
+                    parse_mode='Markdown'
                 )
                     
             except Exception as invoice_error:
-                error_msg = f"❌ Failed to create invoice: {str(invoice_error)}"
-                logger.error(f"[WebApp] Invoice error: {invoice_error}")
-                print(f"[WebApp] ❌ Invoice creation failed: {invoice_error}")
+                error_msg = f"❌ Failed to create invoice link: {str(invoice_error)}"
+                logger.error(f"[WebApp] Invoice link creation error: {invoice_error}")
+                print(f"[WebApp] ❌ Invoice link creation failed: {invoice_error}")
                 await update.message.reply_text(error_msg)
                 return
         
@@ -465,6 +453,27 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.error(f"[WebApp] General error: {e}")
         print(f"[WebApp] 🚨 General error: {e}")
         await update.message.reply_text(error_msg)
+
+def store_payment_context(user_id, case_type, stars_amount, invoice_id):
+    """Store payment context for tracking"""
+    payment_contexts[user_id] = {
+        'case_type': case_type,
+        'stars_amount': stars_amount,
+        'timestamp': int(time.time()),
+        'invoice_id': invoice_id,
+        'status': 'pending'
+    }
+    logger.info(f"[Payment Context] Stored context for user {user_id}: {case_type}")
+
+def get_payment_context(user_id):
+    """Get payment context for user"""
+    return payment_contexts.get(user_id)
+
+def clear_payment_context(user_id):
+    """Clear payment context after completion"""
+    if user_id in payment_contexts:
+        del payment_contexts[user_id]
+        logger.info(f"[Payment Context] Cleared context for user {user_id}")
 
 def main() -> None:
     """Start the bot."""
