@@ -157,28 +157,81 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
 
         console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
 
-        let probabilities, items;
+        let probabilities, items, animationFunction;
         
-        // Set up case-specific data
-        if (caseType === 'labubu') {
-            items = window.labubuItems;
-            probabilities = isGuaranteedTier3 ? 
-                [0,0,0,0,0.15,0.15,0,0,0,0.15,0.15,0.05,0.05,0.05,0.05,0.05,0.05] // Adjusted for 17 items & Tier3+ guarantee
-                :
-                [0.15,0.15,0.10,0.10,0.05,0.05,0.05,0.05,0.04,0.04,0.035,0.035,0.025,0.025,0.025,0.025,0.05];
-        } else {
-            // Add other case types as needed
-            throw new Error(`Case type ${caseType} not supported for Stars payment yet`);
+        // Set up case-specific data with proper validation
+        switch (caseType.toLowerCase()) {
+            case 'labubu':
+                items = window.labubuItems;
+                probabilities = isGuaranteedTier3 ? 
+                    [0,0,0,0,0.15,0.15,0,0,0,0.15,0.15,0.05,0.05,0.05,0.05,0.05,0.05]
+                    :
+                    [0.15,0.15,0.10,0.10,0.05,0.05,0.05,0.05,0.04,0.04,0.035,0.035,0.025,0.025,0.025,0.025,0.05];
+                animationFunction = startEnhancedLabubuRouletteAnimation;
+                break;
+                
+            case 'darkaura':
+                items = window.darkAuraItems;
+                probabilities = isGuaranteedTier3 ? 
+                    // Adjust probabilities for DarkAura guaranteed Tier 3
+                    [0,0,0,0,0.2,0.2,0.2,0.2,0.2] // Example - adjust based on actual items
+                    :
+                    [0.2,0.2,0.15,0.15,0.1,0.1,0.05,0.025,0.025]; // Example - adjust based on actual items
+                animationFunction = startEnhancedDarkAuraRouletteAnimation; // Assuming this exists
+                break;
+                
+            case 'girlish':
+                items = window.girlishItems;
+                probabilities = isGuaranteedTier3 ? 
+                    // Adjust probabilities for Girlish guaranteed Tier 3
+                    [0,0,0,0,0.25,0.25,0.25,0.25] // Example - adjust based on actual items
+                    :
+                    [0.25,0.25,0.2,0.15,0.1,0.025,0.015,0.01]; // Example - adjust based on actual items
+                animationFunction = startEnhancedGirlishRouletteAnimation; // Assuming this exists
+                break;
+                
+            case 'newmoney':
+                items = window.newMoneyItems;
+                probabilities = isGuaranteedTier3 ? 
+                    // Adjust probabilities for NewMoney guaranteed Tier 3
+                    [0,0,0,0,0.3,0.3,0.4] // Example - adjust based on actual items
+                    :
+                    [0.3,0.3,0.25,0.1,0.025,0.015,0.01]; // Example - adjust based on actual items
+                animationFunction = startEnhancedNewMoneyRouletteAnimation; // Assuming this exists
+                break;
+                
+            default:
+                throw new Error(`Case type ${caseType} not supported for Stars payment`);
+        }
+
+        // Validate items array
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error(`No items found for case type ${caseType}`);
+        }
+
+        // Validate probabilities array
+        if (!probabilities || probabilities.length !== items.length) {
+            throw new Error(`Probability array mismatch for case type ${caseType}`);
         }
 
         const winningItem = selectRandomItemByProbability(items, probabilities);
-        currentResultSkin = { ...winningItem, type: 'image', caseType: caseType, paymentMethod: 'stars', paymentId: paymentId }; 
+        currentResultSkin = { 
+            ...winningItem, 
+            type: 'image', 
+            caseType: caseType, 
+            paymentMethod: 'stars', 
+            paymentId: paymentId 
+        }; 
 
         console.log(`[Case Opening] ${caseName} winning item selected:`, winningItem);
         
-        // Start the roulette animation
-        if (caseType === 'labubu') {
-            await startEnhancedLabubuRouletteAnimation(items, probabilities, winningItem.name, 0, caseType); // Price 0 since paid with stars
+        // Start the appropriate roulette animation
+        if (animationFunction && typeof animationFunction === 'function') {
+            await animationFunction(items, probabilities, winningItem.name, 0, caseType);
+        } else {
+            console.warn(`[Case Opening] Animation function not found for ${caseType}, using default`);
+            // Fallback to Labubu animation if others don't exist
+            await startEnhancedLabubuRouletteAnimation(items, probabilities, winningItem.name, 0, caseType);
         }
         
         hideCustomDialog();
@@ -189,6 +242,9 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
 
         if (addItemResult.success) {
             console.log('[Case Opening] Item added to inventory successfully.');
+            if (typeof showToast === 'function') {
+                showToast(`🎁 ${winningItem.name} added to inventory!`, 'success');
+            }
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
@@ -198,16 +254,24 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
         showRouletteResult(currentResultSkin, caseType);
         addActivity('case_open_stars', { 
             caseName: caseName, 
-            skinName: winningItem.name, 
-            paymentMethod: 'stars',
-            paymentId: paymentId
+            skinName: winningItem.name,
+            paymentId: paymentId,
+            starsAmount: 1 // Could be dynamic based on case type
         });
-        await updateUserStat('cases_opened', 1); 
+        await updateUserStat('cases_opened', 1);
+        await updateUserStat('stars_spent', 1); // New stat for stars spending
+
+        return { success: true, item: winningItem };
 
     } catch (error) {
-        console.error(`[Case Opening] Error processing Stars payment success for ${caseName}:`, error);
-        showToast('Payment was successful, but there was an error opening the case. Please contact support.', 'error');
-        hideCustomDialog(); 
+        console.error(`[Case Opening] Error processing Stars payment for ${caseName}:`, error);
+        hideCustomDialog();
+        
+        if (typeof showToast === 'function') {
+            showToast(`Error opening ${caseName}. Please contact support.`, 'error');
+        }
+        
+        return { success: false, message: error.message };
     }
 }
 

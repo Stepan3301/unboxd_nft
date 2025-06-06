@@ -35,6 +35,30 @@ CASE_PRICES_STARS = {
 invoices_storage = {}
 payments_storage = {}
 
+# NEW: Payment context storage to track active payments
+payment_contexts = {}  # user_id -> {case_type, stars_amount, timestamp, invoice_id}
+
+def store_payment_context(user_id, case_type, stars_amount, invoice_id):
+    """Store payment context for tracking"""
+    payment_contexts[user_id] = {
+        'case_type': case_type,
+        'stars_amount': stars_amount,
+        'timestamp': int(time.time()),
+        'invoice_id': invoice_id,
+        'status': 'pending'
+    }
+    logger.info(f"[Payment Context] Stored context for user {user_id}: {case_type}")
+
+def get_payment_context(user_id):
+    """Get payment context for user"""
+    return payment_contexts.get(user_id)
+
+def clear_payment_context(user_id):
+    """Clear payment context after completion"""
+    if user_id in payment_contexts:
+        del payment_contexts[user_id]
+        logger.info(f"[Payment Context] Cleared context for user {user_id}")
+
 async def register_user(user):
     """Register user (simplified for testing)"""
     logger.info(f"User registered: {user.id} - {user.first_name}")
@@ -224,6 +248,15 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
         logger.info(f"[Payment Success] User: {user_id}, Case: {case_type}, Amount: {payment.total_amount} stars")
         print(f"[Payment Success] Payment ID: {payment.telegram_payment_charge_id}, User: {user_id}, Case: {case_type}")
         
+        # Get and validate payment context
+        payment_context = get_payment_context(user_id)
+        if payment_context:
+            logger.info(f"[Payment Success] Found payment context: {payment_context}")
+            # Use context data as source of truth
+            case_type = payment_context['case_type']
+        else:
+            logger.warning(f"[Payment Success] No payment context found for user {user_id}")
+        
         # Store payment in memory
         payment_id = f"{user_id}_{int(time.time())}"
         payments_storage[payment_id] = {
@@ -233,8 +266,12 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
             'telegram_payment_charge_id': payment.telegram_payment_charge_id,
             'provider_payment_charge_id': payment.provider_payment_charge_id,
             'payload': payment.invoice_payload,
-            'status': 'completed'
+            'status': 'completed',
+            'timestamp': int(time.time())
         }
+        
+        # Clear payment context
+        clear_payment_context(user_id)
         
         success_message = (
             f"🎉 **PAYMENT SUCCESSFUL!** 🎉\n\n"
@@ -354,6 +391,9 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
                     'message_id': message.message_id
                 }
                 logger.info(f"[WebApp] Invoice stored in memory: {invoice_id}")
+                
+                # NEW: Store payment context for tracking
+                store_payment_context(sender_user_id, case_type, stars_amount, invoice_id)
                 
                 await update.message.reply_text(
                     f"✅ **Invoice Created Successfully!**\n\n"
