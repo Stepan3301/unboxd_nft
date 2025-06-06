@@ -536,51 +536,61 @@ function showCaseDetail(caseId) {
 
     function attemptToLoadCaseData() {
         caseItems = null;
-        basePrice = null;
 
-        switch (caseId) {
-            case 'darkaura':
-                caseTitle = 'Dark Aura Collection';
-                caseDetailElement = document.getElementById('darkaura-case-detail');
-                skinsGridId = 'darkaura-skins-grid';
-                caseItems = window.darkAuraSkins;
-                basePrice = window.CASE_PRICES ? window.CASE_PRICES.darkaura : null;
-                caseThemeControlsClass = 'darkaura-theme-controls';
-                caseThemeDetailClass = 'darkaura-theme-detail';
-                break;
-            case 'labubu':
-                caseTitle = 'Labubu & Friends';
-                caseDetailElement = document.getElementById('labubu-case-detail');
-                skinsGridId = 'labubu-skins-grid';
-                caseItems = window.labubuItems;
-                basePrice = window.CASE_PRICES ? window.CASE_PRICES.labubu : null;
-                caseThemeControlsClass = 'labubu-theme-controls';
-                caseThemeDetailClass = 'labubu-theme-detail';
-                break;
-            case 'girlish':
-                caseTitle = 'Girlish Collection';
-                caseDetailElement = document.getElementById('girlish-case-detail');
-                skinsGridId = 'girlish-skins-grid';
-                caseItems = window.girlishItems;
-                basePrice = window.CASE_PRICES ? window.CASE_PRICES.girlish : null;
-                caseThemeControlsClass = 'girlish-theme-controls';
-                caseThemeDetailClass = 'girlish-theme-detail';
-                break;
-            case 'newmoney':
-                caseTitle = 'New Money Collection';
-                caseDetailElement = document.getElementById('newmoney-case-detail');
-                skinsGridId = 'newmoney-skins-grid';
-                caseItems = window.newMoneyItems;
-                basePrice = window.CASE_PRICES ? window.CASE_PRICES.newmoney : null;
-                caseThemeControlsClass = 'newmoney-theme-controls';
-                caseThemeDetailClass = 'newmoney-theme-detail';
-                break;
-            default:
-                console.error('Unknown case ID:', caseId);
-                hideAllMainViews(); // Hide all main views
-                document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
-                return;
+        // Simplified data retrieval
+        basePrice = window.CASE_PRICES ? window.CASE_PRICES[caseId] : null;
+
+        const caseDataMap = {
+            'darkaura': {
+                title: 'Dark Aura Collection',
+                elementId: 'darkaura-case-detail',
+                gridId: 'darkaura-skins-grid',
+                items: window.darkAuraSkins,
+                themeControls: 'darkaura-theme-controls',
+                themeDetail: 'darkaura-theme-detail'
+            },
+            'labubu': {
+                title: 'Labubu & Friends',
+                elementId: 'labubu-case-detail',
+                gridId: 'labubu-skins-grid',
+                items: window.labubuItems,
+                themeControls: 'labubu-theme-controls',
+                themeDetail: 'labubu-theme-detail'
+            },
+            'girlish': {
+                title: 'Girlish Collection',
+                elementId: 'girlish-case-detail',
+                gridId: 'girlish-skins-grid',
+                items: window.girlishItems,
+                themeControls: 'girlish-theme-controls',
+                themeDetail: 'girlish-theme-detail'
+            },
+            'newmoney': {
+                title: 'New Money Collection',
+                elementId: 'newmoney-case-detail',
+                gridId: 'newmoney-skins-grid',
+                items: window.newMoneyItems,
+                themeControls: 'newmoney-theme-controls',
+                themeDetail: 'newmoney-theme-detail'
+            }
+        };
+
+        const caseData = caseDataMap[caseId];
+
+        if (!caseData) {
+            console.error('Unknown case ID:', caseId);
+            hideAllMainViews(); // Hide all main views
+            document.getElementById('cases-tab-content').style.display = 'block'; // Show cases tab
+            return;
         }
+        
+        caseTitle = caseData.title;
+        caseDetailElement = document.getElementById(caseData.elementId);
+        skinsGridId = caseData.gridId;
+        caseItems = caseData.items;
+        caseThemeControlsClass = caseData.themeControls;
+        caseThemeDetailClass = caseData.themeDetail;
+
 
         if (!caseItems || typeof basePrice === 'undefined' || basePrice === null) {
             currentRetry++;
