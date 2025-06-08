@@ -204,96 +204,50 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     try:
         web_app_data = update.message.web_app_data.data
         data = json.loads(web_app_data)
-        action = data.get('action')
         
-        if action == 'get_invoice_link':
+        if data.get('action') == 'get_invoice_link':
             case_type = data.get('case_type')
-            user_id = data.get('user_id')
             stars_amount = data.get('stars_amount')
-            
-            # Validate data
-            if not case_type or case_type not in CASE_PRICES_STARS:
-                await update.message.reply_text("❌ Invalid case type")
-                return
-                
-            if CASE_PRICES_STARS[case_type] != stars_amount:
-                await update.message.reply_text("❌ Invalid price")
-                return
-            
+            user_id = data.get('user_id')
             sender_user_id = update.message.from_user.id
+            
+            # Validation
+            if case_type not in CASE_PRICES_STARS or CASE_PRICES_STARS[case_type] != stars_amount:
+                await update.message.reply_text("❌ Invalid case or price")
+                return
             
             # Create invoice
             title = f"{case_type.title()} Case"
             description = f"Open a {case_type} case and get random NFT items!"
-            
             payload = json.dumps({
                 'case_type': case_type,
                 'user_id': sender_user_id,
                 'stars_amount': stars_amount,
-                'timestamp': int(time.time()),
-                'source': 'webapp_invoice_link'
+                'timestamp': int(time.time())
             })
             
             prices = [LabeledPrice(label=title, amount=stars_amount)]
             
-            try:
-                # Create invoice link
-                invoice_link = await context.bot.create_invoice_link(
-                    title=title,
-                    description=description,
-                    payload=payload,
-                    provider_token="",  # Empty for Telegram Stars
-                    currency="XTR",
-                    prices=prices
-                )
-                
-                # Store in database
-                conn = sqlite3.connect('bot_data.db')
-                cursor = conn.cursor()
-                invoice_id = f"{sender_user_id}_{int(time.time())}"
-                
-                cursor.execute('''
-                    INSERT INTO invoices (id, telegram_id, case_type, stars_amount, status, payload, invoice_link)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (invoice_id, sender_user_id, case_type, stars_amount, 'pending', payload, invoice_link))
-                
-                conn.commit()
-                conn.close()
-                
-                # ИСПРАВЛЕНИЕ: Отправить ссылку обратно в WebApp
-                # Используем специальный формат сообщения, который WebApp может обработать
-                response_data = {
-                    'action': 'invoice_link_response',
-                    'success': True,
-                    'invoice_link': invoice_link,
-                    'case_type': case_type,
-                    'stars_amount': stars_amount,
-                    'invoice_id': invoice_id
-                }
-                
-                # Отправляем ответ в чат (WebApp может его перехватить)
-                await update.message.reply_text(
-                    f"✅ Invoice created!\n\nInvoice data: {json.dumps(response_data)}",
-                    parse_mode='Markdown'
-                )
-                
-                # АЛЬТЕРНАТИВНОЕ РЕШЕНИЕ: Использовать inline кнопку с invoice_link
-                keyboard = [[InlineKeyboardButton("💫 Pay with Stars", url=invoice_link)]]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                
-                await update.message.reply_text(
-                    f"💫 **{title}** - {stars_amount} ⭐\n\n"
-                    f"Click the button below to pay with Telegram Stars:",
-                    reply_markup=reply_markup,
-                    parse_mode='Markdown'
-                )
-                    
-            except Exception as invoice_error:
-                logger.error(f"Invoice creation error: {invoice_error}")
-                await update.message.reply_text(f"❌ Failed to create invoice: {str(invoice_error)}")
-                
+            invoice_link = await context.bot.create_invoice_link(
+                title=title,
+                description=description,
+                payload=payload,
+                provider_token="",
+                currency="XTR",
+                prices=prices
+            )
+            
+            # Send inline button with invoice link
+            keyboard = [[InlineKeyboardButton("💫 Pay with Stars", url=invoice_link)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(
+                f"💫 **{title}** - {stars_amount} ⭐\n\nClick to pay:",
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            
     except Exception as e:
-        logger.error(f"WebApp data handling error: {e}")
         await update.message.reply_text(f"❌ Error: {str(e)}")
 
 async def pre_checkout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
