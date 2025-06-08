@@ -1,54 +1,25 @@
-// Telegram Stars Payment Handler
-// Following official guide: https://core.telegram.org/bots/payments-stars
+// Telegram Stars Payment Handler - ИСПРАВЛЕННАЯ ВЕРСИЯ
 
-// Global payment context storage
 let currentPaymentContext = null;
+let pendingInvoiceRequest = null;
 
-/**
- * Initiates a Telegram Stars payment using the official API flow with invoice links
- * @param {string} caseType - The type of case being purchased
- * @param {number} starsAmount - The amount of stars to charge
- * @returns {Promise<{success: boolean, message?: string}>}
- */
 async function initiateStarsPayment(caseType, starsAmount) {
-    console.log(`\n${'='*50}`);
-    console.log(`[Telegram Stars] 🚀 INITIATING PAYMENT (WebApp.openInvoice Approach)`);
-    console.log(`[Telegram Stars] Case Type: ${caseType}`);
-    console.log(`[Telegram Stars] Stars Amount: ${starsAmount}`);
-    console.log(`${'='*50}`);
+    console.log(`[Telegram Stars] Initiating payment for ${caseType} case: ${starsAmount} stars`);
     
     try {
-        // Check if Telegram WebApp is available
-        console.log('[Telegram Stars] 🔍 Checking Telegram WebApp availability...');
-        if (!window.Telegram) {
-            console.error('[Telegram Stars] ❌ window.Telegram not available');
-            throw new Error('Telegram WebApp not available - window.Telegram missing');
+        if (!window.Telegram?.WebApp) {
+            throw new Error('Telegram WebApp not available');
         }
         
-        if (!window.Telegram.WebApp) {
-            console.error('[Telegram Stars] ❌ window.Telegram.WebApp not available');
-            throw new Error('Telegram WebApp not available - WebApp object missing');
-        }
-        
-        console.log('[Telegram Stars] ✅ Telegram WebApp object found');
-
         const tg = window.Telegram.WebApp;
         
-        // Check if we're in a Telegram environment
-        console.log('[Telegram Stars] 🔍 Checking Telegram environment...');
-        console.log('[Telegram Stars] Init data unsafe:', tg.initDataUnsafe);
-        console.log('[Telegram Stars] User object:', tg.initDataUnsafe?.user);
-        
         if (!tg.initDataUnsafe?.user?.id) {
-            console.error('[Telegram Stars] ❌ User ID not available');
-            console.error('[Telegram Stars] initDataUnsafe:', tg.initDataUnsafe);
-            throw new Error('Not running in Telegram environment - user ID missing');
+            throw new Error('User not authenticated in Telegram');
         }
         
         const userId = tg.initDataUnsafe.user.id;
-        console.log(`[Telegram Stars] ✅ User ID found: ${userId}`);
-
-        // Store payment context globally for later use
+        
+        // Store payment context
         currentPaymentContext = {
             caseType: caseType,
             starsAmount: starsAmount,
@@ -56,12 +27,12 @@ async function initiateStarsPayment(caseType, starsAmount) {
             timestamp: Date.now()
         };
         
-        console.log('[Telegram Stars] 💾 Payment context stored:', currentPaymentContext);
-
-        // STEP 1: Get invoice link from bot
-        console.log('[Telegram Stars] 📋 Requesting invoice link from bot...');
+        // Show loading state
+        if (typeof showToast === 'function') {
+            showToast('Creating payment link...', 'info');
+        }
         
-        // Send request to bot for invoice link
+        // Request invoice link from bot
         const linkRequest = {
             action: 'get_invoice_link',
             case_type: caseType,
@@ -69,438 +40,123 @@ async function initiateStarsPayment(caseType, starsAmount) {
             user_id: userId,
             timestamp: Date.now()
         };
-
-        console.log('[Telegram Stars] 📤 Sending invoice link request:', linkRequest);
+        
+        // Set up promise to wait for bot response
+        pendingInvoiceRequest = new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Timeout waiting for invoice link'));
+            }, 30000); // 30 second timeout
+            
+            // Store resolve/reject for later use
+            pendingInvoiceRequest.resolve = resolve;
+            pendingInvoiceRequest.reject = reject;
+            pendingInvoiceRequest.timeout = timeout;
+        });
+        
+        // Send request to bot
         tg.sendData(JSON.stringify(linkRequest));
         
-        // Show user that we're processing
-        if (typeof showToast === 'function') {
-            showToast('🔗 Creating payment link...', 'info');
-        }
+        // Wait for bot response
+        const invoiceLink = await pendingInvoiceRequest;
         
-        // For now, since we can't easily get the response back from the bot in WebApp data,
-        // let's use a fallback approach by creating a simple test invoice link
-        console.log('[Telegram Stars] ℹ️ Using fallback test approach for invoice link...');
+        console.log(`[Telegram Stars] Received invoice link: ${invoiceLink}`);
         
-        // Create a test invoice link for demonstration
-        // In production, you'd get this from your backend
-        const testInvoiceLink = `https://t.me/invoice/${Date.now()}_${userId}_${caseType}_${starsAmount}`;
-        console.log('[Telegram Stars] 🧪 Test invoice link:', testInvoiceLink);
+        // Open invoice with real link
+        tg.openInvoice(invoiceLink, (status) => {
+            console.log(`[Telegram Stars] Invoice status: ${status}`);
+            handleInvoiceStatus(status, caseType);
+        });
         
-        // Note: Since this is a test link, WebApp.openInvoice will likely fail
-        // But let's show the proper structure for when you have a real invoice link
+        return { success: true, message: 'Payment initiated' };
         
-        console.log('[Telegram Stars] ⚠️ NOTE: This is a test implementation');
-        console.log('[Telegram Stars] ⚠️ For production, replace with actual invoice link from bot');
-        
-        // STEP 2: Try to open invoice (will fail with test link, but shows proper structure)
-        console.log('[Telegram Stars] 🔗 Attempting to open invoice with WebApp.openInvoice...');
-        
-        try {
-            // This will fail with our test link, but shows the proper approach
-            tg.openInvoice(testInvoiceLink, (status) => {
-                console.log(`[Telegram Stars] 💳 Invoice status received: ${status}`);
-                handleInvoiceStatus(status, caseType);
-            });
-            
-            console.log('[Telegram Stars] ✅ WebApp.openInvoice called (waiting for status...)');
-            return { success: true, message: 'Payment interface opened' };
-            
-        } catch (invoiceError) {
-            console.log('[Telegram Stars] ❌ WebApp.openInvoice failed (expected with test link)');
-            console.log('[Telegram Stars] Error:', invoiceError.message);
-            
-            // Fallback: Simulate payment success for testing
-            console.log('[Telegram Stars] 🧪 FALLBACK: Simulating payment for testing...');
-            
-            if (typeof showToast === 'function') {
-                showToast('🧪 Test mode: Simulating payment success...', 'warning');
-            }
-            
-            setTimeout(async () => {
-                console.log('[Telegram Stars] 🧪 Simulating successful payment...');
-                await handleInvoiceStatus('paid', caseType);
-            }, 2000);
-            
-            return { success: true, message: 'Test payment simulation started' };
-        }
-
     } catch (error) {
-        console.error(`\n${'='*50}`);
-        console.error('[Telegram Stars] 🚨 PAYMENT ERROR');
-        console.error('[Telegram Stars] Error type:', error.constructor.name);
-        console.error('[Telegram Stars] Error message:', error.message);
-        console.error('[Telegram Stars] Error stack:', error.stack);
-        console.error(`${'='*50}\n`);
+        console.error('[Telegram Stars] Payment error:', error);
+        currentPaymentContext = null;
         
-        currentPaymentContext = null; // Clear context on error
+        if (pendingInvoiceRequest?.timeout) {
+            clearTimeout(pendingInvoiceRequest.timeout);
+        }
+        
         return { 
             success: false, 
-            message: error.message || 'Payment failed. Please try again.' 
+            message: error.message || 'Payment failed' 
         };
     }
 }
 
-/**
- * Handle invoice status from WebApp.openInvoice callback
- * @param {string} status - Payment status ('paid', 'cancelled', 'failed')
- * @param {string} caseType - Case type for processing
- */
-async function handleInvoiceStatus(status, caseType) {
-    console.log(`[Telegram Stars] 💳 Processing invoice status: ${status}`);
-    
-    if (status === 'paid') {
-        console.log('[Telegram Stars] 🎉 Payment successful!');
-        
-        // Show immediate success feedback
-        if (typeof showToast === 'function') {
-            showToast('🎉 Payment successful! Opening your case...', 'success');
-        }
-        
-        // Show loading message
-        const loadingMessage = document.createElement('div');
-        loadingMessage.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; 
-                        text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
-                <div style="font-size: 24px; margin-bottom: 10px;">🎉</div>
-                <div style="font-size: 18px; margin-bottom: 10px;">Payment Successful!</div>
-                <div style="font-size: 14px;">Opening your ${caseType.charAt(0).toUpperCase() + caseType.slice(1)} case...</div>
-                <div style="font-size: 12px; color: #ccc; margin-bottom: 15px;">Paid ${currentPaymentContext?.starsAmount || 1} ⭐</div>
-                <div style="margin-top: 15px;">
-                    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; 
-                                border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                </div>
-            </div>
-            <style>
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            </style>
-        `;
-        loadingMessage.id = 'payment-success-loading';
-        document.body.appendChild(loadingMessage);
-        
-        // Process payment success
-        setTimeout(async () => {
-            try {
-                console.log(`[Telegram Stars] Processing case opening for: ${caseType}`);
-                
-                if (typeof processStarsPaymentSuccess === 'function') {
-                    await processStarsPaymentSuccess(caseType, `stars_payment_${Date.now()}`);
-                    console.log('[Telegram Stars] Case opening completed successfully');
-                } else {
-                    console.error('[Telegram Stars] processStarsPaymentSuccess function not found');
-                    if (typeof showToast === 'function') {
-                        showToast('Payment successful! Please refresh to see your case.', 'warning');
-                    }
-                }
-            } catch (error) {
-                console.error('[Telegram Stars] Error processing payment success:', error);
-                if (typeof showToast === 'function') {
-                    showToast('Payment successful! Case opening failed. Please try refreshing.', 'warning');
-                }
-            } finally {
-                // Remove loading message and clear context
-                const loadingElement = document.getElementById('payment-success-loading');
-                if (loadingElement) {
-                    loadingElement.remove();
-                }
-                currentPaymentContext = null;
-            }
-        }, 1000);
-        
-    } else if (status === 'cancelled') {
-        console.log('[Telegram Stars] ❌ Payment cancelled by user');
-        currentPaymentContext = null;
-        if (typeof showToast === 'function') {
-            showToast('💫 Payment cancelled', 'info');
-        }
-        
-    } else if (status === 'failed') {
-        console.log('[Telegram Stars] ❌ Payment failed');
-        currentPaymentContext = null;
-        if (typeof showToast === 'function') {
-            showToast('❌ Payment failed. Please try again.', 'error');
-        }
-        
-    } else {
-        console.log(`[Telegram Stars] ❓ Unknown payment status: ${status}`);
-        currentPaymentContext = null;
-        if (typeof showToast === 'function') {
-            showToast(`❓ Payment status: ${status}`, 'warning');
-        }
-    }
-}
-
-/**
- * Handle successful payment notification from Telegram
- * This is called when Telegram confirms the payment
- * @param {Object} paymentData - Payment data from Telegram
- * @returns {Promise<{success: boolean, message?: string}>}
- */
-async function handleStarsPaymentSuccess(paymentData) {
+// NEW: Function to handle bot response with invoice link
+function handleBotResponse(data) {
     try {
-        console.log('[Telegram Stars] Processing successful payment:', paymentData);
+        const response = JSON.parse(data);
         
-        const { case_type, telegram_payment_charge_id } = paymentData;
-        
-        // Trigger case opening after successful payment
-        if (typeof processStarsPaymentSuccess === 'function') {
-            await processStarsPaymentSuccess(case_type, telegram_payment_charge_id);
-        }
-
-        console.log('[Telegram Stars] Payment processed successfully');
-        return { success: true };
-
-    } catch (error) {
-        console.error('[Telegram Stars] Payment processing error:', error);
-        return { 
-            success: false, 
-            message: error.message || 'Payment processing failed' 
-        };
-    }
-}
-
-/**
- * Payment timeout handler
- */
-function handlePaymentTimeout(timeoutMs = 300000) { // 5 minutes default
-    if (!currentPaymentContext) return;
-    
-    setTimeout(() => {
-        if (currentPaymentContext) {
-            console.warn('[Telegram Stars] Payment timeout - clearing context');
-            const caseType = currentPaymentContext.caseType;
-            currentPaymentContext = null;
+        if (response.action === 'invoice_link_response' && pendingInvoiceRequest) {
+            clearTimeout(pendingInvoiceRequest.timeout);
             
-            if (typeof showToast === 'function') {
-                showToast(`⏰ Payment timeout for ${caseType} case. Please try again.`, 'warning');
+            if (response.success && response.invoice_link) {
+                pendingInvoiceRequest.resolve(response.invoice_link);
+            } else {
+                pendingInvoiceRequest.reject(new Error(response.message || 'Failed to create invoice'));
             }
+            
+            pendingInvoiceRequest = null;
         }
-    }, timeoutMs);
-}
-
-/**
- * Retry payment mechanism
- */
-async function retryPayment() {
-    if (!currentPaymentContext) {
-        console.error('[Telegram Stars] No payment context to retry');
-        return { success: false, message: 'No payment to retry' };
-    }
-    
-    const { caseType, starsAmount } = currentPaymentContext;
-    console.log(`[Telegram Stars] Retrying payment for ${caseType} case`);
-    
-    return await initiateStarsPayment(caseType, starsAmount);
-}
-
-/**
- * Clear any stuck payment states
- */
-function clearStuckPayment() {
-    if (currentPaymentContext) {
-        console.log('[Telegram Stars] Clearing stuck payment context');
-        currentPaymentContext = null;
-        
-        // Remove any loading messages
-        const loadingElement = document.getElementById('payment-success-loading');
-        if (loadingElement) {
-            loadingElement.remove();
-        }
-        
-        if (typeof showToast === 'function') {
-            showToast('Payment state cleared. You can try again.', 'info');
-        }
+    } catch (error) {
+        console.error('[Telegram Stars] Error handling bot response:', error);
     }
 }
 
-/**
- * Initialize WebApp event listeners for Telegram Stars payments
- */
+// Initialize WebApp with proper event handling
 function initializeStarsPaymentListeners() {
-    console.log('[Telegram Stars] === INITIALIZING PAYMENT SYSTEM ===');
-    
-    if (window.Telegram && window.Telegram.WebApp) {
+    if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         
-        console.log('[Telegram Stars] ✅ Telegram WebApp available');
-        console.log('[Telegram Stars] WebApp version:', tg.version);
-        console.log('[Telegram Stars] Platform:', tg.platform);
-        console.log('[Telegram Stars] Color scheme:', tg.colorScheme);
-        console.log('[Telegram Stars] Init data unsafe:', tg.initDataUnsafe);
-        console.log('[Telegram Stars] User ID:', tg.initDataUnsafe?.user?.id);
-        console.log('[Telegram Stars] User info:', tg.initDataUnsafe?.user);
-        
-        // Test basic WebApp functionality
-        console.log('[Telegram Stars] Testing WebApp.sendData functionality...');
-        
-        // Add a test button click handler
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.open-case-stars-btn')) {
-                console.log('[Telegram Stars] 🚀 STARS BUTTON CLICKED!');
-                console.log('[Telegram Stars] Button element:', e.target.closest('.open-case-stars-btn'));
-                console.log('[Telegram Stars] WebApp available:', !!window.Telegram?.WebApp);
-                console.log('[Telegram Stars] User data:', tg.initDataUnsafe?.user);
-            }
-        });
-        
-        // Listen for invoice events according to official documentation
+        // Listen for invoice events
         tg.onEvent('invoiceClosed', async (result) => {
-            console.log('[Telegram Stars] 🧾 Invoice closed event received:', result);
+            console.log('[Telegram Stars] Invoice closed:', result);
             
             if (result.status === 'paid') {
-                console.log('[Telegram Stars] ✅ Payment successful! Processing...');
-                
-                // Get case type from stored context
-                const caseType = currentPaymentContext?.caseType || 'labubu';
-                const starsAmount = currentPaymentContext?.starsAmount || 1;
-                
-                console.log(`[Telegram Stars] Using payment context: ${caseType} case for ${starsAmount} stars`);
-                
-                // Show immediate success feedback
-                if (typeof showToast === 'function') {
-                    showToast('🎉 Payment successful! Opening your case...', 'success');
-                } else {
-                    console.log('[Telegram Stars] Success feedback: Payment completed!');
-                }
-                
-                // Show loading state with case-specific information
-                const loadingMessage = document.createElement('div');
-                loadingMessage.innerHTML = `
-                    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                                background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; 
-                                text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
-                        <div style="font-size: 24px; margin-bottom: 10px;">🎉</div>
-                        <div style="font-size: 18px; margin-bottom: 10px;">Payment Successful!</div>
-                        <div style="font-size: 14px;">Opening your ${caseType.charAt(0).toUpperCase() + caseType.slice(1)} case...</div>
-                        <div style="font-size: 12px; color: #ccc; margin-bottom: 15px;">Paid ${starsAmount} ⭐</div>
-                        <div style="margin-top: 15px;">
-                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; 
-                                        border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                        </div>
-                    </div>
-                    <style>
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                `;
-                loadingMessage.id = 'payment-success-loading';
-                document.body.appendChild(loadingMessage);
-                
-                // Wait for bot processing, then trigger case opening
-                setTimeout(async () => {
-                    try {
-                        console.log(`[Telegram Stars] Triggering case opening for ${caseType}...`);
-                        
-                        if (typeof processStarsPaymentSuccess === 'function') {
-                            await processStarsPaymentSuccess(caseType, `stars_payment_${Date.now()}`);
-                            console.log('[Telegram Stars] Case opening completed successfully');
-                        } else {
-                            console.error('[Telegram Stars] processStarsPaymentSuccess function not found');
-                            if (typeof showToast === 'function') {
-                                showToast('Payment successful! Please refresh to see your case.', 'warning');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('[Telegram Stars] Error opening case:', error);
-                        if (typeof showToast === 'function') {
-                            showToast('Payment successful! Case opening failed. Please try refreshing.', 'warning');
-                        }
-                    } finally {
-                        // Remove loading message and clear context
-                        const loadingElement = document.getElementById('payment-success-loading');
-                        if (loadingElement) {
-                            loadingElement.remove();
-                        }
-                        currentPaymentContext = null; // Clear payment context
-                    }
-                }, 3000); // Wait 3 seconds for bot processing
-                
+                await handleInvoiceStatus('paid', currentPaymentContext?.caseType);
             } else if (result.status === 'cancelled') {
-                console.log('[Telegram Stars] ❌ Payment cancelled by user');
-                currentPaymentContext = null; // Clear context on cancellation
-                if (typeof showToast === 'function') {
-                    showToast('💫 Payment cancelled', 'info');
-                }
+                await handleInvoiceStatus('cancelled', currentPaymentContext?.caseType);
             } else if (result.status === 'failed') {
-                console.log('[Telegram Stars] ❌ Payment failed');
-                currentPaymentContext = null; // Clear context on failure
-                if (typeof showToast === 'function') {
-                    showToast('❌ Payment failed. Please try again.', 'error');
-                }
-            } else {
-                console.log('[Telegram Stars] ❓ Unknown invoice status:', result.status);
-                currentPaymentContext = null; // Clear context on unknown status
-                if (typeof showToast === 'function') {
-                    showToast('❓ Payment status unknown. Please check your purchase.', 'warning');
-                }
+                await handleInvoiceStatus('failed', currentPaymentContext?.caseType);
             }
         });
-
-        // Enhanced global event tracking for debugging
-        tg.onEvent('themeChanged', () => {
-            console.log('[Telegram Stars] 🎨 Theme changed');
+        
+        // Listen for bot responses (if using custom message handling)
+        tg.onEvent('mainButtonClicked', () => {
+            // Handle main button if needed
         });
-
-        tg.onEvent('viewportChanged', (data) => {
-            console.log('[Telegram Stars] 📱 Viewport changed:', data);
-        });
-
-        tg.onEvent('safeAreaChanged', (data) => {
-            console.log('[Telegram Stars] 🔲 Safe area changed:', data);
-        });
-
-        // Track payment-related events
-        tg.onEvent('popupClosed', (buttonId) => {
-            console.log('[Telegram Stars] 🔙 Popup closed with button:', buttonId);
-        });
-
-        // Global error tracking for WebApp
-        window.addEventListener('error', (event) => {
-            console.error('[Telegram Stars] 🚨 Global error:', event.error);
-            console.error('[Telegram Stars] Error details:', {
-                message: event.message,
-                filename: event.filename,
-                lineno: event.lineno,
-                colno: event.colno
-            });
-        });
-
-        // Track unhandled promise rejections
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('[Telegram Stars] 🚨 Unhandled promise rejection:', event.reason);
-        });
-
-        // Ready the WebApp
+        
         tg.ready();
-        
-        console.log('[Telegram Stars] ✅ Payment listeners initialized successfully');
-        console.log('[Telegram Stars] === PAYMENT SYSTEM READY ===');
-        
-        // Test sendData immediately
-        console.log('[Telegram Stars] 🧪 Testing sendData with test message...');
-        try {
-            tg.sendData(JSON.stringify({
-                action: 'test_connection',
-                timestamp: Date.now(),
-                user_id: tg.initDataUnsafe?.user?.id
-            }));
-            console.log('[Telegram Stars] ✅ Test sendData call successful');
-        } catch (error) {
-            console.error('[Telegram Stars] ❌ Test sendData failed:', error);
-        }
-        
-    } else {
-        console.error('[Telegram Stars] ❌ Telegram WebApp not available - payment listeners not initialized');
-        console.error('[Telegram Stars] window.Telegram:', window.Telegram);
-        console.error('[Telegram Stars] window.Telegram.WebApp:', window.Telegram?.WebApp);
+        console.log('[Telegram Stars] Payment system initialized');
     }
 }
 
-// Initialize when script loads
+async function handleInvoiceStatus(status, caseType) {
+    console.log(`[Telegram Stars] Processing status: ${status} for ${caseType}`);
+    
+    if (status === 'paid') {
+        if (typeof showToast === 'function') {
+            showToast('Payment successful! Opening case...', 'success');
+        }
+        
+        // Process successful payment
+        if (typeof processStarsPaymentSuccess === 'function') {
+            await processStarsPaymentSuccess(caseType, `stars_${Date.now()}`);
+        }
+    } else if (status === 'cancelled') {
+        if (typeof showToast === 'function') {
+            showToast('Payment cancelled', 'info');
+        }
+    } else if (status === 'failed') {
+        if (typeof showToast === 'function') {
+            showToast('Payment failed. Please try again.', 'error');
+        }
+    }
+    
+    currentPaymentContext = null;
+}
+
+// Initialize on load
 initializeStarsPaymentListeners(); 

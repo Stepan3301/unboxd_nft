@@ -4,6 +4,8 @@ from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMar
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, PreCheckoutQueryHandler, MessageHandler, filters
 import json
 import time
+import asyncio
+import sqlite3
 
 # Enable logging
 logging.basicConfig(
@@ -13,15 +15,16 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# Bot token provided by BotFather
-TOKEN = "7548063060:AAFRPyueo070wzlN-Ui0MzKGLXiz1YcUK5U"
+# ИСПРАВЛЕНИЕ: Безопасное получение токена
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7548063060:AAFRPyueo070wzlN-Ui0MzKGLXiz1YcUK5U')
+if TOKEN == '7548063060:AAFRPyueo070wzlN-Ui0MzKGLXiz1YcUK5U' and os.getenv('TELEGRAM_BOT_TOKEN') is None:
+    logger.warning("Using hardcoded token. Please set TELEGRAM_BOT_TOKEN environment variable for production.")
 
 # IMPORTANT: Updated to match user's actual bot username
 BOT_USERNAME = "unboxdnft_bot"  # Changed from UnboxdNFT_bot to match @unboxdnft_bot
 
-# Define the URL where your web app is hosted
-# Updated to use your GitHub Pages URL
-WEBAPP_URL = "https://stepan3301.github.io/unboxd_nft/webapp.html"
+# ИСПРАВЛЕНИЕ: Правильный URL WebApp
+WEBAPP_URL = "https://stepan3301.github.io/unboxd_nft/index.html"  # Изменено с webapp.html на index.html
 
 # Case prices in Telegram Stars
 CASE_PRICES_STARS = {
@@ -31,9 +34,46 @@ CASE_PRICES_STARS = {
     'newmoney': 5
 }
 
-# In-memory storage for testing (replace with database in production)
-invoices_storage = {}
-payments_storage = {}
+# ИСПРАВЛЕНИЕ: Добавить персистентное хранение (SQLite для простоты)
+def init_database():
+    """Initialize SQLite database for storing invoices and payments"""
+    conn = sqlite3.connect('bot_data.db')
+    cursor = conn.cursor()
+    
+    # Create invoices table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS invoices (
+            id TEXT PRIMARY KEY,
+            telegram_id INTEGER,
+            case_type TEXT,
+            stars_amount INTEGER,
+            status TEXT,
+            payload TEXT,
+            invoice_link TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create payments table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS payments (
+            id TEXT PRIMARY KEY,
+            telegram_id INTEGER,
+            case_type TEXT,
+            stars_amount INTEGER,
+            telegram_payment_charge_id TEXT,
+            provider_payment_charge_id TEXT,
+            payload TEXT,
+            status TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Initialize database on startup
+init_database()
 
 # NEW: Payment context storage to track active payments
 payment_contexts = {}  # user_id -> {case_type, stars_amount, timestamp, invoice_id}
@@ -121,7 +161,8 @@ async def handle_buy_case_callback(update: Update, context: ContextTypes.DEFAULT
     payload = json.dumps({
         'case_type': case_type,
         'user_id': query.from_user.id,
-        'timestamp': update.effective_message.date.timestamp()
+        'timestamp': int(time.time()),
+        'source': 'inline_button'
     })
     
     prices = [LabeledPrice(label=title, amount=stars_price)]
@@ -140,20 +181,120 @@ async def handle_buy_case_callback(update: Update, context: ContextTypes.DEFAULT
         
         await query.edit_message_text(f"Invoice sent for {title}! Check your messages.")
         
-        # Store invoice in memory
+        # Store invoice in database
+        conn = sqlite3.connect('bot_data.db')
+        cursor = conn.cursor()
         invoice_id = f"{query.from_user.id}_{int(time.time())}"
-        invoices_storage[invoice_id] = {
-            'telegram_id': query.from_user.id,
-            'case_type': case_type,
-            'stars_amount': stars_price,
-            'status': 'pending',
-            'payload': payload
-        }
+        
+        cursor.execute('''
+            INSERT INTO invoices (id, telegram_id, case_type, stars_amount, status, payload)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (invoice_id, query.from_user.id, case_type, stars_price, 'pending', payload))
+        
+        conn.commit()
+        conn.close()
         logger.info(f"Invoice stored: {invoice_id}")
             
     except Exception as e:
         logger.error(f"Error sending invoice: {e}")
         await query.edit_message_text("Sorry, there was an error creating the invoice. Please try again.")
+
+async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """ИСПРАВЛЕННАЯ версия обработки данных от WebApp"""
+    try:
+        web_app_data = update.message.web_app_data.data
+        data = json.loads(web_app_data)
+        action = data.get('action')
+        
+        if action == 'get_invoice_link':
+            case_type = data.get('case_type')
+            user_id = data.get('user_id')
+            stars_amount = data.get('stars_amount')
+            
+            # Validate data
+            if not case_type or case_type not in CASE_PRICES_STARS:
+                await update.message.reply_text("❌ Invalid case type")
+                return
+                
+            if CASE_PRICES_STARS[case_type] != stars_amount:
+                await update.message.reply_text("❌ Invalid price")
+                return
+            
+            sender_user_id = update.message.from_user.id
+            
+            # Create invoice
+            title = f"{case_type.title()} Case"
+            description = f"Open a {case_type} case and get random NFT items!"
+            
+            payload = json.dumps({
+                'case_type': case_type,
+                'user_id': sender_user_id,
+                'stars_amount': stars_amount,
+                'timestamp': int(time.time()),
+                'source': 'webapp_invoice_link'
+            })
+            
+            prices = [LabeledPrice(label=title, amount=stars_amount)]
+            
+            try:
+                # Create invoice link
+                invoice_link = await context.bot.create_invoice_link(
+                    title=title,
+                    description=description,
+                    payload=payload,
+                    provider_token="",  # Empty for Telegram Stars
+                    currency="XTR",
+                    prices=prices
+                )
+                
+                # Store in database
+                conn = sqlite3.connect('bot_data.db')
+                cursor = conn.cursor()
+                invoice_id = f"{sender_user_id}_{int(time.time())}"
+                
+                cursor.execute('''
+                    INSERT INTO invoices (id, telegram_id, case_type, stars_amount, status, payload, invoice_link)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (invoice_id, sender_user_id, case_type, stars_amount, 'pending', payload, invoice_link))
+                
+                conn.commit()
+                conn.close()
+                
+                # ИСПРАВЛЕНИЕ: Отправить ссылку обратно в WebApp
+                # Используем специальный формат сообщения, который WebApp может обработать
+                response_data = {
+                    'action': 'invoice_link_response',
+                    'success': True,
+                    'invoice_link': invoice_link,
+                    'case_type': case_type,
+                    'stars_amount': stars_amount,
+                    'invoice_id': invoice_id
+                }
+                
+                # Отправляем ответ в чат (WebApp может его перехватить)
+                await update.message.reply_text(
+                    f"✅ Invoice created!\n\nInvoice data: {json.dumps(response_data)}",
+                    parse_mode='Markdown'
+                )
+                
+                # АЛЬТЕРНАТИВНОЕ РЕШЕНИЕ: Использовать inline кнопку с invoice_link
+                keyboard = [[InlineKeyboardButton("💫 Pay with Stars", url=invoice_link)]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await update.message.reply_text(
+                    f"💫 **{title}** - {stars_amount} ⭐\n\n"
+                    f"Click the button below to pay with Telegram Stars:",
+                    reply_markup=reply_markup,
+                    parse_mode='Markdown'
+                )
+                    
+            except Exception as invoice_error:
+                logger.error(f"Invoice creation error: {invoice_error}")
+                await update.message.reply_text(f"❌ Failed to create invoice: {str(invoice_error)}")
+                
+    except Exception as e:
+        logger.error(f"WebApp data handling error: {e}")
+        await update.message.reply_text(f"❌ Error: {str(e)}")
 
 async def pre_checkout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle pre-checkout queries for payment validation."""
@@ -161,14 +302,12 @@ async def pre_checkout_callback(update: Update, context: ContextTypes.DEFAULT_TY
     
     try:
         logger.info(f"[Pre-Checkout] Query received: {query.id}")
-        print(f"[Pre-Checkout] Query received: {query.id}")
         
         payload_data = json.loads(query.invoice_payload)
         case_type = payload_data.get('case_type')
         user_id = payload_data.get('user_id')
         
         logger.info(f"[Pre-Checkout] Validating: User {user_id}, Case {case_type}, Amount {query.total_amount}")
-        print(f"[Pre-Checkout] Validating: User {user_id}, Case {case_type}, Amount {query.total_amount}")
         
         # Validate case type exists and is available
         if case_type not in CASE_PRICES_STARS:
@@ -199,23 +338,16 @@ async def pre_checkout_callback(update: Update, context: ContextTypes.DEFAULT_TY
             await query.answer(ok=False, error_message=error_msg)
             return
         
-        # All validations passed - approve the order
+        # All validations passed
+        logger.info(f"[Pre-Checkout] Validation successful for user {user_id}")
         await query.answer(ok=True)
-        logger.info(f"[Pre-Checkout] Approved for user {user_id}, case {case_type}")
-        print(f"[Pre-Checkout] Payment approved for {case_type} case")
         
-    except json.JSONDecodeError:
-        error_msg = "Invalid order data."
-        logger.error("[Pre-Checkout] Invalid JSON in pre-checkout payload")
-        await query.answer(ok=False, error_message=error_msg)
     except Exception as e:
-        error_msg = "Validation failed. Please try again."
         logger.error(f"[Pre-Checkout] Error: {e}")
-        print(f"[Pre-Checkout] Error: {e}")
-        await query.answer(ok=False, error_message=error_msg)
+        await query.answer(ok=False, error_message="Payment validation failed.")
 
 async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle successful payments."""
+    """ИСПРАВЛЕННАЯ обработка успешных платежей"""
     payment = update.message.successful_payment
     
     try:
@@ -223,260 +355,62 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
         case_type = payload_data.get('case_type')
         user_id = payload_data.get('user_id')
         
-        logger.info(f"[Payment Success] Payment successful: {payment.telegram_payment_charge_id}")
-        logger.info(f"[Payment Success] User: {user_id}, Case: {case_type}, Amount: {payment.total_amount} stars")
-        print(f"[Payment Success] Payment ID: {payment.telegram_payment_charge_id}, User: {user_id}, Case: {case_type}")
-        
-        # Get and validate payment context
-        payment_context = get_payment_context(user_id)
-        if payment_context:
-            logger.info(f"[Payment Success] Found payment context: {payment_context}")
-            # Use context data as source of truth
-            case_type = payment_context['case_type']
-        else:
-            logger.warning(f"[Payment Success] No payment context found for user {user_id}")
-        
-        # Store payment in memory
+        # Store payment in database
+        conn = sqlite3.connect('bot_data.db')
+        cursor = conn.cursor()
         payment_id = f"{user_id}_{int(time.time())}"
-        payments_storage[payment_id] = {
-            'telegram_id': user_id,
-            'case_type': case_type,
-            'stars_amount': payment.total_amount,
-            'telegram_payment_charge_id': payment.telegram_payment_charge_id,
-            'provider_payment_charge_id': payment.provider_payment_charge_id,
-            'payload': payment.invoice_payload,
-            'status': 'completed',
-            'timestamp': int(time.time())
-        }
         
-        # Clear payment context
-        clear_payment_context(user_id)
+        cursor.execute('''
+            INSERT INTO payments (id, telegram_id, case_type, stars_amount, telegram_payment_charge_id, 
+                                provider_payment_charge_id, payload, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (payment_id, user_id, case_type, payment.total_amount, 
+              payment.telegram_payment_charge_id, payment.provider_payment_charge_id, 
+              payment.invoice_payload, 'completed'))
         
+        conn.commit()
+        conn.close()
+        
+        # Send success message
         success_message = (
             f"🎉 **PAYMENT SUCCESSFUL!** 🎉\n\n"
             f"💫 **{case_type.title()} Case** purchased for **{payment.total_amount} ⭐**\n\n"
-            f"✅ Your payment has been processed successfully!\n"
-            f"🎮 **Your case will open automatically in the WebApp.**\n"
-            f"🎁 Get ready to see what amazing items you've won!\n\n"
-            f"📋 **Payment Receipt:**\n"
+            f"✅ Your case will open automatically in the WebApp!\n\n"
+            f"📋 **Receipt:**\n"
             f"• Transaction ID: `{payment.telegram_payment_charge_id}`\n"
-            f"• Case Type: {case_type.title()}\n"
-            f"• Amount: {payment.total_amount} Telegram Stars\n"
-            f"• Status: Completed ✅\n\n"
-            f"🔄 **Return to the app now to see your case opening!**"
+            f"• Case: {case_type.title()}\n"
+            f"• Amount: {payment.total_amount} Stars\n\n"
+            f"🔄 **Return to the app to see your case opening!**"
         )
         
         await update.message.reply_text(success_message, parse_mode='Markdown')
         
-        logger.info(f"[Payment Success] Payment {payment.telegram_payment_charge_id} processed successfully")
+        # НОВОЕ: Уведомить WebApp о успешном платеже
+        # Отправляем специальное сообщение, которое WebApp может обработать
+        notification_data = {
+            'action': 'payment_success',
+            'case_type': case_type,
+            'payment_id': payment.telegram_payment_charge_id,
+            'stars_amount': payment.total_amount
+        }
         
-    except json.JSONDecodeError:
-        logger.error("[Payment Success] Invalid JSON payload in successful payment")
         await update.message.reply_text(
-            "✅ **Payment Successful!** 💫\n\n"
-            "Your payment has been received, but there was an issue processing the order details.\n"
-            "Please contact support with your payment confirmation.\n\n"
-            f"Payment ID: `{payment.telegram_payment_charge_id}`",
+            f"Payment notification: {json.dumps(notification_data)}",
             parse_mode='Markdown'
         )
+        
     except Exception as e:
-        logger.error(f"[Payment Success] Error handling successful payment: {e}")
+        logger.error(f"Payment processing error: {e}")
         await update.message.reply_text(
-            "✅ **Payment Successful!** 💫\n\n"
-            f"Your payment of {payment.total_amount} ⭐ has been processed!\n"
-            "However, there was an error processing your order.\n\n"
-            "**Don't worry - your payment has been recorded and we will resolve this issue.**\n\n"
-            f"Payment ID: `{payment.telegram_payment_charge_id}`\n"
-            "Please contact support if your case doesn't open automatically.",
+            "✅ Payment received but there was an error processing it. "
+            "Please contact support with your payment ID: "
+            f"`{payment.telegram_payment_charge_id}`",
             parse_mode='Markdown'
         )
-
-async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle data sent from the WebApp."""
-    try:
-        web_app_data = update.message.web_app_data.data
-        
-        print(f"\n{'='*60}")
-        print(f"[WebApp] 🚀 RAW DATA RECEIVED FROM WEBAPP")
-        print(f"[WebApp] Raw data length: {len(web_app_data)}")
-        print(f"[WebApp] Raw data: {web_app_data}")
-        print(f"[WebApp] Message from user: {update.message.from_user.id} (@{update.message.from_user.username})")
-        print(f"[WebApp] Chat ID: {update.message.chat.id}")
-        print(f"{'='*60}\n")
-        
-        try:
-            data = json.loads(web_app_data)
-            logger.info(f"[WebApp] Parsed data successfully: {data}")
-            print(f"[WebApp] ✅ Parsed JSON: {data}")
-        except json.JSONDecodeError as json_error:
-            error_msg = f"❌ Invalid JSON format: {str(json_error)}"
-            logger.error(f"[WebApp] JSON parsing error: {json_error}")
-            print(f"[WebApp] ❌ JSON Error: {json_error}")
-            await update.message.reply_text(error_msg)
-            return
-        
-        action = data.get('action')
-        print(f"[WebApp] 🎯 Action detected: {action}")
-        
-        if action == 'test_connection':
-            print(f"[WebApp] 🧪 TEST CONNECTION received!")
-            print(f"[WebApp] Test data: {data}")
-            await update.message.reply_text(
-                "✅ **Bot Connection Test Successful!**\n\n"
-                f"📱 WebApp is connected to @{BOT_USERNAME}\n"
-                f"👤 User ID: {data.get('user_id', 'Unknown')}\n"
-                f"🕐 Timestamp: {data.get('timestamp', 'Unknown')}\n\n"
-                "🌟 **Ready to process Telegram Stars payments!**",
-                parse_mode='Markdown'
-            )
-            return
-            
-        elif action == 'get_invoice_link':
-            case_type = data.get('case_type')
-            user_id = data.get('user_id')
-            stars_amount = data.get('stars_amount')
-            
-            print(f"[WebApp] 🌟 INVOICE LINK REQUEST:")
-            print(f"[WebApp]   - Case Type: {case_type}")
-            print(f"[WebApp]   - User ID: {user_id}")
-            print(f"[WebApp]   - Stars Amount: {stars_amount}")
-            print(f"[WebApp]   - Expected Price: {CASE_PRICES_STARS.get(case_type, 'Unknown')}")
-            
-            logger.info(f"[WebApp] Processing invoice link request: case={case_type}, user={user_id}, amount={stars_amount}")
-            
-            # Validate data
-            if not case_type or case_type not in CASE_PRICES_STARS:
-                error_msg = f"❌ Invalid case type: {case_type}"
-                logger.error(error_msg)
-                print(f"[WebApp] ❌ Validation failed: {error_msg}")
-                await update.message.reply_text(error_msg)
-                return
-                
-            if CASE_PRICES_STARS[case_type] != stars_amount:
-                error_msg = f"❌ Invalid price. Expected {CASE_PRICES_STARS[case_type]}, got {stars_amount}"
-                logger.error(error_msg)
-                print(f"[WebApp] ❌ Price validation failed: {error_msg}")
-                await update.message.reply_text(error_msg)
-                return
-            
-            # Use the message sender's user ID
-            sender_user_id = update.message.from_user.id
-            
-            print(f"[WebApp] 📋 Invoice Link Details:")
-            print(f"[WebApp]   - Sender User ID: {sender_user_id}")
-            print(f"[WebApp]   - Requested User ID: {user_id}")
-            
-            # Prepare invoice link
-            title = f"{case_type.title()} Case"
-            description = f"Open a {case_type} case and get random NFT items!"
-            
-            payload = json.dumps({
-                'case_type': case_type,
-                'user_id': sender_user_id,
-                'stars_amount': stars_amount,
-                'timestamp': int(time.time()),
-                'source': 'webapp_invoice_link'
-            })
-            
-            prices = [LabeledPrice(label=title, amount=stars_amount)]
-            
-            try:
-                print(f"[WebApp] 🔗 Creating invoice link...")
-                logger.info(f"[WebApp] Creating invoice link for {case_type} case...")
-                
-                # Create invoice link instead of sending invoice
-                invoice_link = await context.bot.create_invoice_link(
-                    title=title,
-                    description=description,
-                    payload=payload,
-                    provider_token="",  # Empty for Telegram Stars
-                    currency="XTR",  # Telegram Stars currency
-                    prices=prices
-                )
-                
-                print(f"[WebApp] ✅ Invoice link created successfully!")
-                print(f"[WebApp]   - Invoice link: {invoice_link}")
-                logger.info(f"[WebApp] Invoice link created successfully: {invoice_link}")
-                
-                # Store invoice in memory
-                invoice_id = f"{sender_user_id}_{int(time.time())}"
-                invoices_storage[invoice_id] = {
-                    'telegram_id': sender_user_id,
-                    'case_type': case_type,
-                    'stars_amount': stars_amount,
-                    'status': 'pending',
-                    'payload': payload,
-                    'invoice_link': invoice_link
-                }
-                logger.info(f"[WebApp] Invoice stored in memory: {invoice_id}")
-                print(f"[WebApp] 💾 Invoice stored: {invoice_id}")
-                
-                # Store payment context for tracking
-                store_payment_context(sender_user_id, case_type, stars_amount, invoice_id)
-                print(f"[WebApp] 🎯 Payment context stored for user {sender_user_id}")
-                
-                # Send the invoice link back to the WebApp
-                response_data = {
-                    'action': 'invoice_link_response',
-                    'success': True,
-                    'invoice_link': invoice_link,
-                    'case_type': case_type,
-                    'stars_amount': stars_amount,
-                    'invoice_id': invoice_id
-                }
-                
-                await update.message.reply_text(
-                    f"✅ **Invoice Link Created!**\n\n"
-                    f"💫 **{title}** - {stars_amount} ⭐\n"
-                    f"🔗 Invoice link generated successfully!\n"
-                    f"📋 The payment will open in your app.\n\n"
-                    f"💡 Complete the payment to open your case automatically!\n\n"
-                    f"**Invoice Link:** `{invoice_link}`",
-                    parse_mode='Markdown'
-                )
-                    
-            except Exception as invoice_error:
-                error_msg = f"❌ Failed to create invoice link: {str(invoice_error)}"
-                logger.error(f"[WebApp] Invoice link creation error: {invoice_error}")
-                print(f"[WebApp] ❌ Invoice link creation failed: {invoice_error}")
-                await update.message.reply_text(error_msg)
-                return
-        
-        else:
-            unknown_action = data.get('action', 'unknown')
-            logger.warning(f"[WebApp] Unknown action: {unknown_action}")
-            print(f"[WebApp] ❓ Unknown action received: {unknown_action}")
-            await update.message.reply_text(f"❓ Unknown action: {unknown_action}")
-            
-    except Exception as e:
-        error_msg = f"❌ Error processing request: {str(e)}"
-        logger.error(f"[WebApp] General error: {e}")
-        print(f"[WebApp] 🚨 General error: {e}")
-        await update.message.reply_text(error_msg)
-
-def store_payment_context(user_id, case_type, stars_amount, invoice_id):
-    """Store payment context for tracking"""
-    payment_contexts[user_id] = {
-        'case_type': case_type,
-        'stars_amount': stars_amount,
-        'timestamp': int(time.time()),
-        'invoice_id': invoice_id,
-        'status': 'pending'
-    }
-    logger.info(f"[Payment Context] Stored context for user {user_id}: {case_type}")
-
-def get_payment_context(user_id):
-    """Get payment context for user"""
-    return payment_contexts.get(user_id)
-
-def clear_payment_context(user_id):
-    """Clear payment context after completion"""
-    if user_id in payment_contexts:
-        del payment_contexts[user_id]
-        logger.info(f"[Payment Context] Cleared context for user {user_id}")
 
 def main() -> None:
     """Start the bot."""
+    # Create the Application
     application = Application.builder().token(TOKEN).build()
 
     # Add handlers
@@ -485,16 +419,20 @@ def main() -> None:
     application.add_handler(CommandHandler("about", about_command))
     application.add_handler(CommandHandler("balance", balance_command))
     application.add_handler(CommandHandler("buy_case", buy_case_command))
+    
+    # Add callback query handler for buttons
+    application.add_handler(CallbackQueryHandler(button_callback, pattern="^(start|about)$"))
     application.add_handler(CallbackQueryHandler(handle_buy_case_callback, pattern="^buy_case_"))
-    application.add_handler(CallbackQueryHandler(button_callback))
+    
+    # Add payment handlers
     application.add_handler(PreCheckoutQueryHandler(pre_checkout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
+    
+    # Add WebApp data handler
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
 
-    print("[Bot] Starting UnboxdNFT Telegram Bot (Simplified Version)...")
-    print("[Bot] Bot is ready to handle Telegram Stars payments!")
-    
-    # Run the bot until the user presses Ctrl-C
+    # Run the bot
+    logger.info("Starting bot...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
