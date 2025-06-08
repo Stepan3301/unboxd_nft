@@ -2,19 +2,31 @@
 async function initApp() {
     console.log('[AppSetup] Step 0: initApp() called.');
     console.log('=== APP INITIALIZATION SEQUENCE START ===');
+    
     try {
-        console.log('[AppSetup] Step 1: Starting TON Connect initialization (non-blocking)...');
-        initializeTonConnect(); // No longer awaiting this
-        console.log('[AppSetup] Step 2: TON Connect initialization started in background.');
-        
-        console.log('[AppSetup] Step 3: Attempting to run main setupApp()...');
+        console.log('[AppSetup] Step 1: Starting main setupApp()...');
         await setupApp();
-        console.log('[AppSetup] Step 4: Main setupApp() finished.');
+        console.log('[AppSetup] Step 2: Main setupApp() finished.');
+        
+        console.log('[AppSetup] Step 3: Starting TON Connect initialization...');
+        const tonConnectSuccess = await initializeTonConnect();
+        
+        if (tonConnectSuccess) {
+            console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
+        } else {
+            console.warn('[AppSetup] Step 4: TON Connect initialization failed, but app will continue.');
+        }
         
         console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
     } catch (error) {
         console.error('[AppSetup] CRITICAL ERROR in initApp():', error);
-        alert('Failed to initialize the app. Please refresh and try again.');
+        
+        // Show user-friendly error message
+        if (typeof showToast === 'function') {
+            showToast('Failed to initialize the app. Please refresh and try again.', 'error');
+        } else {
+            console.error('[AppSetup] App initialization failed. Please refresh and try again.');
+        }
     }
 }
 

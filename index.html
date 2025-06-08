@@ -57,11 +57,23 @@
             tg.expand();
             
             // Установка темы
-            document.body.style.backgroundColor = tg.backgroundColor;
+            if (tg.backgroundColor) {
+                document.body.style.backgroundColor = tg.backgroundColor;
+            }
+            
+            // Wait a bit for all external scripts to load
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             // Инициализация остального приложения
             if (typeof initializeStarsPaymentListeners === 'function') {
                 initializeStarsPaymentListeners();
+            }
+            
+            // Initialize main app
+            if (typeof initApp === 'function') {
+                await initApp();
+            } else {
+                console.warn('initApp function not found, falling back to basic initialization');
             }
             
             return true;
@@ -71,10 +83,13 @@
             
             // Показать ошибку пользователю
             document.body.innerHTML = `
-                <div style="padding: 20px; text-align: center; color: red;">
-                    <h2>Error</h2>
-                    <p>This app must be opened in Telegram.</p>
+                <div style="padding: 20px; text-align: center; color: red; font-family: Arial, sans-serif;">
+                    <h2>⚠️ Error</h2>
+                    <p><strong>This app must be opened in Telegram.</strong></p>
                     <p>Error: ${error.message}</p>
+                    <button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #0088cc; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Try Again
+                    </button>
                 </div>
             `;
             

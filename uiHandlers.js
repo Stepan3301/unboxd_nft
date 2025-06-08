@@ -180,7 +180,7 @@ function attachEventListeners() {
     }
 
     // Add event listeners for each buy button in the UCoins modal (calls function from tonConnect.js)
-    document.querySelectorAll('.ucoin-package-buy-btn').forEach(button => {
+    document.querySelectorAll('.buy-ucoin-btn').forEach(button => {
         button.addEventListener('click', function() {
             const ucoins = this.dataset.ucoins;
             const tonAmount = this.dataset.ton;
