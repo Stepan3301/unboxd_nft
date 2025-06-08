@@ -1,5 +1,5 @@
 // Your wallet address for receiving payments
-const RECEIVER_WALLET_ADDRESS = "UQBKgXCNLPexWhs2L79kiARR1phGH4gSi6xKmqVoEWhs9kwP"; // TODO: Replace this with your actual TON wallet address
+const RECEIVER_WALLET_ADDRESS = "UQCBEWGCIk9ppL8JQQr4Y0cx7xl1qwY1Ju2ARiGobVUfuoIK"; // TODO: Replace this with your actual TON wallet address
 
 // Initialize TON Connect when the script loads
 async function initializeTonConnect() {
