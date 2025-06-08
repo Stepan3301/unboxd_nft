@@ -281,27 +281,20 @@ function attachEventListeners() {
 
 // Utility function to safely call TON Connect functions with retry
 async function safeCallTonConnectFunction(functionName, ...args) {
-    const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
+    const maxRetries = 5; // Increased retries
+    const retryDelay = 500; // Shorter delay for quicker response
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Try different ways to access the function
-        let fn = null;
+        // Try to access the function from the window or globalThis scope
+        const fn = window[functionName] || (typeof globalThis !== 'undefined' ? globalThis[functionName] : undefined);
         
-        if (typeof window[functionName] === 'function') {
-            fn = window[functionName];
-        } else if (typeof globalThis[functionName] === 'function') {
-            fn = globalThis[functionName];
-        } else if (typeof eval(functionName) === 'function') {
-            fn = eval(functionName);
-        }
-        
-        if (fn) {
+        if (typeof fn === 'function') {
             try {
                 console.log(`[UI Handlers] Calling ${functionName} (attempt ${attempt})`);
                 return await fn(...args);
             } catch (error) {
                 console.error(`[UI Handlers] Error calling ${functionName}:`, error);
+                // If it fails on the last attempt, throw the error
                 if (attempt === maxRetries) {
                     throw error;
                 }

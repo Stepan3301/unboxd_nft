@@ -34,40 +34,37 @@ function selectRandomItemByProbability(items, probabilities) {
 }
 
 // Toast notification function
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-        console.error('[Utils] Toast container not found. Message:', message);
-        alert(`${type.toUpperCase()}: ${message}`); // Fallback to alert
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    
+    if (!container) {
+        console.error('[utils] Toast container not found. Message:', message);
+        // Fallback to alert if toast container is missing
+        alert(message);
         return;
     }
-
+    
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `toast ${type}`; // e.g., 'toast error'
+    toast.textContent = message;
     
-    let iconClass = 'fas fa-info-circle'; // Default icon
-    if (type === 'success') iconClass = 'fas fa-check-circle';
-    if (type === 'error') iconClass = 'fas fa-times-circle';
-    if (type === 'warning') iconClass = 'fas fa-exclamation-triangle';
-
-    toast.innerHTML = `<i class="${iconClass}"></i> ${message}`;
+    container.appendChild(toast);
     
-    toastContainer.appendChild(toast);
+    // Animate in
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100); // Small delay to allow element to be in DOM for transition
 
-    // Trigger reflow for animation
-    toast.offsetHeight; 
-
-    toast.classList.add('show');
-
+    // Automatically remove the toast after the duration
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => {
-            if (toast.parentNode === toastContainer) { // Check if still child before removing
-                toastContainer.removeChild(toast);
+        // Remove the element from DOM after transition ends
+        toast.addEventListener('transitionend', () => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
             }
-        }, 500); // Wait for fade out animation
-    }, 3000); // Display toast for 3 seconds
-    console.log(`[Utils] Toast displayed: ${message} (type: ${type})`);
+        });
+    }, duration);
 }
 
 // Generate proper UUID v4 format for database compatibility
