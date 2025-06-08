@@ -1,112 +1,204 @@
 (function(window) {
     'use strict';
-
-    // Your wallet address for receiving payments
-    const RECEIVER_WALLET_ADDRESS = "UQCBEWGCIk9ppL8JQQr4Y0cx7xl1qwY1Ju2ARiGobVUfuoIK"; // TODO: Replace this with your actual TON wallet address
-
-    // Global variable to prevent multiple initialization attempts
+    
+    // Configuration
+    const RECEIVER_WALLET_ADDRESS = "UQCBEWGCIk9ppL8JQGr4Y0cx7l1qmY1Ju2A1GobVUfuoIK";
+    const MANIFEST_URL = 'https://stepan3301.github.io/unboxd_nft/tonconnect-manifest.json';
+    const MAX_INIT_ATTEMPTS = 5;
+    const INIT_RETRY_DELAY = 2000;
+    
+    // State variables
     let tonConnectUI = null;
     let isInitializing = false;
-    let initializationAttempts = 0;
-    const MAX_INITIALIZATION_ATTEMPTS = 3;
-
+    let initAttempts = 0;
+    let isReady = false;
+    
+    // Utility functions
+    function log(message, ...args) {
+        console.log(`[TonConnect] ${message}`, ...args);
+    }
+    
+    function error(message, ...args) {
+        console.error(`[TonConnect] ${message}`, ...args);
+    }
+    
+    function showUserMessage(message, type = 'info') {
+        if (typeof showToast === 'function') {
+            showToast(message, type);
+        } else {
+            // Fallback to alert or console
+            if (type === 'error') {
+                alert(`Error: ${message}`);
+            } else {
+                console.log(`[TonConnect] ${type}: ${message}`);
+            }
+        }
+    }
+    
+    // Check if TON Connect UI is available
+    function isTonConnectAvailable() {
+        return typeof TonConnectUI !== 'undefined' && !window.tonConnectUnavailable;
+    }
+    
+    // Wait for TON Connect UI to become available
+    function waitForTonConnect(timeout = 10000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+            
+            const check = () => {
+                if (isTonConnectAvailable()) {
+                    resolve();
+                } else if (Date.now() - startTime > timeout) {
+                    reject(new Error('TON Connect UI not available after timeout'));
+                } else {
+                    setTimeout(check, 200);
+                }
+            };
+            
+            check();
+        });
+    }
+    
     // Initialize TON Connect
     async function initialize() {
-        console.log('[TON Connect] Attempting to initialize TON Connect UI...');
-        
-        // Prevent multiple simultaneous initialization attempts
         if (isInitializing) {
-            console.log('[TON Connect] Initialization already in progress, waiting...');
-            let waitAttempts = 0;
-            while (isInitializing && waitAttempts < 50) {
-                await new Promise(resolve => setTimeout(resolve, 200));
-                waitAttempts++;
-            }
-            return tonConnectUI !== null;
+            log('Initialization already in progress, waiting...');
+            return waitForInitialization();
         }
         
-        if (initializationAttempts >= MAX_INITIALIZATION_ATTEMPTS) {
-            console.error('[TON Connect] Maximum initialization attempts reached. Stopping further attempts.');
-            showError('TON Wallet connection service failed to initialize after multiple attempts.');
+        if (tonConnectUI && isReady) {
+            log('TON Connect already initialized');
+            return true;
+        }
+        
+        if (initAttempts >= MAX_INIT_ATTEMPTS) {
+            error('Maximum initialization attempts reached');
+            showUserMessage('TON Wallet connection service failed to initialize. Please refresh the page.', 'error');
             return false;
         }
         
         isInitializing = true;
-        initializationAttempts++;
+        initAttempts++;
         
         try {
-            if (window.tonConnectUnavailable) {
-                console.error('[TON Connect] CRITICAL: TonConnect SDK was marked as unavailable during loading');
-                showError('TON Wallet connection service failed to load. Please check your internet connection and refresh the page.');
-                return false;
-            }
+            log(`Initialization attempt ${initAttempts}/${MAX_INIT_ATTEMPTS}`);
             
-            let attempts = 0;
-            const maxAttempts = 50; // 10 seconds with 200ms intervals
+            // Wait for TON Connect UI to be available
+            await waitForTonConnect();
             
-            while (typeof TonConnectUI === 'undefined' && attempts < maxAttempts && !window.tonConnectUnavailable) {
-                if (attempts % 5 === 0) {
-                    console.log(`[TON Connect] Waiting for TonConnectUI SDK... (attempt ${attempts + 1}/${maxAttempts})`);
-                }
-                await new Promise(resolve => setTimeout(resolve, 200));
-                attempts++;
-            }
-
-            if (typeof TonConnectUI === 'undefined' || window.tonConnectUnavailable) {
-                console.error('[TON Connect] CRITICAL: TonConnectUI SDK failed to load after 10 seconds');
-                showError('TON Wallet connection service failed to load. Please check your internet connection and refresh the page.');
-                return false;
-            }
-
+            // Check if already initialized
             if (tonConnectUI) {
-                console.log('[TON Connect] TonConnectUI already initialized, returning existing instance');
+                log('TonConnectUI already exists, returning existing instance');
+                isInitializing = false;
+                isReady = true;
                 return true;
             }
-
-            const manifestUrl = 'https://stepan3301.github.io/unboxd_nft/tonconnect-manifest.json';
             
+            // Create new TonConnectUI instance
+            log('Creating new TonConnectUI instance...');
             tonConnectUI = new TonConnectUI({
-                manifestUrl: manifestUrl,
+                manifestUrl: MANIFEST_URL,
                 buttonRootId: 'ton-connect-button'
             });
             
+            // Set up event handlers
             tonConnectUI.onStatusChange(wallet => {
                 if (wallet) {
+                    log('Wallet connected:', wallet.account.address);
                     updateUIForConnectedWallet(wallet);
                 } else {
+                    log('Wallet disconnected');
                     updateUIForDisconnectedWallet();
                 }
             });
             
-            if (tonConnectUI.connected) {
-                updateUIForConnectedWallet(tonConnectUI.wallet);
-            } else {
-                updateUIForDisconnectedWallet();
-            }
-            
-            initializationAttempts = 0; // Reset on success
+            isReady = true;
+            log('TON Connect initialized successfully');
             return true;
             
         } catch (error) {
-            console.error('[TON Connect] ❌ CRITICAL ERROR during initialization:', error);
-            showError('Failed to initialize TON Wallet connection. Please refresh the page and try again.');
+            error('Initialization failed:', error);
+            showUserMessage(`Failed to initialize TON Wallet connection: ${error.message}`, 'error');
             return false;
         } finally {
             isInitializing = false;
         }
     }
-
-    // Show user-friendly error messages
-    function showError(message) {
-        console.error('[TON Connect] Error:', message);
-        if (typeof showToast === 'function') {
-            showToast(message, 'error');
-        } else {
-            alert(message);
+    
+    // Wait for initialization to complete
+    function waitForInitialization() {
+        return new Promise((resolve) => {
+            const check = () => {
+                if (!isInitializing) {
+                    resolve(isReady);
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
+    }
+    
+    // Connect wallet
+    async function connectWallet() {
+        try {
+            if (!tonConnectUI) {
+                const initSuccess = await initialize();
+                if (!initSuccess) {
+                    throw new Error('Failed to initialize TON Connect');
+                }
+            }
+            
+            if (tonConnectUI.connected) {
+                log('Wallet already connected');
+                return tonConnectUI.wallet;
+            }
+            
+            log('Opening wallet connection modal...');
+            const wallet = await tonConnectUI.connectWallet();
+            log('Wallet connected successfully:', wallet.account.address);
+            return wallet;
+            
+        } catch (error) {
+            error('Failed to connect wallet:', error);
+            showUserMessage(`Failed to connect wallet: ${error.message}`, 'error');
+            throw error;
         }
     }
-
-    // Update UI when wallet is connected
+    
+    // Disconnect wallet
+    async function disconnectWallet() {
+        try {
+            if (!tonConnectUI) {
+                log('TON Connect not initialized');
+                return;
+            }
+            
+            if (!tonConnectUI.connected) {
+                log('Wallet not connected');
+                return;
+            }
+            
+            await tonConnectUI.disconnect();
+            log('Wallet disconnected successfully');
+            
+        } catch (error) {
+            error('Failed to disconnect wallet:', error);
+            showUserMessage(`Failed to disconnect wallet: ${error.message}`, 'error');
+        }
+    }
+    
+    // Get wallet info
+    function getWallet() {
+        return tonConnectUI?.wallet || null;
+    }
+    
+    // Check if wallet is connected
+    function isConnected() {
+        return tonConnectUI?.connected || false;
+    }
+    
+    // Update UI for connected wallet
     function updateUIForConnectedWallet(wallet) {
         const button = document.getElementById('ton-connect-wallet-button');
         if (button) {
@@ -114,125 +206,87 @@
             button.textContent = `Connected: ${shortAddress}`;
             button.classList.add('connected');
         }
-        updateBuyUcoinsModalForConnectedWallet();
+        
+        // Update buy UCoins modal
+        updateBuyUCoinsModalForConnectedWallet();
     }
-
-    // Update UI when wallet is disconnected
+    
+    // Update UI for disconnected wallet
     function updateUIForDisconnectedWallet() {
         const button = document.getElementById('ton-connect-wallet-button');
         if (button) {
             button.textContent = 'Connect TON Wallet';
             button.classList.remove('connected');
         }
-        updateBuyUcoinsModalForDisconnectedWallet();
+        
+        // Update buy UCoins modal
+        updateBuyUCoinsModalForDisconnectedWallet();
     }
-
-    // Update Buy UCoins modal when wallet is connected
-    function updateBuyUcoinsModalForConnectedWallet() {
+    
+    // Update buy UCoins modal for connected wallet
+    function updateBuyUCoinsModalForConnectedWallet() {
         const packagesList = document.getElementById('ucoin-packages-list');
         const connectPrompt = document.getElementById('ucoin-connect-prompt');
+        
         if (packagesList && connectPrompt) {
             packagesList.style.display = 'block';
             connectPrompt.style.display = 'none';
         }
     }
-
-    // Update Buy UCoins modal when wallet is disconnected
-    function updateBuyUcoinsModalForDisconnectedWallet() {
+    
+    // Update buy UCoins modal for disconnected wallet
+    function updateBuyUCoinsModalForDisconnectedWallet() {
         const packagesList = document.getElementById('ucoin-packages-list');
         const connectPrompt = document.getElementById('ucoin-connect-prompt');
+        
         if (packagesList && connectPrompt) {
             packagesList.style.display = 'none';
             connectPrompt.style.display = 'block';
         }
     }
-
-    // Function to handle TON Connect wallet button click
-    async function handleButtonClick() {
-        if (!tonConnectUI) {
-            const initSuccess = await initialize();
-            if (!initSuccess) {
-                showError('TON Wallet connection service is not available. Please refresh the page and try again.');
+    
+    // Handle wallet button click
+    async function handleWalletButtonClick() {
+        try {
+            if (!isTonConnectAvailable()) {
+                showUserMessage('TON Wallet connection service is not available. Please refresh the page and try again.', 'error');
                 return;
             }
-        }
-        
-        try {
-            if (tonConnectUI && tonConnectUI.connected) {
-                await tonConnectUI.disconnect();
-            } else if (tonConnectUI) {
-                await tonConnectUI.openModal();
+            
+            if (isConnected()) {
+                await disconnectWallet();
+            } else {
+                await connectWallet();
             }
         } catch (error) {
-            console.error('[TON Connect] ❌ Error during wallet operation:', error);
-            showError('Failed to connect to TON Wallet. Please try again.');
+            error('Error handling wallet button click:', error);
         }
     }
-
-    // Function to handle UCoin purchase button clicks
-    async function handleUcoinBuyClick(ucoins, tonAmount) {
-        if (!tonConnectUI) {
-            const initSuccess = await initialize();
-            if (!initSuccess) {
-                showError('TON Wallet connection service is not available.');
-                return;
-            }
-        }
-        
-        if (!tonConnectUI || !tonConnectUI.connected) {
-            updateBuyUcoinsModalForDisconnectedWallet();
-            showError('Please connect your TON wallet first');
-            return;
-        }
-        
-        try {
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
-                messages: [{
-                    address: RECEIVER_WALLET_ADDRESS,
-                    amount: (tonAmount * 1000000000).toString()
-                }]
-            };
-            await tonConnectUI.sendTransaction(transaction);
-            showError(`Transaction successful! You will receive ${ucoins} UCoins shortly.`);
-        } catch (error) {
-            console.error('[TON Connect] ❌ Transaction error:', error);
-            showError('Transaction failed. Please try again.');
-        }
-    }
-
-    // Function to handle connect wallet button inside UCoins modal
+    
+    // Handle modal connect button click
     async function handleModalConnectClick() {
-        if (!tonConnectUI) {
-            const initSuccess = await initialize();
-            if (!initSuccess) {
-                showError('TON Wallet connection service is not available.');
-                return;
-            }
-        }
-        
-        if (tonConnectUI) {
-            try {
-                await tonConnectUI.openModal();
-            } catch (error) {
-                console.error('[TON Connect] ❌ Error opening wallet modal:', error);
-                showError('Failed to open wallet connection modal. Please try again.');
-            }
+        try {
+            await connectWallet();
+        } catch (error) {
+            error('Error in modal connect:', error);
         }
     }
-
+    
     // Public API
     const TonConnectWallet = {
         initialize,
-        handleButtonClick,
-        handleUcoinBuyClick,
+        connectWallet,
+        disconnectWallet,
+        getWallet,
+        isConnected,
+        handleWalletButtonClick,
         handleModalConnectClick,
-        isReady: () => typeof TonConnectUI !== 'undefined' && !!tonConnectUI
+        isReady: () => isReady && isTonConnectAvailable()
     };
-
+    
     // Expose to global scope
     window.TonConnectWallet = TonConnectWallet;
     
-    console.log('[TON Connect] Wallet module initialized and exposed as window.TonConnectWallet.');
-
+    log('TON Connect Wallet module loaded and exposed as window.TonConnectWallet');
+    
 })(window); 

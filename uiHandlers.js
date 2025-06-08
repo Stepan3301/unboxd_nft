@@ -783,4 +783,13 @@ function createParticleBurst(element) {
 // Placeholder for setupDarkAuraLottieClickHandlers, assume it's in roulette.js or caseOpening.js
 // async function setupDarkAuraLottieClickHandlers() { console.log('Placeholder: setupDarkAuraLottieClickHandlers called'); }
 
-console.log('[UI Handlers] uiHandlers.js loaded'); 
+console.log('[UI Handlers] uiHandlers.js loaded');
+
+function copyConnectionLink() {
+    const linkInput = document.getElementById('wallet-connection-link');
+    if (linkInput) {
+        linkInput.select();
+        document.execCommand('copy');
+        showToast('Link copied to clipboard!', 'success');
+    }
+} 

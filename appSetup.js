@@ -11,18 +11,59 @@ async function initApp() {
         console.log('[AppSetup] Step 3: Starting TON Connect initialization...');
         
         try {
-            // Initialize TON Connect on startup.
-            // We check for the module's existence. If it fails, it will be initialized on first user interaction anyway.
-            if (window.TonConnectWallet) {
-                console.log('[AppSetup] TonConnectWallet module found. Initializing...');
-                await window.TonConnectWallet.initialize();
-                console.log('[AppSetup] Step 4: TON Connect initialization sequence complete.');
-            } else {
-                 console.warn('[AppSetup] Step 4: TonConnectWallet module not yet available. It will initialize on first use.');
+            console.log('[AppSetup] Step 3: Attaching event listeners...');
+            attachEventListeners();
+            console.log('[AppSetup] Step 3 Complete: Event listeners attached.');
+
+            // Initialize TON Connect with proper error handling
+            try {
+                console.log('[AppSetup] Step 4: Initializing TON Connect...');
+                
+                // Check if TON Connect is available
+                if (window.tonConnectUnavailable) {
+                    console.warn('[AppSetup] TON Connect marked as unavailable, skipping initialization');
+                } else if (window.TonConnectWallet && typeof window.TonConnectWallet.isReady === 'function') {
+                    console.log('[AppSetup] TonConnectWallet module found. Initializing...');
+                    
+                    // Initialize with timeout
+                    const initPromise = window.TonConnectWallet.initialize();
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Initialization timeout')), 10000)
+                    );
+                    
+                    await Promise.race([initPromise, timeoutPromise]);
+                    console.log('[AppSetup] TON Connect initialization completed successfully');
+                    
+                } else {
+                    console.warn('[AppSetup] TonConnectWallet module not ready yet. Will initialize on first user interaction.');
+                    
+                    // Set up delayed initialization
+                    window.addEventListener('load', () => {
+                        setTimeout(async () => {
+                            if (window.TonConnectWallet && !window.tonConnectUnavailable) {
+                                try {
+                                    await window.TonConnectWallet.initialize();
+                                    console.log('[AppSetup] Delayed TON Connect initialization successful');
+                                } catch (error) {
+                                    console.warn('[AppSetup] Delayed TON Connect initialization failed:', error);
+                                }
+                            }
+                        }, 3000);
+                    });
+                }
+            } catch (tonConnectError) {
+                console.error('[AppSetup] TON Connect initialization error:', tonConnectError);
+                console.warn('[AppSetup] App will continue without TON Connect functionality');
             }
-        } catch (tonConnectError) {
-            console.error('[AppSetup] Step 4: TON Connect initialization threw an error:', tonConnectError);
-            console.warn('[AppSetup] App will continue without full TON Connect functionality until first use.');
+        } catch (error) {
+            console.error('[AppSetup] CRITICAL ERROR in initApp():', error);
+            
+            // Show user-friendly error message
+            if (typeof showToast === 'function') {
+                showToast('Failed to initialize the app. Please refresh and try again.', 'error');
+            } else {
+                console.error('[AppSetup] App initialization failed. Please refresh and try again.');
+            }
         }
         
         console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
