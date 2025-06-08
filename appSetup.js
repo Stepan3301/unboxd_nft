@@ -9,12 +9,21 @@ async function initApp() {
         console.log('[AppSetup] Step 2: Main setupApp() finished.');
         
         console.log('[AppSetup] Step 3: Starting TON Connect initialization...');
-        const tonConnectSuccess = await initializeTonConnect();
         
-        if (tonConnectSuccess) {
-            console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
-        } else {
-            console.warn('[AppSetup] Step 4: TON Connect initialization failed, but app will continue.');
+        // Add a small delay to ensure TonConnect SDK is fully loaded
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+            const tonConnectSuccess = await initializeTonConnect();
+            
+            if (tonConnectSuccess) {
+                console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
+            } else {
+                console.warn('[AppSetup] Step 4: TON Connect initialization failed, but app will continue.');
+            }
+        } catch (tonConnectError) {
+            console.error('[AppSetup] Step 4: TON Connect initialization threw an error:', tonConnectError);
+            console.warn('[AppSetup] App will continue without TON Connect functionality.');
         }
         
         console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');

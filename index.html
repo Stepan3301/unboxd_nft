@@ -8,10 +8,16 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Load TonConnect with fallback
+        // Load TonConnect with fallback and retry mechanism
         (function() {
+            let tonConnectLoadAttempts = 0;
+            const maxTonConnectLoadAttempts = 3;
+            
             const loadTonConnect = () => {
                 return new Promise((resolve, reject) => {
+                    tonConnectLoadAttempts++;
+                    console.log(`🔄 Attempting to load TonConnect SDK (attempt ${tonConnectLoadAttempts}/${maxTonConnectLoadAttempts})`);
+                    
                     const script = document.createElement('script');
                     script.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
                     script.crossOrigin = 'anonymous';
@@ -21,6 +27,11 @@
                     };
                     script.onerror = () => {
                         console.warn('⚠️ Failed to load TonConnect from unpkg, trying fallback...');
+                        // Remove failed script
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        
                         // Fallback CDN
                         const fallbackScript = document.createElement('script');
                         fallbackScript.src = 'https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
@@ -31,7 +42,19 @@
                         };
                         fallbackScript.onerror = () => {
                             console.error('❌ Failed to load TonConnect from both CDNs');
-                            reject(new Error('TonConnect SDK failed to load'));
+                            // Remove failed fallback script
+                            if (fallbackScript.parentNode) {
+                                fallbackScript.parentNode.removeChild(fallbackScript);
+                            }
+                            
+                            if (tonConnectLoadAttempts < maxTonConnectLoadAttempts) {
+                                console.log(`🔄 Retrying TonConnect load in 2 seconds... (attempt ${tonConnectLoadAttempts + 1}/${maxTonConnectLoadAttempts})`);
+                                setTimeout(() => {
+                                    loadTonConnect().then(resolve).catch(reject);
+                                }, 2000);
+                            } else {
+                                reject(new Error('TonConnect SDK failed to load after multiple attempts'));
+                            }
                         };
                         document.head.appendChild(fallbackScript);
                     };
@@ -41,7 +64,9 @@
             
             // Start loading TonConnect immediately
             loadTonConnect().catch(error => {
-                console.error('❌ TonConnect loading failed:', error);
+                console.error('❌ TonConnect loading failed after all attempts:', error);
+                // Set a flag to indicate TonConnect is not available
+                window.tonConnectUnavailable = true;
             });
         })();
     </script>

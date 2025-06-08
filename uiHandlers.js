@@ -158,6 +158,7 @@ function attachEventListeners() {
     const tonConnectWalletButton = document.getElementById('ton-connect-wallet-button');
     if (tonConnectWalletButton) {
         tonConnectWalletButton.addEventListener('click', handleTonConnectWalletButtonClick); 
+        console.log('[UI Handlers] TON Connect wallet button event listener attached successfully');
     } else {
         console.error('TON Connect wallet button not found for event listener.');
     }
@@ -165,33 +166,48 @@ function attachEventListeners() {
     // Buy UCoins Modal Buttons
     const addUcoinsBtn = document.getElementById('wallet-add-ucoins-btn');
     const buyUcoinsModal = document.getElementById('buy-ucoins-modal');
-    const buyUcoinsModalCloseBtn = document.getElementById('buy-ucoins-modal-close-btn');
+    const buyUcoinsModalCloseBtn = buyUcoinsModal ? buyUcoinsModal.querySelector('.close-btn') : null;
 
     if (addUcoinsBtn && buyUcoinsModal) {
         addUcoinsBtn.addEventListener('click', () => {
             buyUcoinsModal.classList.add('active');
         });
+        console.log('[UI Handlers] Add UCoins button event listener attached');
+    } else {
+        console.warn('[UI Handlers] Add UCoins button or modal not found');
     }
 
     if (buyUcoinsModalCloseBtn && buyUcoinsModal) {
         buyUcoinsModalCloseBtn.addEventListener('click', () => {
             buyUcoinsModal.classList.remove('active');
         });
+        console.log('[UI Handlers] Buy UCoins modal close button event listener attached');
+    } else {
+        console.warn('[UI Handlers] Buy UCoins modal close button not found');
     }
 
     // Add event listeners for each buy button in the UCoins modal (calls function from tonConnect.js)
-    document.querySelectorAll('.buy-ucoin-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const ucoins = this.dataset.ucoins;
-            const tonAmount = this.dataset.ton;
-            handleUcoinPackageBuyButtonClick(ucoins, tonAmount); 
+    const buyUcoinButtons = document.querySelectorAll('.buy-ucoin-btn');
+    if (buyUcoinButtons.length > 0) {
+        buyUcoinButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const ucoins = this.dataset.ucoins;
+                const tonAmount = this.dataset.ton;
+                handleUcoinPackageBuyButtonClick(ucoins, tonAmount); 
+            });
         });
-    });
+        console.log(`[UI Handlers] ${buyUcoinButtons.length} UCoin buy button event listeners attached`);
+    } else {
+        console.warn('[UI Handlers] No UCoin buy buttons found');
+    }
 
     // Event listener for the new Connect Wallet button inside the UCoins modal (calls function from tonConnect.js)
     const ucoinModalConnectBtn = document.getElementById('ucoin-modal-connect-wallet-btn');
     if (ucoinModalConnectBtn) { 
         ucoinModalConnectBtn.addEventListener('click', handleUcoinModalConnectWalletButtonClick);
+        console.log('[UI Handlers] UCoin modal connect wallet button event listener attached');
+    } else {
+        console.warn('[UI Handlers] UCoin modal connect wallet button not found');
     }
 
     // Dark Aura Lottie animations click handlers (calls function from roulette.js or caseOpening.js)
