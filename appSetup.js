@@ -162,6 +162,18 @@ async function setupApp() {
 
         console.log('[AppSetup] setupApp() - SUCCESSFULLY COMPLETED MAIN APPLICATION SETUP.');
 
+        // Defer TON Connect initialization until after the main app is fully set up and rendered.
+        setTimeout(() => {
+            if (window.TonConnectWallet) {
+                console.log('[AppSetup] Initializing TON Connect Wallet after main setup...');
+                window.TonConnectWallet.initialize().catch(err => {
+                    console.error('[AppSetup] Deferred TON Connect initialization failed:', err);
+                });
+            } else {
+                console.warn('[AppSetup] TonConnectWallet module not found for deferred initialization.');
+            }
+        }, 100); // A short delay to ensure the main thread is free.
+
     } catch (error) {
         console.error('[AppSetup] setupApp() - CRITICAL ERROR during main application setup:', error);
         alert('Error setting up the app. Please try again later.');
