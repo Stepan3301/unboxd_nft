@@ -371,13 +371,47 @@ function debugWalletButtonStatus() {
     console.log('=== End Debug Status ===');
 }
 
-// Make sure the global functions are available
+// Make sure the global functions are available immediately
 if (typeof window !== 'undefined') {
+    // Expose functions to global scope immediately
     window.initializeTonConnect = initializeTonConnect;
     window.handleTonConnectWalletButtonClick = handleTonConnectWalletButtonClick;
     window.handleUcoinPackageBuyButtonClick = handleUcoinPackageBuyButtonClick;
     window.handleUcoinModalConnectWalletButtonClick = handleUcoinModalConnectWalletButtonClick;
     window.debugWalletButtonStatus = debugWalletButtonStatus;
+    
+    // Also make them available in global scope without window prefix
+    if (typeof globalThis !== 'undefined') {
+        globalThis.initializeTonConnect = initializeTonConnect;
+        globalThis.handleTonConnectWalletButtonClick = handleTonConnectWalletButtonClick;
+        globalThis.handleUcoinPackageBuyButtonClick = handleUcoinPackageBuyButtonClick;
+        globalThis.handleUcoinModalConnectWalletButtonClick = handleUcoinModalConnectWalletButtonClick;
+        globalThis.debugWalletButtonStatus = debugWalletButtonStatus;
+    }
 }
 
-console.log('[TON Connect] 📋 tonConnect.js script loaded successfully'); 
+// Function to check if TON Connect is ready
+function isTonConnectReady() {
+    return {
+        sdkLoaded: typeof TonConnectUI !== 'undefined',
+        instanceCreated: !!tonConnectUI,
+        connected: tonConnectUI ? tonConnectUI.connected : false,
+        functionsAvailable: {
+            initializeTonConnect: typeof initializeTonConnect === 'function',
+            handleTonConnectWalletButtonClick: typeof handleTonConnectWalletButtonClick === 'function',
+            handleUcoinPackageBuyButtonClick: typeof handleUcoinPackageBuyButtonClick === 'function',
+            handleUcoinModalConnectWalletButtonClick: typeof handleUcoinModalConnectWalletButtonClick === 'function'
+        }
+    };
+}
+
+// Make the ready check function available globally
+if (typeof window !== 'undefined') {
+    window.isTonConnectReady = isTonConnectReady;
+    if (typeof globalThis !== 'undefined') {
+        globalThis.isTonConnectReady = isTonConnectReady;
+    }
+}
+
+console.log('[TON Connect] 📋 tonConnect.js script loaded successfully');
+console.log('[TON Connect] 🔍 Readiness check:', isTonConnectReady()); 

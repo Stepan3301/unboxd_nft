@@ -14,12 +14,41 @@ async function initApp() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         try {
-            const tonConnectSuccess = await initializeTonConnect();
+            // Check if initializeTonConnect function is available with multiple attempts
+            let tonConnectSuccess = false;
+            let attempts = 0;
+            const maxAttempts = 3;
             
-            if (tonConnectSuccess) {
-                console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
-            } else {
-                console.warn('[AppSetup] Step 4: TON Connect initialization failed, but app will continue.');
+            while (!tonConnectSuccess && attempts < maxAttempts) {
+                attempts++;
+                console.log(`[AppSetup] Step 4: Attempting TON Connect initialization (attempt ${attempts}/${maxAttempts})`);
+                
+                if (typeof initializeTonConnect === 'function') {
+                    tonConnectSuccess = await initializeTonConnect();
+                } else if (typeof window.initializeTonConnect === 'function') {
+                    tonConnectSuccess = await window.initializeTonConnect();
+                } else {
+                    console.warn(`[AppSetup] Step 4: initializeTonConnect function not available (attempt ${attempts}/${maxAttempts})`);
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                        continue;
+                    }
+                }
+                
+                if (tonConnectSuccess) {
+                    console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
+                    break;
+                } else {
+                    console.warn(`[AppSetup] Step 4: TON Connect initialization failed (attempt ${attempts}/${maxAttempts})`);
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    }
+                }
+            }
+            
+            if (!tonConnectSuccess) {
+                console.warn('[AppSetup] Step 4: TON Connect initialization failed after all attempts, but app will continue.');
+                console.warn('[AppSetup] TON Connect will be initialized on first user interaction.');
             }
         } catch (tonConnectError) {
             console.error('[AppSetup] Step 4: TON Connect initialization threw an error:', tonConnectError);
