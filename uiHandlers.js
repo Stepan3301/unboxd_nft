@@ -167,18 +167,14 @@ function attachEventListeners() {
     // TON Connect Wallet Button (calls function from tonConnect.js)
     const tonConnectWalletButton = document.getElementById('ton-connect-wallet-button');
     if (tonConnectWalletButton) {
-        tonConnectWalletButton.addEventListener('click', async function() {
-            try {
-                await safeCallTonConnectFunction('handleTonConnectWalletButtonClick');
-            } catch (error) {
-                console.error('[UI Handlers] Failed to call wallet button handler:', error);
-                if (typeof showToast === 'function') {
-                    showToast('Wallet connection not ready. Please try again in a moment.', 'error');
-                } else {
-                    alert('Wallet connection not ready. Please try again in a moment.');
-                }
+        tonConnectWalletButton.addEventListener('click', async () => {
+            if (window.TonConnectWallet) {
+                await window.TonConnectWallet.handleButtonClick();
+            } else {
+                console.error('[UI Handlers] TonConnectWallet module not loaded.');
+                showToast('Wallet service is not available. Please refresh.', 'error');
             }
-        }); 
+        });
         console.log('[UI Handlers] TON Connect wallet button event listener attached successfully');
     } else {
         console.error('TON Connect wallet button not found for event listener.');
@@ -194,8 +190,6 @@ function attachEventListeners() {
             buyUcoinsModal.classList.add('active');
         });
         console.log('[UI Handlers] Add UCoins button event listener attached');
-    } else {
-        console.warn('[UI Handlers] Add UCoins button or modal not found');
     }
 
     if (buyUcoinsModalCloseBtn && buyUcoinsModal) {
@@ -203,8 +197,6 @@ function attachEventListeners() {
             buyUcoinsModal.classList.remove('active');
         });
         console.log('[UI Handlers] Buy UCoins modal close button event listener attached');
-    } else {
-        console.warn('[UI Handlers] Buy UCoins modal close button not found');
     }
 
     // Add event listeners for each buy button in the UCoins modal (calls function from tonConnect.js)
@@ -214,42 +206,29 @@ function attachEventListeners() {
             button.addEventListener('click', async function() {
                 const ucoins = this.dataset.ucoins;
                 const tonAmount = this.dataset.ton;
-                
-                try {
-                    await safeCallTonConnectFunction('handleUcoinPackageBuyButtonClick', ucoins, tonAmount);
-                } catch (error) {
-                    console.error('[UI Handlers] Failed to call buy button handler:', error);
-                    if (typeof showToast === 'function') {
-                        showToast('Purchase functionality not ready. Please try again in a moment.', 'error');
-                    } else {
-                        alert('Purchase functionality not ready. Please try again in a moment.');
-                    }
+                if (window.TonConnectWallet) {
+                    await window.TonConnectWallet.handleUcoinBuyClick(ucoins, tonAmount);
+                } else {
+                    console.error('[UI Handlers] TonConnectWallet module not loaded.');
+                    showToast('Wallet service is not available. Please refresh.', 'error');
                 }
             });
         });
         console.log(`[UI Handlers] ${buyUcoinButtons.length} UCoin buy button event listeners attached`);
-    } else {
-        console.warn('[UI Handlers] No UCoin buy buttons found');
     }
 
     // Event listener for the new Connect Wallet button inside the UCoins modal (calls function from tonConnect.js)
     const ucoinModalConnectBtn = document.getElementById('ucoin-modal-connect-wallet-btn');
-    if (ucoinModalConnectBtn) { 
-        ucoinModalConnectBtn.addEventListener('click', async function() {
-            try {
-                await safeCallTonConnectFunction('handleUcoinModalConnectWalletButtonClick');
-            } catch (error) {
-                console.error('[UI Handlers] Failed to call modal connect handler:', error);
-                if (typeof showToast === 'function') {
-                    showToast('Wallet connection not ready. Please try again in a moment.', 'error');
-                } else {
-                    alert('Wallet connection not ready. Please try again in a moment.');
-                }
+    if (ucoinModalConnectBtn) {
+        ucoinModalConnectBtn.addEventListener('click', async () => {
+            if (window.TonConnectWallet) {
+                await window.TonConnectWallet.handleModalConnectClick();
+            } else {
+                console.error('[UI Handlers] TonConnectWallet module not loaded.');
+                showToast('Wallet service is not available. Please refresh.', 'error');
             }
         });
         console.log('[UI Handlers] UCoin modal connect wallet button event listener attached');
-    } else {
-        console.warn('[UI Handlers] UCoin modal connect wallet button not found');
     }
 
     // Dark Aura Lottie animations click handlers (calls function from roulette.js or caseOpening.js)
@@ -277,38 +256,6 @@ function attachEventListeners() {
     });
 
     console.log('[UI Handlers] All event listeners attached.');
-}
-
-// Utility function to safely call TON Connect functions with retry
-async function safeCallTonConnectFunction(functionName, ...args) {
-    const maxRetries = 5; // Increased retries
-    const retryDelay = 500; // Shorter delay for quicker response
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Try to access the function from the window or globalThis scope
-        const fn = window[functionName] || (typeof globalThis !== 'undefined' ? globalThis[functionName] : undefined);
-        
-        if (typeof fn === 'function') {
-            try {
-                console.log(`[UI Handlers] Calling ${functionName} (attempt ${attempt})`);
-                return await fn(...args);
-            } catch (error) {
-                console.error(`[UI Handlers] Error calling ${functionName}:`, error);
-                // If it fails on the last attempt, throw the error
-                if (attempt === maxRetries) {
-                    throw error;
-                }
-            }
-        } else {
-            console.warn(`[UI Handlers] ${functionName} not available (attempt ${attempt}/${maxRetries})`);
-            if (attempt === maxRetries) {
-                throw new Error(`${functionName} function not available after ${maxRetries} attempts`);
-            }
-        }
-        
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-    }
 }
 
 // NEW FUNCTION DEFINITION

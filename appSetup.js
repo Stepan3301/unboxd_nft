@@ -10,49 +10,19 @@ async function initApp() {
         
         console.log('[AppSetup] Step 3: Starting TON Connect initialization...');
         
-        // Add a small delay to ensure TonConnect SDK is fully loaded
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         try {
-            // Check if initializeTonConnect function is available with multiple attempts
-            let tonConnectSuccess = false;
-            let attempts = 0;
-            const maxAttempts = 3;
-            
-            while (!tonConnectSuccess && attempts < maxAttempts) {
-                attempts++;
-                console.log(`[AppSetup] Step 4: Attempting TON Connect initialization (attempt ${attempts}/${maxAttempts})`);
-                
-                if (typeof initializeTonConnect === 'function') {
-                    tonConnectSuccess = await initializeTonConnect();
-                } else if (typeof window.initializeTonConnect === 'function') {
-                    tonConnectSuccess = await window.initializeTonConnect();
-                } else {
-                    console.warn(`[AppSetup] Step 4: initializeTonConnect function not available (attempt ${attempts}/${maxAttempts})`);
-                    if (attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-                        continue;
-                    }
-                }
-                
-                if (tonConnectSuccess) {
-                    console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
-                    break;
-                } else {
-                    console.warn(`[AppSetup] Step 4: TON Connect initialization failed (attempt ${attempts}/${maxAttempts})`);
-                    if (attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-                    }
-                }
-            }
-            
-            if (!tonConnectSuccess) {
-                console.warn('[AppSetup] Step 4: TON Connect initialization failed after all attempts, but app will continue.');
-                console.warn('[AppSetup] TON Connect will be initialized on first user interaction.');
+            // Initialize TON Connect on startup.
+            // We check for the module's existence. If it fails, it will be initialized on first user interaction anyway.
+            if (window.TonConnectWallet) {
+                console.log('[AppSetup] TonConnectWallet module found. Initializing...');
+                await window.TonConnectWallet.initialize();
+                console.log('[AppSetup] Step 4: TON Connect initialization sequence complete.');
+            } else {
+                 console.warn('[AppSetup] Step 4: TonConnectWallet module not yet available. It will initialize on first use.');
             }
         } catch (tonConnectError) {
             console.error('[AppSetup] Step 4: TON Connect initialization threw an error:', tonConnectError);
-            console.warn('[AppSetup] App will continue without TON Connect functionality.');
+            console.warn('[AppSetup] App will continue without full TON Connect functionality until first use.');
         }
         
         console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
