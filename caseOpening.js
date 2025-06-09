@@ -95,6 +95,9 @@ async function openLabubuCase() {
                  updateBalanceDisplay(); 
             }
             console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
@@ -245,6 +248,9 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
             if (typeof showToast === 'function') {
                 showToast(`🎁 ${winningItem.name} added to inventory!`, 'success');
             }
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
@@ -331,11 +337,11 @@ async function openDarkAuraCase() {
         currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'darkaura' };
 
         console.log('[Case Opening] Dark Aura Winning item selected:', winningItem);
-        await startLottieRouletteAnimation(window.darkAuraSkins, darkAuraProbabilities, winningItem.name, finalPrice / selectedQuantity, 'darkaura');
+        await startEnhancedDarkAuraRouletteAnimation(window.darkAuraSkins, darkAuraProbabilities, winningItem.name, finalPrice / selectedQuantity, 'darkaura');
         hideCustomDialog(); 
 
         const uniqueItemId = generateUUID(); 
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId, 'lottie');
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             if (typeof addItemResult.new_balance !== 'undefined') {
@@ -343,11 +349,14 @@ async function openDarkAuraCase() {
                 updateBalanceDisplay();
             }
             console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showLottieRouletteResult(currentResultSkin, 'darkaura'); 
+        showRouletteResult(currentResultSkin, 'darkaura'); 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity);
 
@@ -438,12 +447,12 @@ async function openGirlishCase() {
         currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'girlish' }; // Ensure type is lottie
 
         console.log('[Case Opening] Girlish Case Winning item selected:', winningItem);
-        // Assuming a Lottie roulette animation similar to Dark Aura
-        await startLottieRouletteAnimation(window.girlishItems, girlishProbabilities, winningItem.name, finalPrice / selectedQuantity, 'girlish');
+        // Using the enhanced Girlish roulette animation
+        await startEnhancedGirlishRouletteAnimation(window.girlishItems, girlishProbabilities, winningItem.name, finalPrice / selectedQuantity, 'girlish');
         hideCustomDialog(); 
 
         const uniqueItemId = generateUUID(); 
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId, 'lottie'); // Specify type as lottie
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             if (typeof addItemResult.new_balance !== 'undefined') {
@@ -451,11 +460,14 @@ async function openGirlishCase() {
                 updateBalanceDisplay();
             }
             console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showLottieRouletteResult(currentResultSkin, 'girlish'); 
+        showRouletteResult(currentResultSkin, 'girlish'); 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity);
 
@@ -533,11 +545,11 @@ async function openNewMoneyCase() {
         currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'newmoney' };
 
         console.log('[Case Opening] New Money Case Winning item selected:', winningItem);
-        await startLottieRouletteAnimation(window.newMoneyItems, newMoneyProbabilities, winningItem.name, finalPrice / selectedQuantity, 'newmoney');
+        await startEnhancedNewMoneyRouletteAnimation(window.newMoneyItems, newMoneyProbabilities, winningItem.name, finalPrice / selectedQuantity, 'newmoney');
         hideCustomDialog(); 
 
         const uniqueItemId = generateUUID(); 
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId, 'lottie');
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             if (typeof addItemResult.new_balance !== 'undefined') {
@@ -545,11 +557,14 @@ async function openNewMoneyCase() {
                 updateBalanceDisplay();
             }
             console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
         } else {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showLottieRouletteResult(currentResultSkin, 'newmoney'); 
+        showRouletteResult(currentResultSkin, 'newmoney'); 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity); 
 

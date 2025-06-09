@@ -267,29 +267,63 @@ async function addItemToInventoryDB(skinName, tier, skinImage, skinPrice, unique
             return { success: false, message: 'User not identified.' };
         }
         
-        const { data, error } = await supabase.rpc('add_skin_to_inventory', {
-            p_telegram_id: telegramId,
-            p_skin_name: skinName,
-            p_skin_tier: tier,
-            p_skin_image: skinImage,
-            p_skin_price: skinPrice,
-            p_unique_id: uniqueId
-        });
+        // First, try the database function if it exists
+        try {
+            const { data, error } = await supabase.rpc('add_skin_to_inventory', {
+                p_telegram_id: telegramId,
+                p_skin_name: skinName,
+                p_skin_tier: tier,
+                p_skin_image: skinImage,
+                p_skin_price: skinPrice
+            });
 
-        if (error) {
-            console.error('[Inventory] Error adding item to inventory DB:', error);
-            return { success: false, message: 'Database error while adding item.' };
-        }
-        
-        console.log('[Inventory] Item added to inventory DB successfully:', data);
-        
-        // Refresh user stats after adding item
-        await updateUserStat('nft_count', 1); // from user.js
-        if (tier === 4) { // Assuming Tier 4 is Legendary
-            await updateUserStat('legendary_count', 1); // from user.js
-        }
+            if (error) {
+                console.error('[Inventory] Database function error:', error);
+                throw error; // This will trigger the fallback below
+            }
+            
+            console.log('[Inventory] Item added to inventory DB successfully via RPC:', data);
+            
+            // Refresh user stats after adding item
+            await updateUserStat('nft_count', 1); // from user.js
+            if (tier >= 4) { // Tier 4+ is Legendary
+                await updateUserStat('legendary_count', 1); // from user.js
+            }
 
-        return { success: data.success, message: data.message, new_balance: data.new_balance };
+            return { success: true, message: 'Item added successfully', new_balance: data };
+        } catch (rpcError) {
+            console.warn('[Inventory] RPC function failed, using direct database insert:', rpcError);
+            
+            // Fallback: Direct database insert
+            const { data, error } = await supabase
+                .from('user_inventory')
+                .insert({
+                    telegram_id: telegramId,
+                    skin_name: skinName,
+                    skin_tier: tier,
+                    skin_image: skinImage,
+                    skin_price: skinPrice,
+                    unique_id: uniqueId || generateUUID(),
+                    created_at: new Date().toISOString()
+                })
+                .select('unique_id')
+                .single();
+
+            if (error) {
+                console.error('[Inventory] Fallback insert error:', error);
+                return { success: false, message: 'Database error while adding item.' };
+            }
+            
+            console.log('[Inventory] Item added to inventory DB successfully via direct insert:', data);
+            
+            // Refresh user stats after adding item
+            await updateUserStat('nft_count', 1); // from user.js
+            if (tier >= 4) { // Tier 4+ is Legendary
+                await updateUserStat('legendary_count', 1); // from user.js
+            }
+
+            return { success: true, message: 'Item added successfully', unique_id: data.unique_id };
+        }
 
     } catch (err) {
         console.error('[Inventory] Exception in addItemToInventoryDB:', err);

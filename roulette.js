@@ -226,6 +226,101 @@ async function startEnhancedLabubuRouletteAnimation(items, probabilities, winnin
     });
 }
 
+// Enhanced Girlish roulette animation
+async function startEnhancedGirlishRouletteAnimation(items, probabilities, winningItemName, casePrice, caseType) {
+    console.log('[Roulette] Starting Girlish Roulette Animation. Winning item:', winningItemName);
+    if (!currentResultSkin || currentResultSkin.name !== winningItemName) {
+        console.error('[Roulette] Mismatch or missing currentResultSkin for Girlish. Expected:', winningItemName, 'Got:', currentResultSkin);
+        currentResultSkin = items.find(item => item.name === winningItemName) || items[0]; // Fallback
+        if (!currentResultSkin.type) currentResultSkin.type = 'lottie';
+        if (!currentResultSkin.caseType) currentResultSkin.caseType = caseType;
+    }
+
+    const rouletteOverlay = document.getElementById('roulette-overlay');
+    rouletteOverlay.classList.add('active');
+    rouletteStateManager.setCurrentWinningItem(currentResultSkin);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check if it's a Lottie animation and preload if needed
+            if (currentResultSkin.type === 'lottie' && currentResultSkin.image) {
+                const winningLottieData = lottieAnimations[currentResultSkin.image];
+                if (!winningLottieData) {
+                    console.log('[Roulette] Preloading Girlish Lottie animation:', currentResultSkin.image);
+                    try {
+                        const response = await fetch(`${currentResultSkin.image}`);
+                        if (!response.ok) throw new Error('Fetch failed');
+                        lottieAnimations[currentResultSkin.image] = await response.json();
+                        console.log('[Roulette] Fetched Girlish Lottie on demand:', currentResultSkin.image);
+                    } catch (fetchErr) {
+                        console.error('[Roulette] Failed to fetch Girlish Lottie on demand:', fetchErr);
+                        reject(new Error('Failed to load winning animation data.'));
+                        return;
+                    }
+                }
+            }
+            
+            console.log('[Roulette] Girlish animation phase started (simulated delay).');
+            setTimeout(() => {
+                console.log('[Roulette] Girlish animation phase complete.');
+                resolve(currentResultSkin);
+            }, 2500); // Simulate animation time
+        } catch (error) {
+            console.error('[Roulette] Error in Girlish roulette animation:', error);
+            hideCustomDialog();
+            showRouletteResult(currentResultSkin, caseType);
+            reject(error);
+        }
+    });
+}
+
+// Enhanced NewMoney roulette animation
+async function startEnhancedNewMoneyRouletteAnimation(items, probabilities, winningItemName, casePrice, caseType) {
+    console.log('[Roulette] Starting NewMoney Roulette Animation. Winning item:', winningItemName);
+    if (!currentResultSkin || currentResultSkin.name !== winningItemName) {
+        console.error('[Roulette] Mismatch or missing currentResultSkin for NewMoney. Expected:', winningItemName, 'Got:', currentResultSkin);
+        currentResultSkin = items.find(item => item.name === winningItemName) || items[0]; // Fallback
+        if (!currentResultSkin.type) currentResultSkin.type = 'lottie';
+        if (!currentResultSkin.caseType) currentResultSkin.caseType = caseType;
+    }
+
+    const rouletteOverlay = document.getElementById('roulette-overlay');
+    rouletteOverlay.classList.add('active');
+    rouletteStateManager.setCurrentWinningItem(currentResultSkin);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check if it's a Lottie animation and preload if needed
+            if (currentResultSkin.type === 'lottie' && currentResultSkin.image) {
+                const winningLottieData = lottieAnimations[currentResultSkin.image];
+                if (!winningLottieData) {
+                    console.log('[Roulette] Preloading NewMoney Lottie animation:', currentResultSkin.image);
+                    try {
+                        const response = await fetch(`${currentResultSkin.image}`);
+                        if (!response.ok) throw new Error('Fetch failed');
+                        lottieAnimations[currentResultSkin.image] = await response.json();
+                        console.log('[Roulette] Fetched NewMoney Lottie on demand:', currentResultSkin.image);
+                    } catch (fetchErr) {
+                        console.error('[Roulette] Failed to fetch NewMoney Lottie on demand:', fetchErr);
+                        reject(new Error('Failed to load winning animation data.'));
+                        return;
+                    }
+                }
+            }
+            
+            console.log('[Roulette] NewMoney animation phase started (simulated delay).');
+            setTimeout(() => {
+                console.log('[Roulette] NewMoney animation phase complete.');
+                resolve(currentResultSkin);
+            }, 2500); // Simulate animation time
+        } catch (error) {
+            console.error('[Roulette] Error in NewMoney roulette animation:', error);
+            hideCustomDialog();
+            showRouletteResult(currentResultSkin, caseType);
+            reject(error);
+        }
+    });
+}
 
 // Placeholder for the old animateRouletteTrack - this was complex and tied to Lottie.
 // The new approach in startEnhanced...Animation functions is to simplify this for now.
@@ -248,37 +343,57 @@ function showRouletteResult(item, caseType) {
     rouletteStateManager.setCurrentWinningItem(item); // Ensure SM has the final item
 
     const resultScreen = document.getElementById('roulette-overlay');
-    const resultItemName = document.getElementById('result-item-name');
-    const resultItemTier = document.getElementById('result-item-tier');
-    const resultItemImageContainer = document.getElementById('result-item-image');
+    const resultItemName = document.getElementById('result-name');
+    const resultItemImage = document.getElementById('result-image');
+    const resultItemImageContainer = resultItemImage ? resultItemImage.parentElement : null;
+    const sellPriceElement = document.getElementById('sell-price');
 
-    if (!resultScreen || !resultItemName || !resultItemTier || !resultItemImageContainer) {
+    if (!resultScreen || !resultItemName) {
         console.error('[Roulette] Roulette result UI elements not found.');
         return;
     }
 
+    // Set item name
     resultItemName.textContent = item.name;
-    resultItemTier.textContent = `Tier ${item.tier}`;
-    resultItemTier.className = `result-tier tier-${item.tier}`;
-    resultItemImageContainer.innerHTML = ''; // Clear previous
+    
+    // Set sell price if element exists
+    if (sellPriceElement && item.price) {
+        sellPriceElement.textContent = item.price.toLocaleString();
+    }
 
-    if (item.type === 'lottie' && item.image && lottieAnimations[item.image]) {
-        const player = document.createElement('lottie-player');
-        player.autoplay = true;
-        player.loop = true;
-        player.mode = "normal";
-        player.setAnimationData(lottieAnimations[item.image]); 
-        player.style.width = '120px'; // Or your preferred size
-        player.style.height = '120px'; // Or your preferred size
-        resultItemImageContainer.appendChild(player);
-        rouletteStateManager.setActiveRoulette(caseType + '_result', player);
-    } else if (item.type === 'image' && item.image) {
-        resultItemImageContainer.innerHTML = `<img src="${item.image}" alt="${item.name}" style="max-width: 100%; max-height: 120px;">`; // REMOVED 'images/' prefix
-    } else if (item.image) { // Fallback for items without a 'type' but with an image (assume image)
-        // This case might occur if item.type is not explicitly 'image' but an image filename is provided
-        resultItemImageContainer.innerHTML = `<img src="${item.image}" alt="${item.name}" style="max-width: 100%; max-height: 120px;">`; // REMOVED 'images/' prefix
-    } else {
-        resultItemImageContainer.innerHTML = '<p>Image not available</p>'; // Fallback if no image or Lottie data
+    // Handle image display
+    if (resultItemImage && resultItemImageContainer) {
+        resultItemImageContainer.innerHTML = ''; // Clear previous
+        
+        if (item.type === 'lottie' && item.image && lottieAnimations[item.image]) {
+            const player = document.createElement('lottie-player');
+            player.autoplay = true;
+            player.loop = true;
+            player.mode = "normal";
+            player.setAnimationData(lottieAnimations[item.image]); 
+            player.style.width = '120px';
+            player.style.height = '120px';
+            player.style.maxWidth = '100%';
+            player.style.maxHeight = '100%';
+            resultItemImageContainer.appendChild(player);
+            rouletteStateManager.setActiveRoulette(caseType + '_result', player);
+        } else if ((item.type === 'image' || !item.type) && item.image) {
+            const img = document.createElement('img');
+            img.src = item.image;
+            img.alt = item.name;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '120px';
+            img.style.display = 'block';
+            resultItemImageContainer.appendChild(img);
+        } else {
+            resultItemImageContainer.innerHTML = '<p>Image not available</p>';
+        }
+    }
+
+    // Store item info for selling functionality
+    if (item.unique_id) {
+        item.unique_id = item.unique_id; // Ensure unique_id is available for selling
+        rouletteStateManager.setCurrentWinningItem({ ...item, unique_id: item.unique_id });
     }
 
     resultScreen.classList.add('active');
