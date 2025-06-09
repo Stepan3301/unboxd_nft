@@ -3,6 +3,10 @@ async function initApp() {
     console.log('[AppSetup] Step 0: initApp() called.');
     console.log('=== APP INITIALIZATION SEQUENCE START ===');
     
+    // Wait a bit to ensure all scripts are loaded
+    console.log('[AppSetup] Step 0.5: Waiting for all scripts to load...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     try {
         console.log('[AppSetup] Step 1: Starting main setupApp()...');
         await setupApp();
@@ -86,8 +90,16 @@ async function setupApp() {
         // showLoadingState(); // Example if you have a visual loader
 
         console.log('[AppSetup] setupApp() - Step 7: Preloading Lottie animations (non-blocking)...');
-        preloadLottieAnimations(); // FROM ROULETTE.JS - Call without await
-        console.log('[AppSetup] setupApp() - Lottie preloading initiated in background.');
+        try {
+            if (typeof preloadLottieAnimations === 'function') {
+                preloadLottieAnimations(); // FROM ROULETTE.JS - Call without await
+                console.log('[AppSetup] setupApp() - Lottie preloading initiated in background.');
+            } else {
+                console.warn('[AppSetup] preloadLottieAnimations function not available');
+            }
+        } catch (error) {
+            console.warn('[AppSetup] Error during Lottie preload (non-critical):', error);
+        }
 
         console.log('[AppSetup] setupApp() - Step 8: Initializing Telegram User Data...');
         console.log('[AppSetup] setupApp() - Telegram WebApp SDK instance from config.js (tg):', tg);
@@ -159,25 +171,65 @@ async function setupApp() {
         console.log('[AppSetup] setupApp() - initDailyRewards() finished.');
 
         console.log('[AppSetup] setupApp() - Step 15: Calling updateActivityLogUI()...');
-        updateActivityLogUI();
-        console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
+        try {
+            if (typeof updateActivityLogUI === 'function') {
+                updateActivityLogUI();
+                console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
+            } else {
+                console.warn('[AppSetup] updateActivityLogUI function not available');
+            }
+        } catch (error) {
+            console.warn('[AppSetup] Error in updateActivityLogUI (non-critical):', error);
+        }
         
         console.log('[AppSetup] setupApp() - Step 16: Setting initial UI elements (rarity nav, activate tab)...');
-        updateRarityNavVisibility('home-tab');
-        activateTab('home-tab');
+        if (typeof window.updateRarityNavVisibility === 'function') {
+            window.updateRarityNavVisibility('home-tab');
+        } else {
+            console.warn('[AppSetup] updateRarityNavVisibility function not available');
+        }
+        if (typeof window.activateTab === 'function') {
+            window.activateTab('home-tab');
+        } else {
+            console.warn('[AppSetup] activateTab function not available');
+        }
         console.log('[AppSetup] setupApp() - Initial UI elements set.');
         
         console.log('[AppSetup] setupApp() - Step 17: Attaching event listeners...');
-        attachEventListeners();
-        console.log('[AppSetup] setupApp() - Event listeners attached.');
+        try {
+            if (typeof attachEventListeners === 'function') {
+                attachEventListeners();
+                console.log('[AppSetup] setupApp() - Event listeners attached.');
+            } else {
+                console.warn('[AppSetup] attachEventListeners function not available');
+            }
+        } catch (error) {
+            console.warn('[AppSetup] Error in attachEventListeners (non-critical):', error);
+        }
 
         console.log('[AppSetup] setupApp() - Step 17b: Setting up Cases tab sub-navigation...');
-        setupCasesSubNavigation(); // Call the new function
-        console.log('[AppSetup] setupApp() - Cases tab sub-navigation setup.');
+        try {
+            if (typeof setupCasesSubNavigation === 'function') {
+                setupCasesSubNavigation(); // Call the new function
+                console.log('[AppSetup] setupApp() - Cases tab sub-navigation setup.');
+            } else {
+                console.warn('[AppSetup] setupCasesSubNavigation function not available');
+            }
+        } catch (error) {
+            console.warn('[AppSetup] Error in setupCasesSubNavigation (non-critical):', error);
+        }
         
         console.log('[AppSetup] setupApp() - Step 18: Loading case opening data...');
-        loadCaseOpeningData();
-        console.log('[AppSetup] setupApp() - Case opening data loaded.');
+        try {
+            if (typeof loadCaseOpeningData === 'function') {
+                loadCaseOpeningData();
+                console.log('[AppSetup] setupApp() - Case opening data loaded.');
+            } else {
+                console.warn('[AppSetup] loadCaseOpeningData function not available');
+            }
+        } catch (error) {
+            console.warn('[AppSetup] Error in loadCaseOpeningData (non-critical):', error);
+        }
 
         console.log('[AppSetup] setupApp() - SUCCESSFULLY COMPLETED MAIN APPLICATION SETUP.');
 

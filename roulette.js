@@ -54,8 +54,13 @@ const rouletteStateManager = new RouletteStateManager();
 // Enhanced Dark Aura Case Implementation - Lottie Preloading System
 async function preloadLottieAnimations() {
     console.log('[Roulette] Preloading Dark Aura Lottie animations...');
+    // Check if darkAuraSkins is available
+    if (!window.darkAuraSkins) {
+        console.warn('[Roulette] darkAuraSkins not available yet, skipping preload');
+        return;
+    }
     // darkAuraSkins is global from config.js
-    for (const skin of darkAuraSkins) {
+    for (const skin of window.darkAuraSkins) {
         if (skin.type === 'lottie' && skin.image) {
             try {
                 const response = await fetch(`${skin.image}`);
