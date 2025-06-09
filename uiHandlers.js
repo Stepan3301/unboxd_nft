@@ -271,7 +271,7 @@ function attachEventListeners() {
             } else {
                 console.error('Unknown case ID:', caseId);
                 hideAllMainViews(); // Hide all main views
-                document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
+                document.getElementById('cases-tab').classList.add('active'); // Show cases tab
             }
         });
     });
