@@ -363,36 +363,107 @@ function setupCasesSubNavigation() {
             filterCaseListings(filter);
         });
     });
+
+    // Initialize with default filter (All Cases)
+    const defaultFilter = 'all';
+    filterCaseListings(defaultFilter);
+    
+    // Ensure the correct tab is marked as active
+    const activeTab = document.querySelector('.cases-sub-nav-item.active');
+    if (activeTab && activeTab.getAttribute('data-filter') !== defaultFilter) {
+        subNavItems.forEach(i => i.classList.remove('active'));
+        const allCasesTab = document.querySelector('.cases-sub-nav-item[data-filter="all"]');
+        if (allCasesTab) {
+            allCasesTab.classList.add('active');
+        }
+    }
+
+    console.log('[UI] Cases sub-navigation initialized with filter:', defaultFilter);
 }
 
 // Function to filter case listings based on the selected sub-nav filter
 function filterCaseListings(filter) {
-    const featuredCaseContainer = document.querySelector('.featured-case-container');
-    const popularCaseCards = document.querySelectorAll('.cases-grid .case-card'); // Selects only cards in popular section
+    // Get all featured case containers (multiple cases can be featured)
+    const featuredCaseContainers = document.querySelectorAll('.featured-case-container');
+    const popularCaseCards = document.querySelectorAll('.cases-grid .case-card');
 
-    // Handle featured case visibility
-    if (featuredCaseContainer) {
-        const featuredCaseType = featuredCaseContainer.getAttribute('data-case-type');
-        if (filter === 'all' || filter === featuredCaseType || (filter === 'telegram' && featuredCaseType === 'darkaura')) {
-            featuredCaseContainer.classList.add('active');
-        } else {
-            featuredCaseContainer.classList.remove('active');
+    console.log(`[UI] Filtering cases with filter: ${filter}`);
+
+    // Define case categories
+    const customNFTs = ['labubu'];
+    const telegramNFTs = ['darkaura', 'girlish', 'newmoney'];
+    const allCases = [...customNFTs, ...telegramNFTs];
+
+    // Handle featured case containers visibility
+    featuredCaseContainers.forEach(container => {
+        const caseType = container.getAttribute('data-case-type');
+        let shouldShow = false;
+
+        switch (filter) {
+            case 'all':
+                shouldShow = allCases.includes(caseType);
+                break;
+            case 'custom':
+                shouldShow = customNFTs.includes(caseType);
+                break;
+            case 'telegram':
+                shouldShow = telegramNFTs.includes(caseType);
+                break;
+            default:
+                shouldShow = false;
         }
-    }
 
-    // Handle popular cases visibility
-    popularCaseCards.forEach(card => {
-        const popularCaseType = card.getAttribute('data-case-type');
-        if (filter === 'all' || filter === popularCaseType || 
-            (filter === 'custom' && popularCaseType === 'labubu') || 
-            (filter === 'telegram' && popularCaseType === 'darkaura')) {
-            card.classList.add('active'); // Or flex, grid, depending on original display
+        if (shouldShow) {
+            container.style.display = 'block';
+            container.classList.add('active');
         } else {
+            container.style.display = 'none';
+            container.classList.remove('active');
+        }
+
+        console.log(`[UI] Case ${caseType}: ${shouldShow ? 'shown' : 'hidden'} for filter ${filter}`);
+    });
+
+    // Handle popular cases visibility (in case there are any)
+    popularCaseCards.forEach(card => {
+        const caseType = card.getAttribute('data-case-type');
+        let shouldShow = false;
+
+        switch (filter) {
+            case 'all':
+                shouldShow = allCases.includes(caseType);
+                break;
+            case 'custom':
+                shouldShow = customNFTs.includes(caseType);
+                break;
+            case 'telegram':
+                shouldShow = telegramNFTs.includes(caseType);
+                break;
+            default:
+                shouldShow = false;
+        }
+
+        if (shouldShow) {
+            card.style.display = 'block';
+            card.classList.add('active');
+        } else {
+            card.style.display = 'none';
             card.classList.remove('active');
         }
     });
-    // If no popular cases match, the .cases-grid might still be visible but empty.
-    // Consider hiding .popular-cases-container if all its children are hidden.
+
+    // Show/hide section containers based on whether they have visible children
+    const popularCasesContainer = document.querySelector('.popular-cases-container');
+    if (popularCasesContainer) {
+        const visiblePopularCases = popularCasesContainer.querySelectorAll('.case-card[style*="display: block"], .case-card:not([style*="display: none"])');
+        if (visiblePopularCases.length === 0) {
+            popularCasesContainer.style.display = 'none';
+        } else {
+            popularCasesContainer.style.display = 'block';
+        }
+    }
+
+    console.log(`[UI] Case filtering completed for filter: ${filter}`);
 }
 
 // Function to control the visibility of the rarity nav

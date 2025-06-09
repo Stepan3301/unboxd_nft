@@ -2035,6 +2035,16 @@ body {
     box-shadow: 0 0 10px var(--primary);
 }
 
+/* Ensure featured case containers show/hide properly with filtering */
+.featured-case-container {
+    display: block;
+    margin-bottom: 20px;
+}
+
+.featured-case-container[style*="display: none"] {
+    display: none !important;
+}
+
 /* Styles for the items grid within case detail */
 .case-detail-skins-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -2324,6 +2334,13 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     color: white;
+}
+
+.item-date {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 3px 0;
+    font-style: italic;
 }
 
 /* Diagnostic styles - REMOVE AFTER DEBUGGING */

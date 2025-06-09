@@ -56,13 +56,30 @@ function displayInventory(inventory) {
         return;
     }
 
-    // Sort inventory: by tier (desc), then by name (asc)
+    // Sort inventory by date (newest to oldest), then by tier (desc), then by name (asc)
     inventory.sort((a, b) => {
+        // First, try to sort by date (newest first)
+        const dateA = a.acquired_date || a.created_at;
+        const dateB = b.acquired_date || b.created_at;
+        
+        if (dateA && dateB) {
+            const timeA = new Date(dateA).getTime();
+            const timeB = new Date(dateB).getTime();
+            if (timeA !== timeB) {
+                return timeB - timeA; // Newer items first
+            }
+        }
+        
+        // If dates are equal or missing, sort by tier (higher tier first)
         if (a.skin_tier !== b.skin_tier) {
             return b.skin_tier - a.skin_tier; // Higher tier first
         }
+        
+        // Finally, sort by name alphabetically
         return a.skin_name.localeCompare(b.skin_name);
     });
+
+    console.log('[Inventory] Displaying', inventory.length, 'items sorted by date (newest first)');
 
     inventory.forEach(item => {
         const itemCard = document.createElement('div');
@@ -100,6 +117,29 @@ function displayInventory(inventory) {
             imageElement = `<img src="${item.skin_image || 'placeholder.png'}" alt="${item.skin_name}">`;
         }
 
+        // Format the acquisition date for display
+        let dateText = '';
+        const itemDate = item.acquired_date || item.created_at;
+        if (itemDate) {
+            const date = new Date(itemDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                dateText = 'Today';
+            } else if (diffDays === 1) {
+                dateText = 'Yesterday';
+            } else if (diffDays < 7) {
+                dateText = `${diffDays} days ago`;
+            } else if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                dateText = weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+            } else {
+                dateText = date.toLocaleDateString();
+            }
+        }
+
         itemCard.innerHTML = `
             <div class="item-image-container">
                 ${imageElement}
@@ -107,6 +147,7 @@ function displayInventory(inventory) {
             <div class="item-info">
                 <h3>${item.skin_name}</h3>
                 <p class="item-tier tier-${item.skin_tier}">Tier ${item.skin_tier}</p>
+                ${dateText ? `<p class="item-date">${dateText}</p>` : ''}
                 <p class="item-price">
                     <img src="ucoin2.png" alt="UCoin" style="width: 14px; height: 14px; vertical-align: middle;">
                     ${itemPrice.toLocaleString()}
