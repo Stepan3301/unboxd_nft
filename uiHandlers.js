@@ -391,7 +391,7 @@ function filterCaseListings(filter) {
 
     // Define case categories
     const customNFTs = ['labubu'];
-    const telegramNFTs = ['darkaura', 'girlish', 'newmoney'];
+    const telegramNFTs = ['darkaura', 'girlish', 'newmoney', 'maincharacter'];
     const allCases = [...customNFTs, ...telegramNFTs];
 
     // Handle featured case containers visibility
@@ -536,8 +536,8 @@ function displayCaseItems(caseId, items, gridId) {
     let itemBasePath = ''; // Default for root
     if (caseId === 'labubu') {
         itemBasePath = ''; // Labubu images are co-located with index.html (in LottieAnimations/)
-    } else if (caseId === 'darkaura' || caseId === 'girlish' || caseId === 'newmoney') {
-        itemBasePath = '/unboxd_nft/'; // Dark Aura, Girlish & New Money Lotties are at the site root, accessed via /project_name/
+    } else if (caseId === 'darkaura' || caseId === 'girlish' || caseId === 'newmoney' || caseId === 'maincharacter') {
+        itemBasePath = '/unboxd_nft/'; // Dark Aura, Girlish, New Money & Main Character Lotties are at the site root, accessed via /project_name/
     }
     
     console.log(`[UI] Using itemBasePath: '${itemBasePath}' for case ${caseId}`);
@@ -561,6 +561,10 @@ function displayCaseItems(caseId, items, gridId) {
         } else if (caseId === 'newmoney' && !window.newMoneyItems) { // NEW: Retry for newmoney
             console.log('[UI] newMoneyItems not ready, retrying displayCaseItems for newmoney...');
             setTimeout(() => displayCaseItems(caseId, window.newMoneyItems, gridId), 1000);
+            return;
+        } else if (caseId === 'maincharacter' && !window.mainCharacterItems) { // NEW: Retry for maincharacter
+            console.log('[UI] mainCharacterItems not ready, retrying displayCaseItems for maincharacter...');
+            setTimeout(() => displayCaseItems(caseId, window.mainCharacterItems, gridId), 1000);
             return;
         }
         return;
@@ -656,6 +660,10 @@ function initializeCaseControls(caseId, basePrice) {
         } else if (caseId === 'newmoney' && (!window.CASE_PRICES || !window.CASE_PRICES.newmoney)) { // NEW: Retry for newmoney
             console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for newmoney...');
             setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.newmoney : undefined), 1000);
+            return;
+        } else if (caseId === 'maincharacter' && (!window.CASE_PRICES || !window.CASE_PRICES.maincharacter)) { // NEW: Retry for maincharacter
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for maincharacter...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.maincharacter : undefined), 1000);
             return;
         }
         return;
@@ -761,6 +769,14 @@ function showCaseDetail(caseId) {
                 items: window.newMoneyItems,
                 themeControls: 'newmoney-theme-controls',
                 themeDetail: 'newmoney-theme-detail'
+            },
+            'maincharacter': {
+                title: 'Main Character Collection',
+                elementId: 'maincharacter-case-detail',
+                gridId: 'maincharacter-skins-grid',
+                items: window.mainCharacterItems,
+                themeControls: 'maincharacter-theme-controls',
+                themeDetail: 'maincharacter-theme-detail'
             }
         };
 

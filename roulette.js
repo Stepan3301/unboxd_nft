@@ -361,6 +361,61 @@ async function startEnhancedNewMoneyRouletteAnimation(items, probabilities, winn
     });
 }
 
+// Enhanced Main Character roulette animation (simulated)
+async function startEnhancedMainCharacterRouletteAnimation(items, probabilities, winningItemName, casePrice, caseType) {
+    console.log('[Roulette] Starting Main Character roulette animation for:', winningItemName, 'Case Type:', caseType);
+    
+    // Find the winning item from the items array
+    const winningItem = items.find(item => item.name === winningItemName);
+    if (!winningItem) {
+        console.error('[Roulette] Main Character winning item not found:', winningItemName);
+        return null;
+    }
+
+    // Store the current result skin globally to currentResultSkin config.js variable
+    currentResultSkin = winningItem; // From config.js
+    if (!currentResultSkin.unique_id && typeof generateUniqueId === 'function') {
+        currentResultSkin.unique_id = generateUniqueId();
+        console.log('[Roulette] Generated unique_id for Main Character item:', currentResultSkin.unique_id);
+    }
+    
+    rouletteStateManager.setCurrentWinningItem(currentResultSkin);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check if it's a Lottie animation and preload if needed
+            if (currentResultSkin.type === 'lottie' && (currentResultSkin.image || currentResultSkin.lottie)) {
+                const winningLottieData = lottieAnimations[currentResultSkin.image || currentResultSkin.lottie];
+                if (!winningLottieData) {
+                    console.log('[Roulette] Preloading Main Character Lottie animation:', currentResultSkin.image || currentResultSkin.lottie);
+                    try {
+                        const response = await fetch(`/unboxd_nft/${currentResultSkin.image || currentResultSkin.lottie}`);
+                        if (!response.ok) throw new Error('Fetch failed');
+                        lottieAnimations[currentResultSkin.image || currentResultSkin.lottie] = await response.json();
+                        console.log('[Roulette] Fetched Main Character Lottie on demand:', currentResultSkin.image || currentResultSkin.lottie);
+                    } catch (fetchErr) {
+                        console.error('[Roulette] Failed to fetch Main Character Lottie on demand:', fetchErr);
+                        // Continue anyway, will show as image
+                    }
+                }
+            }
+            
+            console.log('[Roulette] Main Character animation phase started (simulated delay).');
+            setTimeout(() => {
+                console.log('[Roulette] Main Character animation phase complete.');
+                // Show the result after animation
+                showRouletteResult(currentResultSkin, caseType);
+                resolve(currentResultSkin);
+            }, 2500); // Simulate animation time
+        } catch (error) {
+            console.error('[Roulette] Error in Main Character roulette animation:', error);
+            hideCustomDialog();
+            showRouletteResult(currentResultSkin, caseType);
+            reject(error);
+        }
+    });
+}
+
 // Placeholder for the old animateRouletteTrack - this was complex and tied to Lottie.
 // The new approach in startEnhanced...Animation functions is to simplify this for now.
 async function animateRouletteTrack(winningItem, items, probabilities, caseType) {

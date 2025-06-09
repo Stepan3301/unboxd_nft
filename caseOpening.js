@@ -203,6 +203,16 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
                 animationFunction = startEnhancedNewMoneyRouletteAnimation; // Assuming this exists
                 break;
                 
+            case 'maincharacter':
+                items = window.mainCharacterItems;
+                probabilities = isGuaranteedTier3 ? 
+                    // Adjust probabilities for Main Character guaranteed Tier 3
+                    [0,0,0.15,0.15,0.25,0.25,0.20] // Tier 3+ guarantee across 10 items
+                    :
+                    [0.25,0.20,0.18,0.15,0.10,0.07,0.03,0.015,0.004,0.001]; // 10 items distribution (tier 1-6)
+                animationFunction = startEnhancedMainCharacterRouletteAnimation;
+                break;
+                
             default:
                 throw new Error(`Case type ${caseType} not supported for Stars payment`);
         }
@@ -574,6 +584,103 @@ async function openNewMoneyCase() {
     }
 }
 window.openNewMoneyCase = openNewMoneyCase;
+
+// NEW: Open Main Character Case function
+async function openMainCharacterCase() {
+    const caseName = 'Main Character Case';
+    const openButton = document.querySelector('#maincharacter-case-detail .case-controls .open-case-btn');
+    const selectedQuantity = parseInt(openButton.dataset.selectedQuantity || '1');
+    const finalPrice = parseInt(openButton.dataset.finalPrice || window.CASE_PRICES.maincharacter.toString());
+
+    console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
+
+    if (userBalance < finalPrice) { 
+        showNotEnoughBalanceDialog(); 
+        return;
+    }
+
+    try {
+        showCustomDialog('Channeling protagonist energy...', true); 
+        const balanceUpdated = await updateUserBalance(-finalPrice, `Opened ${selectedQuantity} x ${caseName}`, 'case_open_multiple'); 
+        if (!balanceUpdated) {
+            hideCustomDialog();
+            showToast('Transaction failed. Please try again.', 'error'); 
+            return;
+        }
+
+        if (selectedQuantity > 1) {
+            console.warn("[Case Opening] Multi-case opening logic is not fully implemented beyond UI price calculation for Main Character case.");
+        }
+
+        caseOpeningsCount++;
+        let isGuaranteedTier3 = guaranteedTier3NextOpening;
+        if (isGuaranteedTier3) {
+            guaranteedTier3NextOpening = false; 
+        }
+        else if (caseOpeningsCount % 10 === 0) { 
+            guaranteedTier3NextOpening = true;
+        }
+        saveCaseOpeningData();
+
+        console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
+        
+        // Probabilities for Main Character Case (10 items, 6 tiers)
+        // T1:2, T2:2, T3:2, T4:2, T5:1, T6:1
+        let mainCharacterProbabilities = [
+            0.25, 0.20,       // T1 (45%)
+            0.18, 0.15,       // T2 (33%)
+            0.10, 0.07,       // T3 (17%)
+            0.03, 0.015,      // T4 (4.5%)
+            0.004,            // T5 (0.4%)
+            0.001             // T6 (0.1%) - Total 100%
+        ];
+
+        if (isGuaranteedTier3) {
+            console.log("[Case Opening] Applying guaranteed Tier 3+ probabilities for Main Character Case.");
+            mainCharacterProbabilities = [
+                0, 0,           // T1
+                0, 0,           // T2
+                0.35, 0.30,     // T3 (65%)
+                0.20, 0.10,     // T4 (30%)
+                0.04,           // T5 (4%)
+                0.01            // T6 (1%)
+            ];
+        }
+
+        const winningItem = selectRandomItemByProbability(window.mainCharacterItems, mainCharacterProbabilities);
+        currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'maincharacter' };
+
+        console.log('[Case Opening] Main Character Case Winning item selected:', winningItem);
+        await startEnhancedMainCharacterRouletteAnimation(window.mainCharacterItems, mainCharacterProbabilities, winningItem.name, finalPrice / selectedQuantity, 'maincharacter');
+        hideCustomDialog(); 
+
+        const uniqueItemId = generateUUID(); 
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
+
+        if (addItemResult.success) {
+            if (typeof addItemResult.new_balance !== 'undefined') {
+                userBalance = parseFloat(addItemResult.new_balance);
+                updateBalanceDisplay();
+            }
+            console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
+        } else {
+            console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
+            showToast('Error adding item to inventory. Please contact support.', 'error');
+        }
+        // showRouletteResult is now called by the roulette animation function 
+        addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
+        await updateUserStat('cases_opened', selectedQuantity); 
+
+    } catch (error) {
+        console.error(`[Case Opening] Error opening ${caseName}:`, error);
+        showToast('An error occurred while opening the case.', 'error');
+        hideCustomDialog(); 
+    }
+}
+window.openMainCharacterCase = openMainCharacterCase;
 
 // Helper to show not enough balance dialog (could be moved to utils.js or uiHandlers.js if not there)
 function showNotEnoughBalanceDialog() {

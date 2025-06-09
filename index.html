@@ -464,6 +464,47 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Main Character Case Card (Featured) -->
+                    <div class="featured-case-container" data-case-type="maincharacter">
+                        <div class="section-title">
+                            <i class="fas fa-crown"></i>
+                            Main Character Collection
+                        </div>
+                        <div class="featured-card maincharacter-theme-card">
+                            <div class="featured-image">
+                                <img src="MainCharacterCase.png" alt="Main Character Case">
+                            </div>
+                            <div class="featured-info">
+                                <div class="featured-name">Main Character Case</div>
+                                <div class="featured-desc">Channel your inner protagonist with 10 powerful Lottie animations embodying dark elegance and mystical power.</div>
+                                <div class="featured-stats">
+                                    <div class="stat">
+                                        <div class="stat-value">10</div>
+                                        <div class="stat-label">Items</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">6</div>
+                                        <div class="stat-label">Tiers</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-value">Mystical</div>
+                                        <div class="stat-label">Theme</div>
+                                    </div>
+                                </div>
+                                <div class="featured-action">
+                                    <div class="featured-price">
+                                        <img src="ucoin2.png" alt="UCoin">
+                                        7,000
+                                    </div>
+                                    <button class="featured-btn" data-case="maincharacter">
+                                        View Items
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -711,6 +752,46 @@
             </div>
             <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
             <div id="newmoney-skins-grid" class="case-detail-skins-grid skins-grid">
+                <!-- Skins will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Main Character Case Detail View -->
+        <div id="maincharacter-case-detail" class="case-detail maincharacter-theme-detail">
+            <div class="case-detail-header">
+                <div class="case-detail-back" id="maincharacter-case-back"><i class="fas fa-arrow-left"></i></div>
+                <h2 class="case-detail-title" id="maincharacter-case-title">Main Character Collection</h2>
+            </div>
+            <div class="featured-card">
+                <div class="featured-image">
+                    <img src="MainCharacterCase.png" alt="Main Character Case Big">
+                </div>
+                <div class="featured-info">
+                    <h3>Main Character Case</h3>
+                    <p>Channel your inner protagonist with 10 powerful Lottie animations embodying dark elegance and mystical power.</p>
+                </div>
+            </div>
+            <div id="maincharacter-case-controls" class="case-controls">
+                <div class="quantity-selector">
+                    <h3>How many cases to open?</h3>
+                    <div class="quantity-buttons">
+                      <button class="quantity-btn active" data-quantity="1" data-discount="0">1</button>
+                      <button class="quantity-btn" data-quantity="3" data-discount="5">3 <span class="discount">-5%</span></button>
+                      <button class="quantity-btn" data-quantity="5" data-discount="10">5 <span class="discount">-10%</span></button>
+                      <button class="quantity-btn" data-quantity="10" data-discount="15">10 <span class="discount">-15%</span></button>
+                    </div>
+                </div>
+                <button class="open-case-btn" data-case="maincharacter" data-base-price="7000">
+                    <span class="btn-text">Open Case</span>
+                    <span class="btn-price">
+                        <span class="price-value">7000</span> 
+                        <img src="ucoin2.png" alt="UCoins" class="ucoin-icon-sm" style="width: 16px; height: 16px; margin-left: 5px;">
+                    </span>
+                    <div class="btn-glow"></div>
+                </button>
+            </div>
+            <h3 class="section-title case-items-title"><i class="fas fa-gem"></i> Possible Drops</h3>
+            <div id="maincharacter-skins-grid" class="case-detail-skins-grid skins-grid">
                 <!-- Skins will be populated by JavaScript -->
             </div>
         </div>
