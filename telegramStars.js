@@ -27,9 +27,7 @@ async function initiateStarsPayment(caseType, starsAmount) {
             timestamp: Date.now()
         };
         
-        if (typeof showToast === 'function') {
-            showToast('Creating payment link...', 'info');
-        }
+        console.log('[Telegram Stars] Creating payment link...');
         
         const linkRequest = {
             action: 'get_invoice_link',
@@ -42,9 +40,7 @@ async function initiateStarsPayment(caseType, starsAmount) {
         
         tg.sendData(JSON.stringify(linkRequest));
         
-        if (typeof showToast === 'function') {
-            showToast('Check the chat for payment button!', 'info');
-        }
+        console.log('[Telegram Stars] Payment request sent. Check the chat for payment button!');
         
         return { success: true, message: 'Request sent to bot' };
         
@@ -115,9 +111,8 @@ async function handlePaymentSuccess(caseType, paymentResult) {
 }
 
 async function handlePaymentCancelled(caseType) {
-    if (typeof showToast === 'function') {
-        showToast('Payment cancelled', 'info');
-    }
+    console.log('[Telegram Stars] Payment cancelled by user');
+    // No toast for cancellation - user already knows they cancelled
 }
 
 async function handlePaymentFailed(caseType, paymentResult) {
