@@ -28,8 +28,14 @@ function ensureTelegramApiAvailable() {
             };
             // Set telegramId globally for mock development
             window.telegramId = 12345678;
-            if (typeof telegramId !== 'undefined') {
-                telegramId = 12345678;
+            // Also set on global scope if it exists
+            try {
+                if (typeof window.telegramId !== 'undefined') {
+                    window.telegramId = 12345678;
+                }
+            } catch (e) {
+                // Ignore if telegramId is not accessible
+                console.log('[TelegramFix] telegramId not accessible in global scope (normal for early initialization)');
             }
         } else {
             // We're in production but Telegram API is not available
@@ -48,11 +54,22 @@ function ensureTelegramApiAvailable() {
             console.log("Valid Telegram ID found:", window.Telegram.WebApp.initDataUnsafe.user.id);
             
             // Make sure telegramId is set globally
-            if (typeof telegramId === 'undefined' || !telegramId) {
-                telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                window.telegramId = telegramId; // Also set on window object for cross-script access
-                console.log("Fixed missing telegramId:", telegramId);
+            const telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            window.telegramId = telegramUserId; // Set on window object for cross-script access
+            
+            // Also try to set in global scope if accessible
+            try {
+                if (typeof window !== 'undefined' && window.telegramId) {
+                    // Try to access global telegramId safely
+                    if (typeof telegramId !== 'undefined') {
+                        telegramId = telegramUserId;
+                    }
+                }
+            } catch (e) {
+                // Ignore if telegramId is not accessible yet
+                console.log('[TelegramFix] Global telegramId not accessible yet (normal for early initialization)');
             }
+            console.log("Set telegramId:", telegramUserId);
         }
         
         // Log more details about the Telegram connection
