@@ -536,8 +536,8 @@ function displayCaseItems(caseId, items, gridId) {
     let itemBasePath = ''; // Default for root
     if (caseId === 'labubu') {
         itemBasePath = ''; // Labubu images are co-located with index.html (in LottieAnimations/)
-    } else if (caseId === 'darkaura' || caseId === 'girlish') {
-        itemBasePath = '/unboxd_nft/'; // Dark Aura & Girlish Lotties are at the site root, accessed via /project_name/
+    } else if (caseId === 'darkaura' || caseId === 'girlish' || caseId === 'newmoney') {
+        itemBasePath = '/unboxd_nft/'; // Dark Aura, Girlish & New Money Lotties are at the site root, accessed via /project_name/
     }
     
     console.log(`[UI] Using itemBasePath: '${itemBasePath}' for case ${caseId}`);
@@ -558,6 +558,10 @@ function displayCaseItems(caseId, items, gridId) {
             console.log('[UI] girlishItems not ready, retrying displayCaseItems for girlish...');
             setTimeout(() => displayCaseItems(caseId, window.girlishItems, gridId), 1000);
             return;
+        } else if (caseId === 'newmoney' && !window.newMoneyItems) { // NEW: Retry for newmoney
+            console.log('[UI] newMoneyItems not ready, retrying displayCaseItems for newmoney...');
+            setTimeout(() => displayCaseItems(caseId, window.newMoneyItems, gridId), 1000);
+            return;
         }
         return;
     }
@@ -573,8 +577,8 @@ function displayCaseItems(caseId, items, gridId) {
         imageContainer.className = 'item-image-container';
 
         let playerOrImg;
-        if (item.lottie) {
-            const lottiePath = itemBasePath + item.lottie;
+        if (item.type === 'lottie' && item.image) {
+            const lottiePath = itemBasePath + item.image;
             console.log(`[UI] Creating Lottie for ${item.name}: ${lottiePath}`);
             playerOrImg = document.createElement('lottie-player');
             playerOrImg.setAttribute('src', lottiePath);
@@ -582,6 +586,20 @@ function displayCaseItems(caseId, items, gridId) {
             playerOrImg.setAttribute('speed', '1');
             // playerOrImg.setAttribute('autoplay', ''); // Removed autoplay
             // playerOrImg.setAttribute('loop', ''); // Removed loop
+            playerOrImg.style.width = '100%';
+            playerOrImg.style.height = '100%';
+            itemCard.addEventListener('click', () => {
+                playerOrImg.stop();
+                playerOrImg.play();
+            });
+        } else if (item.lottie) {
+            // Legacy support for items using 'lottie' field
+            const lottiePath = itemBasePath + item.lottie;
+            console.log(`[UI] Creating Lottie (legacy) for ${item.name}: ${lottiePath}`);
+            playerOrImg = document.createElement('lottie-player');
+            playerOrImg.setAttribute('src', lottiePath);
+            playerOrImg.setAttribute('background', 'transparent');
+            playerOrImg.setAttribute('speed', '1');
             playerOrImg.style.width = '100%';
             playerOrImg.style.height = '100%';
             itemCard.addEventListener('click', () => {
@@ -634,6 +652,10 @@ function initializeCaseControls(caseId, basePrice) {
         } else if (caseId === 'girlish' && (!window.CASE_PRICES || !window.CASE_PRICES.girlish)) { // NEW: Retry for girlish
             console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for girlish...');
             setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.girlish : undefined), 1000);
+            return;
+        } else if (caseId === 'newmoney' && (!window.CASE_PRICES || !window.CASE_PRICES.newmoney)) { // NEW: Retry for newmoney
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for newmoney...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.newmoney : undefined), 1000);
             return;
         }
         return;
