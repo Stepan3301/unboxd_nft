@@ -102,7 +102,7 @@ async function openLabubuCase() {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showRouletteResult(currentResultSkin, 'labubu');
+        // showRouletteResult is now called by the roulette animation function
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity); 
 
@@ -256,8 +256,7 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
         
-        // Show result and add activity
-        showRouletteResult(currentResultSkin, caseType);
+        // Show result and add activity - result is shown by roulette animation function
         addActivity('case_open_stars', { 
             caseName: caseName, 
             skinName: winningItem.name,
@@ -356,7 +355,7 @@ async function openDarkAuraCase() {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showRouletteResult(currentResultSkin, 'darkaura'); 
+        // showRouletteResult is now called by the roulette animation function 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity);
 
@@ -467,7 +466,7 @@ async function openGirlishCase() {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showRouletteResult(currentResultSkin, 'girlish'); 
+        // showRouletteResult is now called by the roulette animation function 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity);
 
@@ -564,7 +563,7 @@ async function openNewMoneyCase() {
             console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
             showToast('Error adding item to inventory. Please contact support.', 'error');
         }
-        showRouletteResult(currentResultSkin, 'newmoney'); 
+        // showRouletteResult is now called by the roulette animation function 
         addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
         await updateUserStat('cases_opened', selectedQuantity); 
 
