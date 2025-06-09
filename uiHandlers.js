@@ -315,11 +315,11 @@ async function safeCallTonConnectFunction(functionName, ...args) {
 function hideAllMainViews() {
     console.log('[UI] Attempting to hide all main views and case details.');
     const mainContentAreas = [
-        document.getElementById('home-tab-content'),
-        document.getElementById('cases-tab-content'),
-        document.getElementById('inventory-tab-content'),
-        document.getElementById('profile-tab-content'),
-        document.getElementById('settings-tab-content') // Assuming settings is a main view
+        document.getElementById('home-tab'),
+        document.getElementById('cases-tab'),
+        document.getElementById('inventory-tab'),
+        document.getElementById('profile-tab'),
+        document.getElementById('info-tab')
     ];
 
     mainContentAreas.forEach(view => {
@@ -785,7 +785,7 @@ function showCaseDetail(caseId) {
         if (!caseData) {
             console.error('Unknown case ID:', caseId);
             hideAllMainViews(); // Hide all main views
-            document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
+            document.getElementById('cases-tab').classList.add('active'); // Show cases tab
             return;
         }
 
@@ -807,7 +807,7 @@ function showCaseDetail(caseId) {
             console.error(`[showCaseDetail] Failed to load data for ${caseId} after ${maxRetries} retries.`);
             showToast('Error loading case details. Please try again.', 'error');
             hideAllMainViews(); // Hide all main views
-            document.getElementById('cases-tab-content').classList.add('active'); // Show cases tab
+            document.getElementById('cases-tab').classList.add('active'); // Show cases tab
             return;
         }
 
