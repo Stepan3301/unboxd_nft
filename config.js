@@ -118,16 +118,19 @@ window.newMoneyItems = [
 ];
 
 window.mainCharacterItems = [
-    { name: 'Shadow Voodoo Doll', image: 'cleaned-voodoodoll-7970.json', type: 'lottie', tier: 1, price: skinPrices[1] },
-    { name: 'Electric Phantom Skull', image: 'cleaned-electricskull-8221.json', type: 'lottie', tier: 1, price: skinPrices[1] },
-    { name: 'Mystical Signet Ring', image: 'cleaned-signetring-14328.json', type: 'lottie', tier: 2, price: skinPrices[2] },
-    { name: 'Cursed Genie Lamp', image: 'darkaura-cleaned-genielamp-4594.json', type: 'lottie', tier: 2, price: skinPrices[2] },
-    { name: 'Eternal Shadow Rose', image: 'darkaura-cleaned-eternalrose-7069.json', type: 'lottie', tier: 3, price: skinPrices[3] },
-    { name: 'Crystal Ball of Fate', image: 'darkaura-cleaned-crystalball-9027.json', type: 'lottie', tier: 3, price: skinPrices[3] },
-    { name: 'Midnight Winter Wreath', image: 'girlish-cleaned-winterwreath-9594.json', type: 'lottie', tier: 4, price: skinPrices[4] },
-    { name: 'Astral Void Shard', image: 'girlish-cleaned-astralshard-3087.json', type: 'lottie', tier: 4, price: skinPrices[4] },
-    { name: 'Dark Phantom Oscar', image: 'cleaned-minioscar-1983.json', type: 'lottie', tier: 5, price: skinPrices[5] },
-    { name: 'Sacred Cat Guardian', image: 'cleaned-scaredcat-18595.json', type: 'lottie', tier: 6, price: skinPrices[6] }
+    { name: 'Dark Delight Lollipop', image: 'MainCharacterCaseLotties/cleaned-lolpop-darkdelight.json', type: 'lottie', tier: 1, price: skinPrices[1] },
+    { name: 'Noir Perfume Bottle', image: 'MainCharacterCaseLotties/cleaned-perfumebottle-noir.json', type: 'lottie', tier: 1, price: skinPrices[1] },
+    { name: 'Dark Knight Toy Bear', image: 'MainCharacterCaseLotties/cleaned-toybear-darkknight.json', type: 'lottie', tier: 2, price: skinPrices[2] },
+    { name: 'Marble Plush Pepe', image: 'MainCharacterCaseLotties/cleaned-plushpepe-marble.json', type: 'lottie', tier: 2, price: skinPrices[2] },
+    { name: 'Full Tint Swiss Watch', image: 'MainCharacterCaseLotties/cleaned-swisswatch-fulltint.json', type: 'lottie', tier: 3, price: skinPrices[3] },
+    { name: 'Barbed Astral Shard', image: 'MainCharacterCaseLotties/cleaned-astralshard-barbed.json', type: 'lottie', tier: 3, price: skinPrices[3] },
+    { name: 'Grey Shark Neko Helmet', image: 'MainCharacterCaseLotties/cleaned-nekohelmet-greyshark.json', type: 'lottie', tier: 4, price: skinPrices[4] },
+    { name: 'Spades Signet Ring', image: 'MainCharacterCaseLotties/cleaned-signetring-spades.json', type: 'lottie', tier: 4, price: skinPrices[4] },
+    { name: 'Jevil Jelly Bunny', image: 'MainCharacterCaseLotties/cleaned-jellybunny-jevil.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Oil Baron Vintage Cigar', image: 'MainCharacterCaseLotties/cleaned-vintagecigar-oilbaron.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Retro Silver Record Player', image: 'MainCharacterCaseLotties/cleaned-recordplayer-retrosilver.json', type: 'lottie', tier: 6, price: skinPrices[6] },
+    { name: 'Red Wedding Diamond Ring', image: 'MainCharacterCaseLotties/cleaned-diamondring-redwedding.json', type: 'lottie', tier: 6, price: skinPrices[6] },
+    { name: 'Falcon Durov\'s Cap', image: 'MainCharacterCaseLotties/cleaned-durovscap-falcon.json', type: 'lottie', tier: 6, price: skinPrices[6] }
 ];
 
 // Case opening tracking (Consider moving to caseOpening.js)
