@@ -51,30 +51,46 @@ class RouletteStateManager {
 }
 const rouletteStateManager = new RouletteStateManager();
 
-// Enhanced Dark Aura Case Implementation - Lottie Preloading System
+// Enhanced Lottie Preloading System for All Cases
 async function preloadLottieAnimations() {
-    console.log('[Roulette] Preloading Dark Aura Lottie animations...');
-    // Check if darkAuraSkins is available
-    if (!window.darkAuraSkins) {
-        console.warn('[Roulette] darkAuraSkins not available yet, skipping preload');
-        return;
-    }
-    // darkAuraSkins is global from config.js
-    for (const skin of window.darkAuraSkins) {
-        if (skin.type === 'lottie' && skin.image) {
-            try {
-                const response = await fetch(`${skin.image}`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch Lottie: ${skin.image}, status: ${response.status}`);
+    console.log('[Roulette] Preloading Lottie animations for all cases...');
+    
+    // Define all case collections
+    const caseCollections = [
+        { name: 'darkAuraSkins', data: window.darkAuraSkins },
+        { name: 'girlishItems', data: window.girlishItems },
+        { name: 'newMoneyItems', data: window.newMoneyItems },
+        { name: 'mainCharacterItems', data: window.mainCharacterItems }
+    ];
+    
+    let totalPreloaded = 0;
+    
+    for (const collection of caseCollections) {
+        if (!collection.data) {
+            console.warn(`[Roulette] ${collection.name} not available yet, skipping preload`);
+            continue;
+        }
+        
+        console.log(`[Roulette] Preloading ${collection.name}...`);
+        
+        for (const item of collection.data) {
+            if (item.type === 'lottie' && item.image) {
+                try {
+                    const response = await fetch(`${item.image}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch Lottie: ${item.image}, status: ${response.status}`);
+                    }
+                    lottieAnimations[item.image] = await response.json();
+                    console.log(`[Roulette] Preloaded Lottie: ${item.image}`);
+                    totalPreloaded++;
+                } catch (error) {
+                    console.error(`[Roulette] Error preloading Lottie ${item.image}:`, error);
                 }
-                lottieAnimations[skin.image] = await response.json();
-                console.log(`[Roulette] Preloaded Lottie: ${skin.image}`);
-            } catch (error) {
-                console.error(`[Roulette] Error preloading Lottie ${skin.image}:`, error);
             }
         }
     }
-    console.log('[Roulette] Lottie preloading complete. Total preloaded:', Object.keys(lottieAnimations).length);
+    
+    console.log(`[Roulette] Lottie preloading complete. Total preloaded: ${totalPreloaded}`);
 }
 
 // Setup click handlers for Dark Aura Lottie animations on the case detail page
@@ -389,7 +405,7 @@ async function startEnhancedMainCharacterRouletteAnimation(items, probabilities,
                 if (!winningLottieData) {
                     console.log('[Roulette] Preloading Main Character Lottie animation:', currentResultSkin.image || currentResultSkin.lottie);
                     try {
-                        const response = await fetch(`/unboxd_nft/${currentResultSkin.image || currentResultSkin.lottie}`);
+                        const response = await fetch(`${currentResultSkin.image || currentResultSkin.lottie}`);
                         if (!response.ok) throw new Error('Fetch failed');
                         lottieAnimations[currentResultSkin.image || currentResultSkin.lottie] = await response.json();
                         console.log('[Roulette] Fetched Main Character Lottie on demand:', currentResultSkin.image || currentResultSkin.lottie);
