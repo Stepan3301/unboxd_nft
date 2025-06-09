@@ -266,7 +266,7 @@ function attachEventListeners() {
     featuredButtons.forEach(button => {
         button.addEventListener('click', function() {
             const caseId = this.dataset.case;
-            if (caseId === 'darkaura' || caseId === 'labubu' || caseId === 'girlish' || caseId === 'newmoney') {
+            if (caseId === 'darkaura' || caseId === 'labubu' || caseId === 'girlish' || caseId === 'newmoney' || caseId === 'maincharacter') {
                 showCaseDetail(caseId);
             } else {
                 console.error('Unknown case ID:', caseId);
