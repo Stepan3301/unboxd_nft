@@ -5,19 +5,65 @@ async function initApp() {
     
     try {
         console.log('[AppSetup] Step 1: Starting main setupApp()...');
-        // The setupApp function will now handle UI rendering and deferring TonConnect
         await setupApp();
         console.log('[AppSetup] Step 2: Main setupApp() finished.');
         
-        console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
+        console.log('[AppSetup] Step 3: Starting TON Connect initialization...');
         
+        // Add a small delay to ensure TonConnect SDK is fully loaded
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+            // Check if initializeTonConnect function is available with multiple attempts
+            let tonConnectSuccess = false;
+            let attempts = 0;
+            const maxAttempts = 3;
+            
+            while (!tonConnectSuccess && attempts < maxAttempts) {
+                attempts++;
+                console.log(`[AppSetup] Step 4: Attempting TON Connect initialization (attempt ${attempts}/${maxAttempts})`);
+                
+                if (typeof initializeTonConnect === 'function') {
+                    tonConnectSuccess = await initializeTonConnect();
+                } else if (typeof window.initializeTonConnect === 'function') {
+                    tonConnectSuccess = await window.initializeTonConnect();
+                } else {
+                    console.warn(`[AppSetup] Step 4: initializeTonConnect function not available (attempt ${attempts}/${maxAttempts})`);
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                        continue;
+                    }
+                }
+                
+                if (tonConnectSuccess) {
+                    console.log('[AppSetup] Step 4: TON Connect initialized successfully.');
+                    break;
+                } else {
+                    console.warn(`[AppSetup] Step 4: TON Connect initialization failed (attempt ${attempts}/${maxAttempts})`);
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    }
+                }
+            }
+            
+            if (!tonConnectSuccess) {
+                console.warn('[AppSetup] Step 4: TON Connect initialization failed after all attempts, but app will continue.');
+                console.warn('[AppSetup] TON Connect will be initialized on first user interaction.');
+            }
+        } catch (tonConnectError) {
+            console.error('[AppSetup] Step 4: TON Connect initialization threw an error:', tonConnectError);
+            console.warn('[AppSetup] App will continue without TON Connect functionality.');
+        }
+        
+        console.log('=== APP INITIALIZATION SEQUENCE COMPLETED ===');
     } catch (error) {
         console.error('[AppSetup] CRITICAL ERROR in initApp():', error);
+        
+        // Show user-friendly error message
         if (typeof showToast === 'function') {
             showToast('Failed to initialize the app. Please refresh and try again.', 'error');
         } else {
-            // Fallback for when toast is not available
-            document.body.innerHTML = `<div style="color: red; padding: 20px;">Critical Error: Failed to initialize. Please refresh.</div>`;
+            console.error('[AppSetup] App initialization failed. Please refresh and try again.');
         }
     }
 }
@@ -36,63 +82,108 @@ window.addEventListener('load', initApp);
 async function setupApp() {
     try {
         console.log('[AppSetup] setupApp() - Step 5: Starting main application setup...');
+        console.log('[AppSetup] setupApp() - Step 6: Displaying loading state (if any)...');
+        // showLoadingState(); // Example if you have a visual loader
 
-        // Preload assets in the background
-        preloadLottieAnimations();
+        console.log('[AppSetup] setupApp() - Step 7: Preloading Lottie animations (non-blocking)...');
+        preloadLottieAnimations(); // FROM ROULETTE.JS - Call without await
+        console.log('[AppSetup] setupApp() - Lottie preloading initiated in background.');
 
-        // Prepare Telegram user data
-        const user = window.Telegram?.WebApp?.initDataUnsafe?.user || {};
-        window.telegramId = user.id;
-        window.userFirstName = user.first_name || 'User';
-        window.userLastName = user.last_name || '';
-        window.userName = user.username ? `@${user.username}` : `${window.userFirstName} ${window.userLastName}`.trim();
-        window.userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+        console.log('[AppSetup] setupApp() - Step 8: Initializing Telegram User Data...');
+        console.log('[AppSetup] setupApp() - Telegram WebApp SDK instance from config.js (tg):', tg);
+        console.log('[AppSetup] setupApp() - Telegram WebApp initDataUnsafe from tg:', tg ? tg.initDataUnsafe : 'tg is null');
         
-        console.log('[AppSetup] setupApp() - User data prepared:', {
-            telegramId,
-            userName,
-            userPhotoUrl
-        });
+        console.log('[AppSetup] setupApp() - Step 9: Preparing Telegram user data...');
+        const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : {};
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            telegramId = tg.initDataUnsafe.user.id; 
+            console.log('[AppSetup] setupApp() - Successfully retrieved telegram ID:', telegramId);
+        } else {
+            console.warn('[AppSetup] setupApp() - Could not retrieve real telegram ID. User object from TG:', user);
+            
+            // Attempt to fix Telegram API issues
+            console.log('[AppSetup] setupApp() - Attempting to fix Telegram initialization...');
+            
+            // Check if ensureTelegramApiAvailable function exists and call it
+            if (typeof ensureTelegramApiAvailable === 'function') {
+                ensureTelegramApiAvailable();
+                // Try again after the fix
+                if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                    telegramId = tg.initDataUnsafe.user.id;
+                    console.log('[AppSetup] setupApp() - Fixed telegram ID:', telegramId);
+                }
+            }
+            
+            // If still no ID, check for globally set telegramId from telegram_fix.js
+            if (!telegramId && typeof window !== 'undefined' && window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[AppSetup] setupApp() - Using globally set telegram ID:', telegramId);
+            }
+            
+            // Final fallback - show error to user if still no ID
+            if (!telegramId) {
+                console.error('[AppSetup] setupApp() - CRITICAL: Still no Telegram ID after fix attempts');
+                if (typeof showToast === 'function') {
+                    showToast('Unable to connect to Telegram. Please restart the app.', 'error');
+                } else {
+                    console.error('[AppSetup] Unable to connect to Telegram. Please restart the app.');
+                }
+                return; // Stop initialization
+            }
+        }
         
-        // Register user and get initial data
-        await registerUserAndGetBalance();
-        await getUserStats();
+        userFirstName = user.first_name || 'User'; 
+        userLastName = user.last_name || '';
+        userName = user.username ? `@${user.username}` : (userFirstName + (userLastName ? ` ${userLastName}` : '')).trim();
+        userPhotoUrl = user.photo_url || 'https://picsum.photos/seed/profile/300';
+        console.log('[AppSetup] setupApp() - Telegram user data prepared:', { telegramId, userName, userFirstName, userLastName, userPhotoUrl });
+        
+        console.log('[AppSetup] setupApp() - Step 10: Calling registerUserAndGetBalance()...');
+        await registerUserAndGetBalance(); 
+        console.log('[AppSetup] setupApp() - registerUserAndGetBalance() finished. Current userBalance (from config.js):', userBalance);
+        
+        console.log('[AppSetup] setupApp() - Step 11: Calling getUserStats()...');
+        const stats = await getUserStats();
+        console.log('[AppSetup] setupApp() - getUserStats() finished. Stats retrieved:', stats);
+        
+        console.log('[AppSetup] setupApp() - Step 12: Calling getUserInventory()...');
         await getUserInventory();
+        console.log('[AppSetup] setupApp() - getUserInventory() finished.');
         
-        // Update the UI with the fetched data
+        console.log('[AppSetup] setupApp() - Step 13: Calling updateUserData()...');
         await updateUserData();
+        console.log('[AppSetup] setupApp() - updateUserData() finished.');
         
-        // Initialize UI components and event listeners
+        console.log('[AppSetup] setupApp() - Step 14: Calling initDailyRewards()...');
         initDailyRewards();
+        console.log('[AppSetup] setupApp() - initDailyRewards() finished.');
+
+        console.log('[AppSetup] setupApp() - Step 15: Calling updateActivityLogUI()...');
         updateActivityLogUI();
+        console.log('[AppSetup] setupApp() - updateActivityLogUI() finished.');
+        
+        console.log('[AppSetup] setupApp() - Step 16: Setting initial UI elements (rarity nav, activate tab)...');
         updateRarityNavVisibility('home-tab');
         activateTab('home-tab');
+        console.log('[AppSetup] setupApp() - Initial UI elements set.');
+        
+        console.log('[AppSetup] setupApp() - Step 17: Attaching event listeners...');
         attachEventListeners();
-        setupCasesSubNavigation();
+        console.log('[AppSetup] setupApp() - Event listeners attached.');
+
+        console.log('[AppSetup] setupApp() - Step 17b: Setting up Cases tab sub-navigation...');
+        setupCasesSubNavigation(); // Call the new function
+        console.log('[AppSetup] setupApp() - Cases tab sub-navigation setup.');
+        
+        console.log('[AppSetup] setupApp() - Step 18: Loading case opening data...');
         loadCaseOpeningData();
+        console.log('[AppSetup] setupApp() - Case opening data loaded.');
 
         console.log('[AppSetup] setupApp() - SUCCESSFULLY COMPLETED MAIN APPLICATION SETUP.');
 
-        // Defer TON Connect initialization until after the main app is fully set up and rendered.
-        setTimeout(() => {
-            if (window.TonConnectWallet) {
-                console.log('[AppSetup] Initializing TON Connect Wallet after main setup...');
-                window.TonConnectWallet.initialize().catch(err => {
-                    console.error('[AppSetup] Deferred TON Connect initialization failed:', err);
-                });
-            } else {
-                console.warn('[AppSetup] TonConnectWallet module not found for deferred initialization.');
-            }
-        }, 100); // A short delay to ensure the main thread is free.
-
     } catch (error) {
         console.error('[AppSetup] setupApp() - CRITICAL ERROR during main application setup:', error);
-        // Use the toast function for user-facing errors
-        if (typeof showToast === 'function') {
-            showToast('Error setting up the app. Please try again later.', 'error');
-        } else {
-            alert('Error setting up the app. Please try again later.');
-        }
+        alert('Error setting up the app. Please try again later.');
     }
 }
 

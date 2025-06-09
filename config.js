@@ -1,4 +1,10 @@
 console.log('[Config] Starting config.js load...');
+
+// Safety net: ensure telegram fix is available as early as possible
+if (typeof ensureTelegramApiAvailable === 'function') {
+    console.log('[Config] Early telegram fix call...');
+    ensureTelegramApiAvailable();
+}
 // Supabase configuration
 const SUPABASE_URL = 'https://vjlsmlkwoiwpercoljfo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbHNtbGt3b2l3cGVyY29samZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMzA2MDAsImV4cCI6MjA2MzYwNjYwMH0.47EOGnJIl7XfTqJOW8PjHlpAOYuj27sd-u9CdteoDR0';
@@ -139,8 +145,28 @@ if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 
     tg.expand();
     tg.ready();
     console.log('[Config] Telegram WebApp initialized.');
+    
+    // Call telegram fix function if available to ensure proper initialization
+    if (typeof ensureTelegramApiAvailable === 'function') {
+        console.log('[Config] Calling ensureTelegramApiAvailable...');
+        ensureTelegramApiAvailable();
+    }
 } else {
-    console.error('[Config] Telegram WebApp SDK not found. Telegram integration features will be unavailable.');
+    console.error('[Config] Telegram WebApp SDK not found. Attempting fix...');
+    
+    // Try to fix telegram initialization if fix function is available
+    if (typeof ensureTelegramApiAvailable === 'function') {
+        console.log('[Config] Calling ensureTelegramApiAvailable to fix Telegram initialization...');
+        ensureTelegramApiAvailable();
+        
+        // Try again after fix
+        if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+            console.log('[Config] Telegram WebApp initialized after fix.');
+        }
+    }
 }
 
 console.log('[Config] config.js loaded'); 

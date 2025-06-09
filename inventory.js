@@ -5,8 +5,22 @@ async function getUserInventory() {
         console.log('[InventoryJS] Fetching user inventory for telegramId:', telegramId);
         if (!telegramId) { // telegramId from config.js
             console.error('[InventoryJS] getUserInventory - FAILED: No telegram ID.');
-            showInventoryError('Unable to load inventory. Please log in again.');
-            return;
+            
+            // Try to get telegramId from different sources
+            if (window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[InventoryJS] getUserInventory - Using telegramId from window:', telegramId);
+            } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                telegramId = tg.initDataUnsafe.user.id;
+                console.log('[InventoryJS] getUserInventory - Extracted telegramId from tg:', telegramId);
+            }
+            
+            // If still no ID, show empty inventory state
+            if (!telegramId) {
+                console.warn('[InventoryJS] getUserInventory - Showing empty inventory due to missing telegram ID.');
+                displayInventory([]); // Show empty inventory
+                return;
+            }
         }
 
         const params = { p_telegram_id: telegramId };

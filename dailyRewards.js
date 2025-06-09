@@ -18,7 +18,21 @@ let dailyRewardDialog;  // Initialized in initDailyRewards
 function initDailyRewards() {
     if (!telegramId) { // telegramId from config.js
         console.error('[Daily Rewards] No Telegram ID available for daily rewards');
-        return;
+        
+        // Try to get telegramId from different sources
+        if (window.telegramId) {
+            telegramId = window.telegramId;
+            console.log('[Daily Rewards] Using telegramId from window:', telegramId);
+        } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            telegramId = tg.initDataUnsafe.user.id;
+            console.log('[Daily Rewards] Extracted telegramId from tg:', telegramId);
+        }
+        
+        // If still no ID, disable daily rewards but don't crash
+        if (!telegramId) {
+            console.warn('[Daily Rewards] Daily rewards disabled due to missing telegram ID.');
+            return;
+        }
     }
     console.log("[Daily Rewards] Initializing daily rewards system...");
 

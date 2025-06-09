@@ -26,6 +26,11 @@ function ensureTelegramApiAvailable() {
                     }
                 }
             };
+            // Set telegramId globally for mock development
+            window.telegramId = 12345678;
+            if (typeof telegramId !== 'undefined') {
+                telegramId = 12345678;
+            }
         } else {
             // We're in production but Telegram API is not available
             console.error("CRITICAL: Telegram WebApp API not available in production environment!");
@@ -45,6 +50,7 @@ function ensureTelegramApiAvailable() {
             // Make sure telegramId is set globally
             if (typeof telegramId === 'undefined' || !telegramId) {
                 telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+                window.telegramId = telegramId; // Also set on window object for cross-script access
                 console.log("Fixed missing telegramId:", telegramId);
             }
         }
@@ -60,4 +66,22 @@ function ensureTelegramApiAvailable() {
             console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
         }
     }
+}
+
+// Function to be called at the very start of app initialization
+function initializeTelegramFix() {
+    console.log('[TelegramFix] initializeTelegramFix() called');
+    ensureTelegramApiAvailable();
+    
+    // Set up a global initialization check
+    window.telegramInitialized = true;
+    
+    console.log('[TelegramFix] Telegram fix initialization completed');
+}
+
+// Auto-call the fix when the script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTelegramFix);
+} else {
+    initializeTelegramFix();
 }

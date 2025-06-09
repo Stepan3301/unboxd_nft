@@ -4,9 +4,36 @@ async function registerUserAndGetBalance() {
     try {
         if (!telegramId) {
             console.error('[UserJS] registerUserAndGetBalance - FAILED: No Telegram ID available.');
-            // Consider using showToast or a similar UI notification if available
-            alert('Unable to identify user. Please restart the app.');
-            return;
+            
+            // Attempt to get telegramId from different sources
+            if (window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[UserJS] registerUserAndGetBalance - Using telegramId from window:', telegramId);
+            } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                telegramId = tg.initDataUnsafe.user.id;
+                console.log('[UserJS] registerUserAndGetBalance - Extracted telegramId from tg:', telegramId);
+            } else if (typeof ensureTelegramApiAvailable === 'function') {
+                console.log('[UserJS] registerUserAndGetBalance - Calling ensureTelegramApiAvailable...');
+                ensureTelegramApiAvailable();
+                if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                    telegramId = tg.initDataUnsafe.user.id;
+                    console.log('[UserJS] registerUserAndGetBalance - Fixed telegramId:', telegramId);
+                }
+            }
+            
+            // If still no ID, show error but don't crash the app
+            if (!telegramId) {
+                console.error('[UserJS] registerUserAndGetBalance - CRITICAL: Still no Telegram ID after all attempts.');
+                if (typeof showToast === 'function') {
+                    showToast('Unable to identify user. Using demo mode.', 'warning');
+                } else {
+                    console.warn('[UserJS] Unable to identify user. Using demo mode.');
+                }
+                // Set a demo balance for development/testing
+                userBalance = 1000;
+                updateBalanceDisplay();
+                return;
+            }
         }
         
         console.log('[UserJS] registerUserAndGetBalance - Attempting to register user with ID:', telegramId);
@@ -94,7 +121,23 @@ async function updateUserData() {
         
         if (!telegramId) {
             console.error('[User] No telegram ID available for updating user data');
-            return;
+            
+            // Try to get telegramId from different sources
+            if (window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[User] updateUserData - Using telegramId from window:', telegramId);
+            } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                telegramId = tg.initDataUnsafe.user.id;
+                console.log('[User] updateUserData - Extracted telegramId from tg:', telegramId);
+            }
+            
+            // If still no ID, continue with mock/default data
+            if (!telegramId) {
+                console.warn('[User] updateUserData - Continuing with default user data due to missing telegram ID.');
+                userFirstName = 'Demo User';
+                userName = 'Demo User';
+                userPhotoUrl = 'https://picsum.photos/seed/profile/300';
+            }
         }
         
         // Set user avatar and username from tg.initDataUnsafe (tg is from config.js)
@@ -139,7 +182,23 @@ async function getUserBalance() {
     try {
         if (!telegramId) {
             console.error('[UserJS] getUserBalance - FAILED: No telegram ID.');
-            return 0; // Return 0 or handle as appropriate
+            
+            // Try to get telegramId from different sources
+            if (window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[UserJS] getUserBalance - Using telegramId from window:', telegramId);
+            } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                telegramId = tg.initDataUnsafe.user.id;
+                console.log('[UserJS] getUserBalance - Extracted telegramId from tg:', telegramId);
+            }
+            
+            // If still no ID, use demo balance
+            if (!telegramId) {
+                console.warn('[UserJS] getUserBalance - Using demo balance due to missing telegram ID.');
+                userBalance = 1000;
+                updateBalanceDisplay();
+                return userBalance;
+            }
         }
         
         const params = { p_telegram_id: telegramId };
@@ -221,7 +280,27 @@ async function getUserStats() {
     try {
         if (!telegramId) {
             console.error('[UserJS] getUserStats - FAILED: No telegram ID.');
-            return null;
+            
+            // Try to get telegramId from different sources
+            if (window.telegramId) {
+                telegramId = window.telegramId;
+                console.log('[UserJS] getUserStats - Using telegramId from window:', telegramId);
+            } else if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                telegramId = tg.initDataUnsafe.user.id;
+                console.log('[UserJS] getUserStats - Extracted telegramId from tg:', telegramId);
+            }
+            
+            // If still no ID, use default stats
+            if (!telegramId) {
+                console.warn('[UserJS] getUserStats - Using default stats due to missing telegram ID.');
+                const defaultStats = {
+                    nft_count: 0,
+                    cases_opened: 0,
+                    legendary_count: 0
+                };
+                updateStatsUI(defaultStats);
+                return defaultStats;
+            }
         }
         
         const params = { p_telegram_id: telegramId };
