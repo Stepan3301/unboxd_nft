@@ -266,7 +266,7 @@ function attachEventListeners() {
     featuredButtons.forEach(button => {
         button.addEventListener('click', function() {
             const caseId = this.dataset.case;
-            if (caseId === 'darkaura' || caseId === 'labubu' || caseId === 'girlish' || caseId === 'newmoney' || caseId === 'maincharacter') {
+            if (caseId === 'darkaura' || caseId === 'labubu' || caseId === 'girlish' || caseId === 'newmoney' || caseId === 'maincharacter' || caseId === 'coldblooded') {
                 showCaseDetail(caseId);
             } else {
                 console.error('Unknown case ID:', caseId);
@@ -391,7 +391,7 @@ function filterCaseListings(filter) {
 
     // Define case categories
     const customNFTs = ['labubu'];
-    const telegramNFTs = ['darkaura', 'girlish', 'newmoney', 'maincharacter'];
+    const telegramNFTs = ['darkaura', 'girlish', 'newmoney', 'maincharacter', 'coldblooded'];
     const allCases = [...customNFTs, ...telegramNFTs];
 
     // Handle featured case containers visibility
@@ -665,6 +665,10 @@ function initializeCaseControls(caseId, basePrice) {
             console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for maincharacter...');
             setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.maincharacter : undefined), 1000);
             return;
+        } else if (caseId === 'coldblooded' && (!window.CASE_PRICES || !window.CASE_PRICES.coldblooded)) { // NEW: Retry for coldblooded
+            console.log('[UI] CASE_PRICES not ready, retrying initializeCaseControls for coldblooded...');
+            setTimeout(() => initializeCaseControls(caseId, window.CASE_PRICES ? window.CASE_PRICES.coldblooded : undefined), 1000);
+            return;
         }
         return;
     }
@@ -777,6 +781,14 @@ function showCaseDetail(caseId) {
                 items: window.mainCharacterItems,
                 themeControls: 'maincharacter-theme-controls',
                 themeDetail: 'maincharacter-theme-detail'
+            },
+            'coldblooded': {
+                title: 'Cold Blooded Collection',
+                elementId: 'coldblooded-case-detail',
+                gridId: 'coldblooded-skins-grid',
+                items: window.coldBloodedItems,
+                themeControls: 'coldblooded-theme-controls',
+                themeDetail: 'coldblooded-theme-detail'
             }
         };
 

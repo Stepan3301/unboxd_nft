@@ -60,7 +60,8 @@ async function preloadLottieAnimations() {
         { name: 'darkAuraSkins', data: window.darkAuraSkins },
         { name: 'girlishItems', data: window.girlishItems },
         { name: 'newMoneyItems', data: window.newMoneyItems },
-        { name: 'mainCharacterItems', data: window.mainCharacterItems }
+        { name: 'mainCharacterItems', data: window.mainCharacterItems },
+        { name: 'coldBloodedItems', data: window.coldBloodedItems }
     ];
     
     let totalPreloaded = 0;
@@ -370,6 +371,61 @@ async function startEnhancedNewMoneyRouletteAnimation(items, probabilities, winn
             }, 2500); // Simulate animation time
         } catch (error) {
             console.error('[Roulette] Error in NewMoney roulette animation:', error);
+            hideCustomDialog();
+            showRouletteResult(currentResultSkin, caseType);
+            reject(error);
+        }
+    });
+}
+
+// Enhanced Cold Blooded roulette animation with Lottie support
+async function startEnhancedColdBloodedRouletteAnimation(items, probabilities, winningItemName, casePrice, caseType) {
+    console.log('[Roulette] Starting Cold Blooded roulette animation for:', winningItemName, 'Case Type:', caseType);
+    
+    // Find the winning item from the items array
+    const winningItem = items.find(item => item.name === winningItemName);
+    if (!winningItem) {
+        console.error('[Roulette] Cold Blooded winning item not found:', winningItemName);
+        return null;
+    }
+
+    // Store the current result skin globally to currentResultSkin config.js variable
+    currentResultSkin = winningItem; // From config.js
+    if (!currentResultSkin.unique_id && typeof generateUniqueId === 'function') {
+        currentResultSkin.unique_id = generateUniqueId();
+        console.log('[Roulette] Generated unique_id for Cold Blooded item:', currentResultSkin.unique_id);
+    }
+    
+    rouletteStateManager.setCurrentWinningItem(currentResultSkin);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check if it's a Lottie animation and preload if needed
+            if (currentResultSkin.type === 'lottie' && (currentResultSkin.image || currentResultSkin.lottie)) {
+                const winningLottieData = lottieAnimations[currentResultSkin.image || currentResultSkin.lottie];
+                if (!winningLottieData) {
+                    console.log('[Roulette] Preloading Cold Blooded Lottie animation:', currentResultSkin.image || currentResultSkin.lottie);
+                    try {
+                        const response = await fetch(`${currentResultSkin.image || currentResultSkin.lottie}`);
+                        if (!response.ok) throw new Error('Fetch failed');
+                        lottieAnimations[currentResultSkin.image || currentResultSkin.lottie] = await response.json();
+                        console.log('[Roulette] Fetched Cold Blooded Lottie on demand:', currentResultSkin.image || currentResultSkin.lottie);
+                    } catch (fetchErr) {
+                        console.error('[Roulette] Failed to fetch Cold Blooded Lottie on demand:', fetchErr);
+                        // Continue anyway, will show as image
+                    }
+                }
+            }
+            
+            console.log('[Roulette] Cold Blooded animation phase started (simulated delay).');
+            setTimeout(() => {
+                console.log('[Roulette] Cold Blooded animation phase complete.');
+                // Show the result after animation
+                showRouletteResult(currentResultSkin, caseType);
+                resolve(currentResultSkin);
+            }, 2800); // Simulate animation time
+        } catch (error) {
+            console.error('[Roulette] Error in Cold Blooded roulette animation:', error);
             hideCustomDialog();
             showRouletteResult(currentResultSkin, caseType);
             reject(error);

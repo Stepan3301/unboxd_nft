@@ -33,7 +33,8 @@ const CASE_PRICES = {
     labubu: 50,
     girlish: 5000,
     newmoney: 10000,
-    maincharacter: 7000
+    maincharacter: 7000,
+    coldblooded: 3500
 };
 
 // Sell prices for each tier of skin. Used for inventory management.
@@ -131,6 +132,27 @@ window.mainCharacterItems = [
     { name: 'Retro Silver Record Player', image: 'MainCharacterCaseLotties/cleaned-recordplayer-retrosilver.json', type: 'lottie', tier: 6, price: skinPrices[6] },
     { name: 'Red Wedding Diamond Ring', image: 'MainCharacterCaseLotties/cleaned-diamondring-redwedding.json', type: 'lottie', tier: 6, price: skinPrices[6] },
     { name: 'Falcon Durov\'s Cap', image: 'MainCharacterCaseLotties/cleaned-durovscap-falcon.json', type: 'lottie', tier: 6, price: skinPrices[6] }
+];
+
+window.coldBloodedItems = [
+    { name: 'Ice Frog Kiss', image: 'ColdBloodedCaseLotties/cleaned-kissedfrog-icefrog.json', type: 'lottie', tier: 1, price: skinPrices[1] },
+    { name: 'Cyan Sizzle Sparkler', image: 'ColdBloodedCaseLotties/cleaned-partysparkler-cyansizzle.json', type: 'lottie', tier: 1, price: skinPrices[1] },
+    { name: 'Frozen Plush Pepe', image: 'ColdBloodedCaseLotties/cleaned-plushpepe-frozen.json', type: 'lottie', tier: 2, price: skinPrices[2] },
+    { name: 'Thin Ice Santa Hat', image: 'ColdBloodedCaseLotties/cleaned-santahat-thinice.json', type: 'lottie', tier: 2, price: skinPrices[2] },
+    { name: 'Deep Freeze Easter Egg', image: 'ColdBloodedCaseLotties/cleaned-easteregg-deepfreeze.json', type: 'lottie', tier: 3, price: skinPrices[3] },
+    { name: 'Ice Chime Jingle Bells', image: 'ColdBloodedCaseLotties/cleaned-jinglebells-icechime.json', type: 'lottie', tier: 3, price: skinPrices[3] },
+    { name: 'Snowman Toy Bear', image: 'ColdBloodedCaseLotties/cleaned-toybear-snowman.json', type: 'lottie', tier: 3, price: skinPrices[3] },
+    { name: 'Arctite Astral Shard', image: 'ColdBloodedCaseLotties/cleaned-astralshard-arctite.json', type: 'lottie', tier: 4, price: skinPrices[4] },
+    { name: 'Ice Block Voodoo Doll', image: 'ColdBloodedCaseLotties/cleaned-voodoodoll-iceblock.json', type: 'lottie', tier: 4, price: skinPrices[4] },
+    { name: 'Frostbite Ginger Cookie', image: 'ColdBloodedCaseLotties/cleaned-gingercookie-frostbite.json', type: 'lottie', tier: 4, price: skinPrices[4] },
+    { name: 'Deep Freeze Mini Oscar', image: 'ColdBloodedCaseLotties/cleaned-minioscar-deepfreeze.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Icebound Sakura Flower', image: 'ColdBloodedCaseLotties/cleaned-sakuraflower-icebound.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Over Ice Spiced Wine', image: 'ColdBloodedCaseLotties/cleaned-spicedwine-overice.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Ice Cold Vintage Cigar', image: 'ColdBloodedCaseLotties/cleaned-vintagecigar-icecold.json', type: 'lottie', tier: 5, price: skinPrices[5] },
+    { name: 'Frost Band Diamond Ring', image: 'ColdBloodedCaseLotties/cleaned-diamondring-frostband.json', type: 'lottie', tier: 6, price: skinPrices[6] },
+    { name: 'Cold Brew Hex Pot', image: 'ColdBloodedCaseLotties/cleaned-hexpot-coldbrew.json', type: 'lottie', tier: 6, price: skinPrices[6] },
+    { name: 'Sub Zero Flying Broom', image: 'ColdBloodedCaseLotties/cleaned-flyingbroom-subzero.json', type: 'lottie', tier: 6, price: skinPrices[6] },
+    { name: 'Winter Record Player', image: 'ColdBloodedCaseLotties/cleaned-recordplayer-winter.json', type: 'lottie', tier: 6, price: skinPrices[6] }
 ];
 
 // Case opening tracking (Consider moving to caseOpening.js)

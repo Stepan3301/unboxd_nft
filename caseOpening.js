@@ -213,6 +213,16 @@ async function processStarsPaymentSuccess(caseType, paymentId) {
                 animationFunction = startEnhancedMainCharacterRouletteAnimation;
                 break;
                 
+            case 'coldblooded':
+                items = window.coldBloodedItems;
+                probabilities = isGuaranteedTier3 ? 
+                    // Adjust probabilities for Cold Blooded guaranteed Tier 3
+                    [0,0,0.14,0.14,0.14,0.14,0.14,0.10,0.10,0.10,0.05,0.05] // Tier 3+ guarantee across 18 items
+                    :
+                    [0.15,0.15,0.12,0.12,0.10,0.08,0.08,0.06,0.05,0.04,0.02,0.015,0.01,0.008,0.005,0.003,0.002,0.001]; // 18 items distribution (tier 1-6)
+                animationFunction = startEnhancedColdBloodedRouletteAnimation;
+                break;
+                
             default:
                 throw new Error(`Case type ${caseType} not supported for Stars payment`);
         }
@@ -681,6 +691,103 @@ async function openMainCharacterCase() {
     }
 }
 window.openMainCharacterCase = openMainCharacterCase;
+
+// NEW: Open Cold Blooded Case function
+async function openColdBloodedCase() {
+    const caseName = 'Cold Blooded Case';
+    const openButton = document.querySelector('#coldblooded-case-detail .case-controls .open-case-btn');
+    const selectedQuantity = parseInt(openButton.dataset.selectedQuantity || '1');
+    const finalPrice = parseInt(openButton.dataset.finalPrice || window.CASE_PRICES.coldblooded.toString());
+
+    console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
+
+    if (userBalance < finalPrice) { 
+        showNotEnoughBalanceDialog(); 
+        return;
+    }
+
+    try {
+        showCustomDialog('Embracing the chill...', true); 
+        const balanceUpdated = await updateUserBalance(-finalPrice, `Opened ${selectedQuantity} x ${caseName}`, 'case_open_multiple'); 
+        if (!balanceUpdated) {
+            hideCustomDialog();
+            showToast('Transaction failed. Please try again.', 'error'); 
+            return;
+        }
+
+        if (selectedQuantity > 1) {
+            console.warn("[Case Opening] Multi-case opening logic is not fully implemented beyond UI price calculation for Cold Blooded case.");
+        }
+
+        caseOpeningsCount++;
+        let isGuaranteedTier3 = guaranteedTier3NextOpening;
+        if (isGuaranteedTier3) {
+            guaranteedTier3NextOpening = false; 
+        }
+        else if (caseOpeningsCount % 10 === 0) { 
+            guaranteedTier3NextOpening = true;
+        }
+        saveCaseOpeningData();
+
+        console.log(`[Case Opening] ${caseName} - Openings: ${caseOpeningsCount}, Guaranteed Tier 3 Next: ${guaranteedTier3NextOpening}`);
+        
+        // Probabilities for Cold Blooded Case (18 items, 6 tiers)
+        // T1:2, T2:2, T3:3, T4:3, T5:4, T6:4
+        let coldBloodedProbabilities = [
+            0.15, 0.15,             // T1 (30%)
+            0.12, 0.12,             // T2 (24%)
+            0.10, 0.08, 0.08,       // T3 (26%)
+            0.06, 0.05, 0.04,       // T4 (15%)
+            0.02, 0.015, 0.01, 0.008,  // T5 (4.3%)
+            0.005, 0.003, 0.002, 0.001  // T6 (0.7%) - Total 100%
+        ];
+
+        if (isGuaranteedTier3) {
+            console.log("[Case Opening] Applying guaranteed Tier 3+ probabilities for Cold Blooded Case.");
+            coldBloodedProbabilities = [
+                0, 0,               // T1
+                0, 0,               // T2
+                0.35, 0.25, 0.20,   // T3 (80%)
+                0.08, 0.07, 0.05,   // T4 (20%)
+                0, 0, 0, 0,         // T5
+                0, 0, 0, 0          // T6
+            ];
+        }
+
+        const winningItem = selectRandomItemByProbability(window.coldBloodedItems, coldBloodedProbabilities);
+        currentResultSkin = { ...winningItem, type: 'lottie', caseType: 'coldblooded' };
+
+        console.log('[Case Opening] Cold Blooded Case Winning item selected:', winningItem);
+        await startEnhancedColdBloodedRouletteAnimation(window.coldBloodedItems, coldBloodedProbabilities, winningItem.name, finalPrice / selectedQuantity, 'coldblooded');
+        hideCustomDialog(); 
+
+        const uniqueItemId = generateUUID(); 
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
+
+        if (addItemResult.success) {
+            if (typeof addItemResult.new_balance !== 'undefined') {
+                userBalance = parseFloat(addItemResult.new_balance);
+                updateBalanceDisplay();
+            }
+            console.log('[Case Opening] Item added to inventory successfully.');
+            
+            // Add unique_id to currentResultSkin for roulette functionality
+            currentResultSkin.unique_id = addItemResult.unique_id || uniqueItemId;
+        } else {
+            console.error('[Case Opening] Failed to add item to inventory:', addItemResult.message);
+            showToast('Error adding item to inventory. Please contact support.', 'error');
+        }
+        // showRouletteResult is now called by the roulette animation function 
+        addActivity('case_open', { caseName: caseName, skinName: winningItem.name });
+        await updateUserStat('cases_opened', selectedQuantity); 
+
+    } catch (error) {
+        console.error(`[Case Opening] Error opening ${caseName}:`, error);
+        showToast('An error occurred while opening the case.', 'error');
+        hideCustomDialog(); 
+    }
+}
+window.openColdBloodedCase = openColdBloodedCase;
 
 // Helper to show not enough balance dialog (could be moved to utils.js or uiHandlers.js if not there)
 function showNotEnoughBalanceDialog() {
