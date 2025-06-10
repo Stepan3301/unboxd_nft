@@ -2843,10 +2843,18 @@ body {
 
 .coldblooded-theme-card .featured-image {
     background: transparent !important;
+    background-color: transparent !important;
 }
 
 .coldblooded-theme-card .featured-image img {
     filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.6));
+    background: transparent !important;
+    background-color: transparent !important;
+    /* Force remove any potential backdrop effects */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Try to make white parts transparent if image has white background */
+    mix-blend-mode: multiply;
 }
 
 .coldblooded-theme-card .featured-name,
@@ -2894,10 +2902,15 @@ body {
 
 .coldblooded-theme-detail .featured-card .featured-image {
     background: transparent !important;
+    background-color: transparent !important;
 }
 
 .coldblooded-theme-detail .featured-card .featured-image img {
     filter: drop-shadow(0 0 15px rgba(0, 191, 255, 0.5));
+    background: transparent !important;
+    background-color: transparent !important;
+    /* Try to make white parts transparent if image has white background */
+    mix-blend-mode: multiply;
 }
 
 .coldblooded-theme-detail .featured-card .featured-info h3 {
