@@ -2841,6 +2841,10 @@ body {
     text-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
 }
 
+.coldblooded-theme-card .featured-image {
+    background: transparent !important;
+}
+
 .coldblooded-theme-card .featured-image img {
     filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.6));
 }
@@ -2886,6 +2890,10 @@ body {
         rgba(15, 30, 40, 0.6) 50%, 
         rgba(10, 25, 35, 0.8) 100%);
     border: 1px solid rgba(0, 191, 255, 0.3);
+}
+
+.coldblooded-theme-detail .featured-card .featured-image {
+    background: transparent !important;
 }
 
 .coldblooded-theme-detail .featured-card .featured-image img {
