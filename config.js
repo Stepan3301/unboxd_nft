@@ -1,3 +1,5 @@
+// CHANGES by Cursor 2025-01-28: Added missing helper function stubs, unified case naming, added global exports
+
 console.log('[Config] Starting config.js load...');
 
 // Supabase configuration
@@ -71,6 +73,9 @@ window.darkAuraSkins = [
     { name: 'Mini Oscar Phantom', image: 'cleaned-minioscar-1983.json', type: 'lottie', tier: 6, price: skinPrices[6] },
     { name: 'Scared Cat Obelisk', image: 'cleaned-scaredcat-18595.json', type: 'lottie', tier: 6, price: skinPrices[6] }
 ];
+
+// Unified naming: darkAuraItems for consistency with roulette logic
+window.darkAuraItems = window.darkAuraSkins;
 
 window.labubuItems = [
     { name: 'Skeleton Labubu', tier: 1, image: 'SkeletonLabubu.png', type: 'image', price: skinPrices[1] },
@@ -166,6 +171,98 @@ const MAX_STORED_ACTIVITIES = 20;
 // TON Connect - instance will be here, initialization in tonConnect.js
 let tonConnectUI = null;
 
+// -----------------------------------------------------------------------------
+// --- HELPER FUNCTION STUBS ---
+// All missing helper functions are implemented as stubs with TODO comments
+// These need real implementation but allow the app to run without errors
+// -----------------------------------------------------------------------------
+
+// TODO: Real implementation needed - currently using functions from existing files
+if (typeof updateUserBalance === 'undefined') {
+    window.updateUserBalance = function(delta, description, tag) {
+        console.warn('[Config STUB] updateUserBalance called with:', delta, description, tag);
+        // TODO: Implement or ensure user.js is loaded
+        return Promise.resolve(false);
+    };
+}
+
+if (typeof addItemToInventoryDB === 'undefined') {
+    window.addItemToInventoryDB = function(item) {
+        console.warn('[Config STUB] addItemToInventoryDB called with:', item);
+        // TODO: Implement or ensure inventory.js is loaded
+        return Promise.resolve({ success: false, message: 'Stub implementation' });
+    };
+}
+
+if (typeof selectRandomItemByProbability === 'undefined') {
+    window.selectRandomItemByProbability = function(items, probabilities) {
+        console.warn('[Config STUB] selectRandomItemByProbability called');
+        // TODO: Implement or ensure utils.js is loaded
+        return items && items.length > 0 ? items[0] : null;
+    };
+}
+
+if (typeof generateUUID === 'undefined') {
+    window.generateUUID = function() {
+        console.warn('[Config STUB] generateUUID called');
+        // TODO: Implement or ensure utils.js is loaded
+        return 'stub-uuid-' + Date.now();
+    };
+}
+
+if (typeof showCustomDialog === 'undefined') {
+    window.showCustomDialog = function(message, withLoader) {
+        console.warn('[Config STUB] showCustomDialog called with:', message, withLoader);
+        // TODO: Implement or ensure utils.js is loaded
+        alert(message);
+    };
+}
+
+if (typeof hideCustomDialog === 'undefined') {
+    window.hideCustomDialog = function() {
+        console.warn('[Config STUB] hideCustomDialog called');
+        // TODO: Implement or ensure utils.js is loaded
+    };
+}
+
+if (typeof showToast === 'undefined') {
+    window.showToast = function(message, type) {
+        console.warn('[Config STUB] showToast called with:', message, type);
+        // TODO: Implement or ensure utils.js is loaded
+        console.log(`TOAST [${type}]: ${message}`);
+    };
+}
+
+if (typeof updateBalanceDisplay === 'undefined') {
+    window.updateBalanceDisplay = function() {
+        console.warn('[Config STUB] updateBalanceDisplay called');
+        // TODO: Implement or ensure user.js is loaded
+    };
+}
+
+if (typeof addActivity === 'undefined') {
+    window.addActivity = function(event, data) {
+        console.warn('[Config STUB] addActivity called with:', event, data);
+        // TODO: Implement or ensure activityLog.js is loaded
+    };
+}
+
+if (typeof updateUserStat === 'undefined') {
+    window.updateUserStat = function(stat, count) {
+        console.warn('[Config STUB] updateUserStat called with:', stat, count);
+        // TODO: Implement or ensure user.js is loaded
+        return Promise.resolve(false);
+    };
+}
+
+if (typeof sellNFT === 'undefined') {
+    window.sellNFT = function(name, tier, id) {
+        console.warn('[Config STUB] sellNFT called with:', name, tier, id);
+        // TODO: Implement or ensure inventory.js is loaded
+        return Promise.resolve(false);
+    };
+}
+
 // Initialize Supabase Client (Make sure Supabase SDK is loaded before this file)
 let supabaseClient = null;
 let supabase = null; // Alias for convenience
@@ -173,6 +270,7 @@ let supabase = null; // Alias for convenience
 if (typeof window.supabase !== 'undefined') {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     supabase = supabaseClient;
+    window.supabase = supabase; // Ensure global access
     console.log('[Config] Supabase client initialized.');
 } else {
     console.error('[Config] Supabase SDK not found. Supabase features will be unavailable.');

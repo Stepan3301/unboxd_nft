@@ -1,3 +1,4 @@
+// CHANGES by Cursor 2025-01-28: Added global exports for all case opening functions
 // Case Opening Logic
 
 // caseOpeningsCount and guaranteedTier3NextOpening are global from config.js
@@ -39,7 +40,7 @@ async function openLabubuCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { // userBalance from config.js
-        showNotEnoughBalanceDialog(); // from uiHandlers.js or utils.js
+        showCustomDialog("Not enough UCoins", false); // Show error instead of opening roulette
         return;
     }
 
@@ -112,6 +113,7 @@ async function openLabubuCase() {
         hideCustomDialog(); 
     }
 }
+window.openLabubuCase = openLabubuCase;
 
 // NEW: Open Labubu Case with Telegram Stars
 async function openLabubuCaseWithStars() {
@@ -311,7 +313,7 @@ async function openDarkAuraCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { 
-        showNotEnoughBalanceDialog(); 
+        showCustomDialog("Not enough UCoins", false); 
         return;
     }
 
@@ -385,6 +387,7 @@ async function openDarkAuraCase() {
         hideCustomDialog(); 
     }
 }
+window.openDarkAuraCase = openDarkAuraCase;
 
 // NEW: Open Girlish Case function
 async function openGirlishCase() {
@@ -396,7 +399,7 @@ async function openGirlishCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { 
-        showNotEnoughBalanceDialog(); 
+        showCustomDialog("Not enough UCoins", false); 
         return;
     }
 
@@ -509,7 +512,7 @@ async function openNewMoneyCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { 
-        showNotEnoughBalanceDialog(); 
+        showCustomDialog("Not enough UCoins", false); 
         return;
     }
 
@@ -605,7 +608,7 @@ async function openMainCharacterCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { 
-        showNotEnoughBalanceDialog(); 
+        showCustomDialog("Not enough UCoins", false); 
         return;
     }
 
@@ -702,7 +705,7 @@ async function openColdBloodedCase() {
     console.log(`[Case Opening] Attempting to open ${selectedQuantity} ${caseName}(s) for ${finalPrice} UCoins`);
 
     if (userBalance < finalPrice) { 
-        showNotEnoughBalanceDialog(); 
+        showCustomDialog("Not enough UCoins", false); 
         return;
     }
 
@@ -788,13 +791,5 @@ async function openColdBloodedCase() {
     }
 }
 window.openColdBloodedCase = openColdBloodedCase;
-
-// Helper to show not enough balance dialog (could be moved to utils.js or uiHandlers.js if not there)
-function showNotEnoughBalanceDialog() {
-    const dialog = document.getElementById('not-enough-balance-dialog');
-    if (dialog) {
-        dialog.classList.add('active');
-    }
-}
 
 console.log('[Case Opening] caseOpening.js loaded'); 
