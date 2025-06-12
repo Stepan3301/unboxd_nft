@@ -624,7 +624,7 @@ function showRouletteResult(item, caseType) {
                 player.style.maxHeight = '100%';
                 
                 try {
-                    player.setAnimationData(lottieAnimations[item.image]);
+                    player.load(lottieAnimations[item.image]);
                     imageContainer.appendChild(player);
                     rouletteStateManager.setActiveRoulette(caseType + '_result', player);
                     console.log('[Roulette] Lottie animation displayed successfully');

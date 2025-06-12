@@ -362,7 +362,7 @@ async function openDarkAuraCase() {
         hideCustomDialog(); 
 
         const uniqueItemId = generateUUID(); 
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId);
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             if (typeof addItemResult.new_balance !== 'undefined') {
@@ -474,7 +474,7 @@ async function openGirlishCase() {
         hideCustomDialog(); 
 
         const uniqueItemId = generateUUID(); 
-        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.lottie, winningItem.price, uniqueItemId);
+        const addItemResult = await addItemToInventoryDB(winningItem.name, winningItem.tier, winningItem.image, winningItem.price, uniqueItemId);
 
         if (addItemResult.success) {
             if (typeof addItemResult.new_balance !== 'undefined') {
