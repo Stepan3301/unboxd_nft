@@ -299,9 +299,29 @@
             </div>
             
             <!-- Cases Tab -->
-            <div class="tab-content" id="cases-tab">
-                <!-- New Sub-Navigation for Cases -->
-                <div class="cases-sub-nav">
+            <div class="tab-content active" id="cases-tab">
+                <!-- Featured Case: Dark Aura -->
+                <div class="featured-case-container" data-case-type="darkaura">
+                    <h2 class="section-title"><i class="fas fa-fire"></i> Featured Case</h2>
+                    <div class="featured-card">
+                        <div class="featured-image">
+                            <img src="DarkAuraCase.png" alt="Dark Aura Case">
+                        </div>
+                        <div class="featured-info">
+                            <h3 class="featured-name">Dark Aura Case</h3>
+                            <p class="featured-desc">Contains 7 unique Lottie animations with a dark and mysterious theme.</p>
+                            <div class="featured-action">
+                                <span class="featured-price">
+                                    <img src="ucoin2.png" alt="UCoins" style="width: 18px; height: 18px;"> 100
+                                </span>
+                                <button class="btn open-btn" data-case="darkaura">Open</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="section-title"><i class="fas fa-box-open"></i> All Cases</h2>
+                <div class="cases-sub-nav" id="cases-sub-nav">
                     <button class="cases-sub-nav-item active" data-filter="all">All Cases</button>
                     <button class="cases-sub-nav-item" data-filter="custom">Custom NFTs</button>
                     <button class="cases-sub-nav-item" data-filter="telegram">Telegram NFTs</button>
@@ -309,47 +329,6 @@
 
                 <!-- Case Listings -->
                 <div class="cases-listings">
-                    <!-- Featured Case -->
-                    <div class="featured-case-container" data-case-type="darkaura">
-                        <div class="section-title">
-                            <i class="fas fa-star"></i>
-                            Featured Case
-                        </div>
-                        <div class="featured-card">
-                            <div class="featured-image">
-                                <img src="DarkAuraCase.png" alt="Dark Aura Case">
-                            </div>
-                            <div class="featured-info">
-                                <div class="featured-name">Dark Aura Case</div>
-                                <div class="featured-desc">Mystical Halloween-themed Lottie animations with supernatural powers</div>
-                                <div class="featured-stats">
-                                    <div class="stat">
-                                        <div class="stat-value" id="darkaura-total-items-featured">13</div>
-                                        <div class="stat-label">Items</div>
-                                    </div>
-                                    <div class="stat">
-                                        <div class="stat-value">0.2%</div>
-                                        <div class="stat-label">Mythic</div>
-                                    </div>
-                                    <div class="stat">
-                                        <div class="stat-value">0.8%</div>
-                                        <div class="stat-label">Divine</div>
-                                    </div>
-                                </div>
-                                <div class="featured-action">
-                                    <div class="featured-price">
-                                        <img src="ucoin2.png" alt="UCoin">
-                                        100
-                                    </div>
-                                    <button class="featured-btn" data-case="darkaura">
-                                        View Items
-                                        <i class="fas fa-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- NEW Girlish Case Card (Featured) -->
                     <div class="featured-case-container" data-case-type="girlish">
                         <div class="section-title">
@@ -934,34 +913,34 @@
     <!-- Roulette Overlay -->
     <div class="roulette-overlay" id="roulette-overlay">
         <div class="roulette-container">
-        <div class="roulette-header">
+            <div class="roulette-header">
                 <h2>Opening Case...</h2>
-            <p>Good luck!</p>
-        </div>
+                <p>Good luck!</p>
+            </div>
             <div class="roulette-track-container">
                 <div class="roulette-marker"></div>
-                <div class="roulette-track" id="roulette-track">
-                    <!-- Roulette items will be generated by JavaScript -->
+                <div id="roulette-track" class="roulette-track">
+                    <!-- Roulette items will be dynamically generated here -->
                 </div>
             </div>
-        <div class="roulette-result" id="roulette-result">
-            <div class="roulette-result-image">
-                    <img id="result-image" src="" alt="Won Item" style="display: none;">
-            </div>
+            <div id="roulette-result">
+                <div id="result-image-container" class="roulette-result-image">
+                    <!-- Winning item image or lottie will be shown here -->
+                </div>
                 <div class="roulette-result-name" id="result-name">Item Name</div>
                 <div class="skin-price">
                     <img src="ucoin2.png" alt="UCoin">
                     <span id="sell-price">0</span>
                 </div>
-            <div class="roulette-buttons">
-                <button class="roulette-sell" id="roulette-sell">
+                <div class="roulette-buttons">
+                    <button class="roulette-sell" id="roulette-sell">
                         <i class="fas fa-coins"></i>
                         Sell
                     </button>
                     <button class="roulette-close" id="roulette-close">
                         <i class="fas fa-times"></i>
                         Keep & Close
-                </button>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1002,7 +981,7 @@
             <h2 id="custom-dialog-title">Notification</h2>
             <p id="custom-dialog-message">Processing...</p>
             <div id="custom-dialog-lottie-container" style="width: 100px; height: 100px; margin: 10px auto;"></div>
-                            <button class="btn" id="custom-dialog-ok-btn" style="display: none;">OK</button>
+            <button class="btn" id="custom-dialog-ok-btn" style="display: none;">OK</button>
         </div>
     </div>
 

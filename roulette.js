@@ -732,15 +732,16 @@ async function handleRouletteSell() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Roulette] Setting up roulette event listeners');
     
-    // Case opening buttons with data-case-type attribute
-    const caseButtons = document.querySelectorAll('[data-case-type]');
+    // Case opening buttons with data-case attribute
+    const caseButtons = document.querySelectorAll('.open-case-btn[data-case], .open-btn[data-case]');
     caseButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const caseType = this.dataset.caseType;
+        button.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent clicks from bubbling up to parent elements
+            const caseType = this.dataset.case;
             const functionName = `open${caseType.charAt(0).toUpperCase() + caseType.slice(1)}Case`;
             
             if (typeof window[functionName] === 'function') {
-                console.log(`[Roulette] Opening ${caseType} case`);
+                console.log(`[Roulette] Opening ${caseType} case via button click`);
                 window[functionName]();
             } else {
                 console.error(`[Roulette] Function ${functionName} not found`);

@@ -1282,19 +1282,20 @@ body {
 }
 
 .roulette-track {
-    display: flex; /* This is the key fix */
+    display: flex;
     height: 100%;
     will-change: transform;
+    transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .roulette-item {
     width: 120px;
     height: 120px;
-    flex-shrink: 0; /* Prevent items from shrinking */
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     margin: 0 5px;
